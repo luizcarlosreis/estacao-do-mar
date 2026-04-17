@@ -1,21 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const prisma = getPrisma();
-  const { id } = await params;
-  const unit = await prisma.unit.findUnique({
-    where: { id },
-    include: { residents: true, parkingSpaces: true }
-  });
-  if (!unit) return NextResponse.json({ message: 'Não encontrado' }, { status: 404 });
-  return NextResponse.json(unit);
-}
-
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const prisma = getPrisma();
   try {
     const { id } = await params;
     const body = await request.json();
@@ -27,8 +15,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const prisma = getPrisma();
-  const { id } = await params;
-  await prisma.unit.delete({ where: { id } });
-  return new Response(null, { status: 204 });
+  try {
+    const { id } = await params;
+    await prisma.unit.delete({ where: { id } });
+    return new Response(null, { status: 204 });
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
 }
