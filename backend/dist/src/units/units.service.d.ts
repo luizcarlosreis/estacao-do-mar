@@ -8,40 +8,52 @@ export declare class UnitsService {
         number: string;
         id: string;
         block: string;
-        ownerId: string | null;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     findAll(): import("@prisma/client").Prisma.PrismaPromise<({
-        owner: {
+        residents: {
             cpf: string;
             name: string;
-        } | null;
+        }[];
+        parkingSpaces: {
+            number: string;
+            block: string;
+        }[];
     } & {
         number: string;
         id: string;
         block: string;
-        ownerId: string | null;
     })[]>;
     findOne(id: string): Promise<{
-        owner: {
+        residents: {
             cpf: string;
             name: string;
-        } | null;
+            email: string;
+            password: string;
+            unitId: string | null;
+            id: string;
+            role: import("@prisma/client").$Enums.Role;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
+        parkingSpaces: {
+            number: string;
+            unitId: string | null;
+            id: string;
+            block: string;
+        }[];
     } & {
         number: string;
         id: string;
         block: string;
-        ownerId: string | null;
     }>;
     update(id: string, updateUnitDto: UpdateUnitDto): import("@prisma/client").Prisma.Prisma__UnitClient<{
         number: string;
         id: string;
         block: string;
-        ownerId: string | null;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     remove(id: string): import("@prisma/client").Prisma.Prisma__UnitClient<{
         number: string;
         id: string;
         block: string;
-        ownerId: string | null;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
 }

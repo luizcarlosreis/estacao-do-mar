@@ -23,9 +23,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  units        Unit[]
+  unitId    String?
+  unit      Unit?    @relation(fields: [unitId], references: [id])
+  
   vehicles     Vehicle[]
-  parkingSpaces ParkingSpace[]
   reservations Reservation[]
   visitors     Visitor[]
   occurrences  Occurrence[]
@@ -35,8 +36,9 @@ model Unit {
   id        String   @id @default(uuid())
   block     String   
   number    String   
-  ownerId   String?
-  owner     User?    @relation(fields: [ownerId], references: [id])
+  
+  residents     User[]
+  parkingSpaces ParkingSpace[]
 }
 
 model Vehicle {
@@ -52,8 +54,8 @@ model ParkingSpace {
   id        String   @id @default(uuid())
   number    String
   block     String
-  ownerId   String?
-  owner     User?    @relation(fields: [ownerId], references: [id])
+  unitId    String?
+  unit      Unit?    @relation(fields: [unitId], references: [id])
 }
 
 model Reservation {

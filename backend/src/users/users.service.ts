@@ -9,7 +9,7 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const { cpf, name, email, password } = createUserDto;
+    const { cpf, name, email, password, unitId } = createUserDto;
 
     const existingUser = await this.prisma.user.findFirst({
       where: {
@@ -21,7 +21,6 @@ export class UsersService {
       throw new ConflictException('Usuário com este CPF ou E-mail já existe.');
     }
 
-    // Default password as CPF if not provided, for demo purposes
     const hashedPassword = await bcrypt.hash(password || cpf, 10);
 
     return this.prisma.user.create({
@@ -31,19 +30,15 @@ export class UsersService {
         email,
         password: hashedPassword,
         role: 'MORADOR',
+        unitId,
       },
     });
   }
 
   findAll() {
     return this.prisma.user.findMany({
-      select: {
-        id: true,
-        cpf: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
+      include: {
+        unit: true,
       }
     });
   }
@@ -51,14 +46,8 @@ export class UsersService {
   async findOne(cpf: string) {
     const user = await this.prisma.user.findUnique({
       where: { cpf },
-      select: {
-        id: true,
-        cpf: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        units: true,
+      include: {
+        unit: true,
         vehicles: true,
       }
     });
@@ -71,36 +60,23 @@ export class UsersService {
   }
 
   async update(cpf: string, updateUserDto: UpdateUserDto) {
-    // Check if exists first
     await this.findOne(cpf);
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    const data = { ...updateUserDto };
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
     }
 
     return this.prisma.user.update({
       where: { cpf },
-      data: updateUserDto,
-      select: {
-        id: true,
-        cpf: true,
-        name: true,
-        email: true,
-        role: true,
-      }
+      data,
     });
   }
 
   async remove(cpf: string) {
-    // Check if exists
     await this.findOne(cpf);
-
     return this.prisma.user.delete({
       where: { cpf },
-      select: {
-        id: true,
-        cpf: true,
-      }
     });
   }
 }

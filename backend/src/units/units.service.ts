@@ -16,11 +16,11 @@ export class UnitsService {
   findAll() {
     return this.prisma.unit.findMany({
       include: {
-        owner: {
-          select: {
-            name: true,
-            cpf: true,
-          }
+        residents: {
+          select: { name: true, cpf: true }
+        },
+        parkingSpaces: {
+          select: { number: true, block: true }
         }
       }
     });
@@ -30,12 +30,8 @@ export class UnitsService {
     const unit = await this.prisma.unit.findUnique({
       where: { id },
       include: {
-        owner: {
-          select: {
-            name: true,
-            cpf: true,
-          }
-        }
+        residents: true,
+        parkingSpaces: true
       }
     });
     if (!unit) {

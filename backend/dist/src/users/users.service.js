@@ -52,7 +52,7 @@ let UsersService = class UsersService {
         this.prisma = prisma;
     }
     async create(createUserDto) {
-        const { cpf, name, email, password } = createUserDto;
+        const { cpf, name, email, password, unitId } = createUserDto;
         const existingUser = await this.prisma.user.findFirst({
             where: {
                 OR: [{ cpf }, { email }]
@@ -69,32 +69,22 @@ let UsersService = class UsersService {
                 email,
                 password: hashedPassword,
                 role: 'MORADOR',
+                unitId,
             },
         });
     }
     findAll() {
         return this.prisma.user.findMany({
-            select: {
-                id: true,
-                cpf: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
+            include: {
+                unit: true,
             }
         });
     }
     async findOne(cpf) {
         const user = await this.prisma.user.findUnique({
             where: { cpf },
-            select: {
-                id: true,
-                cpf: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-                units: true,
+            include: {
+                unit: true,
                 vehicles: true,
             }
         });
@@ -105,29 +95,19 @@ let UsersService = class UsersService {
     }
     async update(cpf, updateUserDto) {
         await this.findOne(cpf);
-        if (updateUserDto.password) {
-            updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+        const data = { ...updateUserDto };
+        if (data.password) {
+            data.password = await bcrypt.hash(data.password, 10);
         }
         return this.prisma.user.update({
             where: { cpf },
-            data: updateUserDto,
-            select: {
-                id: true,
-                cpf: true,
-                name: true,
-                email: true,
-                role: true,
-            }
+            data,
         });
     }
     async remove(cpf) {
         await this.findOne(cpf);
         return this.prisma.user.delete({
             where: { cpf },
-            select: {
-                id: true,
-                cpf: true,
-            }
         });
     }
 };

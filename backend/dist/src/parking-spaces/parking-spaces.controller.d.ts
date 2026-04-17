@@ -6,42 +6,43 @@ export declare class ParkingSpacesController {
     constructor(parkingSpacesService: ParkingSpacesService);
     create(createParkingSpaceDto: CreateParkingSpaceDto): import("@prisma/client").Prisma.Prisma__ParkingSpaceClient<{
         number: string;
+        unitId: string | null;
         id: string;
         block: string;
-        ownerId: string | null;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     findAll(): import("@prisma/client").Prisma.PrismaPromise<({
-        owner: {
-            cpf: string;
-            name: string;
+        unit: {
+            number: string;
+            block: string;
         } | null;
     } & {
         number: string;
+        unitId: string | null;
         id: string;
         block: string;
-        ownerId: string | null;
     })[]>;
     findOne(id: string): Promise<{
-        owner: {
-            cpf: string;
-            name: string;
+        unit: {
+            number: string;
+            id: string;
+            block: string;
         } | null;
     } & {
         number: string;
+        unitId: string | null;
         id: string;
         block: string;
-        ownerId: string | null;
     }>;
     update(id: string, updateParkingSpaceDto: UpdateParkingSpaceDto): import("@prisma/client").Prisma.Prisma__ParkingSpaceClient<{
         number: string;
+        unitId: string | null;
         id: string;
         block: string;
-        ownerId: string | null;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     remove(id: string): import("@prisma/client").Prisma.Prisma__ParkingSpaceClient<{
         number: string;
+        unitId: string | null;
         id: string;
         block: string;
-        ownerId: string | null;
     }, never, import("@prisma/client/runtime/client").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
 }

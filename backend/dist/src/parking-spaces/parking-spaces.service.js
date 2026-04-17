@@ -25,10 +25,10 @@ let ParkingSpacesService = class ParkingSpacesService {
     findAll() {
         return this.prisma.parkingSpace.findMany({
             include: {
-                owner: {
+                unit: {
                     select: {
-                        name: true,
-                        cpf: true,
+                        number: true,
+                        block: true,
                     }
                 }
             }
@@ -38,12 +38,7 @@ let ParkingSpacesService = class ParkingSpacesService {
         const space = await this.prisma.parkingSpace.findUnique({
             where: { id },
             include: {
-                owner: {
-                    select: {
-                        name: true,
-                        cpf: true,
-                    }
-                }
+                unit: true
             }
         });
         if (!space) {

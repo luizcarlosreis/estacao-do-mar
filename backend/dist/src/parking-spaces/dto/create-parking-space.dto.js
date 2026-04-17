@@ -4,7 +4,7 @@ exports.CreateParkingSpaceDto = void 0;
 class CreateParkingSpaceDto {
     number;
     block;
-    ownerId;
+    unitId;
 }
 exports.CreateParkingSpaceDto = CreateParkingSpaceDto;
 //# sourceMappingURL=create-parking-space.dto.js.map

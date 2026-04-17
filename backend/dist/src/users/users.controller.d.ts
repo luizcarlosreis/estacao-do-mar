@@ -9,49 +9,73 @@ export declare class UsersController {
         name: string;
         email: string;
         password: string;
+        unitId: string | null;
         id: string;
         role: import("@prisma/client").$Enums.Role;
         createdAt: Date;
         updatedAt: Date;
     }>;
-    findAll(): import("@prisma/client").Prisma.PrismaPromise<{
-        cpf: string;
-        name: string;
-        email: string;
-        id: string;
-        role: import("@prisma/client").$Enums.Role;
-        createdAt: Date;
-    }[]>;
-    findOne(cpf: string): Promise<{
-        cpf: string;
-        name: string;
-        email: string;
-        id: string;
-        role: import("@prisma/client").$Enums.Role;
-        createdAt: Date;
-        units: {
+    findAll(): import("@prisma/client").Prisma.PrismaPromise<({
+        unit: {
             number: string;
             id: string;
             block: string;
-            ownerId: string | null;
-        }[];
+        } | null;
+    } & {
+        cpf: string;
+        name: string;
+        email: string;
+        password: string;
+        unitId: string | null;
+        id: string;
+        role: import("@prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
+    })[]>;
+    findOne(cpf: string): Promise<{
+        unit: {
+            number: string;
+            id: string;
+            block: string;
+        } | null;
         vehicles: {
             id: string;
-            ownerId: string;
             plate: string;
             model: string;
             color: string;
+            ownerId: string;
         }[];
+    } & {
+        cpf: string;
+        name: string;
+        email: string;
+        password: string;
+        unitId: string | null;
+        id: string;
+        role: import("@prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     update(cpf: string, updateUserDto: UpdateUserDto): Promise<{
         cpf: string;
         name: string;
         email: string;
+        password: string;
+        unitId: string | null;
         id: string;
         role: import("@prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     remove(cpf: string): Promise<{
         cpf: string;
+        name: string;
+        email: string;
+        password: string;
+        unitId: string | null;
         id: string;
+        role: import("@prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }
