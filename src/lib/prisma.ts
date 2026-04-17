@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 // @ts-ignore
 const prisma = global.prisma || new PrismaClient({
-  // Fallback para evitar erro durante o build estático da Vercel
+  // Fallback para evitar erro durante o build estático
   datasourceUrl: process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy"
 });
 
