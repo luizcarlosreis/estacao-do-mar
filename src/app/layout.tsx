@@ -11,11 +11,10 @@ import {
   Wrench, 
   ListTodo, 
   LayoutDashboard,
-  Menu,
-  X,
-  ChevronRight,
   Bell,
-  Settings
+  Home as HomeIcon,
+  LogOut,
+  ChevronRight
 } from 'lucide-react';
 
 export default function RootLayout({
@@ -23,7 +22,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const pathname = usePathname();
 
   const menuItems = [
@@ -38,100 +36,92 @@ export default function RootLayout({
 
   return (
     <html lang="pt-br">
-      <body className="bg-slate-50 text-slate-900">
-        <div className="flex min-h-screen">
-          {/* Sidebar */}
-          <aside 
-            className={`${
-              isSidebarOpen ? 'w-64' : 'w-20'
-            } bg-slate-900 text-slate-300 transition-all duration-300 flex flex-col fixed h-full z-50`}
-          >
-            <div className="p-4 flex items-center justify-between border-b border-slate-800 h-16">
-              {isSidebarOpen && (
-                <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-                  <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold shrink-0">
-                    EM
-                  </div>
-                  <span className="font-bold text-white text-lg">Estação do Mar</span>
+      <body className="bg-slate-50 text-slate-900 m-0 p-0 font-sans">
+        <div className="flex flex-col md:flex-row min-h-screen">
+          
+          {/* Menu Lateral (Sidebar) */}
+          <aside className="w-full md:w-72 bg-slate-900 text-white flex-shrink-0 flex flex-col shadow-2xl">
+            {/* Header Sidebar */}
+            <div className="p-6 border-b border-slate-800 bg-slate-950/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/40">
+                  <HomeIcon size={22} className="text-white" />
                 </div>
-              )}
-              {!isSidebarOpen && (
-                <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold mx-auto">
-                  EM
+                <div>
+                  <h1 className="font-bold text-lg leading-none">Estação do Mar</h1>
+                  <span className="text-blue-400 text-xs font-semibold uppercase tracking-widest">Condomínio</span>
                 </div>
-              )}
+              </div>
             </div>
 
-            <nav className="flex-1 mt-6 px-2 space-y-1 overflow-y-auto">
+            {/* Links de Navegação */}
+            <nav className="flex-1 p-4 space-y-1">
+              <p className="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Menu Principal</p>
               {menuItems.map((item) => {
                 const isActive = pathname === item.path;
                 return (
                   <Link 
                     key={item.path} 
                     href={item.path}
-                    className={`flex items-center p-3 rounded-lg transition-colors group ${
+                    className={`flex items-center justify-between p-3.5 rounded-xl transition-all duration-200 group ${
                       isActive 
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
-                        : 'hover:bg-slate-800 hover:text-white'
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'hover:bg-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <div className={`${isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'}`}>
-                      {item.icon}
+                    <div className="flex items-center gap-3">
+                      <span className={`${isActive ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`}>
+                        {item.icon}
+                      </span>
+                      <span className="font-medium text-sm">{item.title}</span>
                     </div>
-                    {isSidebarOpen && (
-                      <span className="ml-3 font-medium flex-1">{item.title}</span>
-                    )}
-                    {isSidebarOpen && isActive && (
-                      <ChevronRight size={14} className="opacity-50" />
-                    )}
+                    {isActive && <ChevronRight size={14} className="opacity-50" />}
                   </Link>
                 );
               })}
             </nav>
 
+            {/* Rodapé Sidebar */}
             <div className="p-4 border-t border-slate-800">
-              <button 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="w-full flex items-center justify-center p-2 hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
+              <div className="bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center font-bold text-xs">AD</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold truncate">Administrador</p>
+                  <p className="text-[10px] text-slate-500 truncate">Sair do sistema</p>
+                </div>
+                <button className="text-slate-500 hover:text-red-400 transition-colors">
+                  <LogOut size={16} />
+                </button>
+              </div>
             </div>
           </aside>
 
-          {/* Main Content */}
-          <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}>
+          {/* Conteúdo Principal */}
+          <div className="flex-1 flex flex-col">
+            
             {/* Topbar */}
-            <header className="bg-white border-b border-slate-200 h-16 sticky top-0 z-40 flex items-center justify-between px-8 shadow-sm">
-              <div className="flex items-center gap-4 text-slate-500">
-                <span className="text-sm font-medium">Condomínio Residencial Estação do Mar</span>
+            <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10 shadow-sm">
+              <div className="text-slate-400 text-sm italic">
+                {pathname === '/' ? 'Bem-vindo de volta!' : `Início > ${pathname.substring(1)}`}
               </div>
-              
-              <div className="flex items-center gap-6">
-                <button className="relative p-2 text-slate-400 hover:text-blue-600 transition-colors">
-                  <Bell size={20} />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              <div className="flex items-center gap-4">
+                <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-full relative">
+                  <Bell size={18} />
+                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
                 </button>
-                <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
-                  <Settings size={20} />
-                </button>
-                <div className="flex items-center gap-3 border-l border-slate-200 pl-6 ml-2">
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-slate-700">Administração</p>
-                    <p className="text-xs text-slate-400">logado como síndico</p>
-                  </div>
-                  <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 font-bold border-2 border-white ring-2 ring-slate-100">
-                    AD
-                  </div>
-                </div>
+                <div className="h-6 w-px bg-slate-200 mx-2"></div>
+                <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">Painel Admin</span>
               </div>
             </header>
 
-            {/* Page Content */}
-            <div className="p-8">
-              {children}
-            </div>
-          </main>
+            {/* Conteúdo da Página */}
+            <main className="p-6 md:p-10">
+              <div className="max-w-6xl mx-auto">
+                {children}
+              </div>
+            </main>
+
+          </div>
         </div>
       </body>
     </html>
