@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const prisma = getPrisma();
+  
   const spaces = await prisma.parkingSpace.findMany({
     include: { unit: { select: { number: true, block: true } } }
   });
@@ -12,7 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const prisma = getPrisma();
+  
   try {
     const body = await request.json();
     const space = await prisma.parkingSpace.create({ data: body });
@@ -21,3 +21,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }
+

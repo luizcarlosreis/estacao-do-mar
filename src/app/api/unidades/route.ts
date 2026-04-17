@@ -1,21 +1,23 @@
 import { NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const prisma = getPrisma();
-  const units = await prisma.unit.findMany({
-    include: {
-      residents: { select: { name: true, cpf: true } },
-      parkingSpaces: { select: { number: true, block: true } }
-    }
-  });
-  return NextResponse.json(units);
+  try {
+    const units = await prisma.unit.findMany({
+      include: {
+        residents: { select: { name: true, cpf: true } },
+        parkingSpaces: { select: { number: true, block: true } }
+      }
+    });
+    return NextResponse.json(units);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const prisma = getPrisma();
   try {
     const body = await request.json();
     const unit = await prisma.unit.create({ data: body });
