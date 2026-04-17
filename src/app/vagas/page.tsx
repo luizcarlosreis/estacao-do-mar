@@ -1,0 +1,182 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Search, X, Building } from 'lucide-react';
+
+type Unit = {
+  id: string;
+  number: string;
+  block: string;
+};
+
+type ParkingSpace = {
+  id: string;
+  number: string;
+  block: string;
+  unitId?: string;
+  unit?: Unit;
+};
+
+export default function VagasPage() {
+  const [vagas, setVagas] = useState<ParkingSpace[]>([]);
+  const [unidades, setUnidades] = useState<Unit[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formData, setFormData] = useState({ id: '', number: '', block: '', unitId: '' });
+
+  const API_URL = '/api/vagas';
+  const UNIDADES_URL = '/api/unidades';
+
+  useEffect(() => {
+    fetchVagas();
+    fetchUnidades();
+  }, []);
+
+  const fetchVagas = async () => {
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setVagas(data);
+    } catch (error) {
+      console.error('Erro ao buscar vagas', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUnidades = async () => {
+    try {
+      const res = await fetch(UNIDADES_URL);
+      const data = await res.json();
+      setUnidades(data);
+    } catch (error) {
+      console.error('Erro ao buscar unidades', error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
+      const method = isEditMode ? 'PATCH' : 'POST';
+      
+      const payload: any = { number: formData.number, block: formData.block };
+      payload.unitId = formData.unitId || null;
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setIsModalOpen(false);
+        fetchVagas();
+      } else {
+        const errorData = await res.json();
+        alert(`Erro: ${errorData.message || 'Falha ao salvar'}`);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar vaga', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm(`Tem certeza que deseja excluir esta vaga?`)) return;
+    try {
+      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchVagas();
+    } catch (error) {
+      console.error('Erro ao excluir vaga', error);
+    }
+  };
+
+  const openEditModal = (vaga: ParkingSpace) => {
+    setFormData({ id: vaga.id, number: vaga.number, block: vaga.block, unitId: vaga.unitId || '' });
+    setIsEditMode(true);
+    setIsModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setFormData({ id: '', number: '', block: '', unitId: '' });
+    setIsEditMode(false);
+    setIsModalOpen(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-background font-sans p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-primary">Gestão de Vagas</h1>
+          <button onClick={openCreateModal} className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition">
+            <Plus size={20} /> Nova Vaga
+          </button>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600 text-sm border-b border-gray-200">
+                  <th className="p-4 font-semibold">Vaga</th>
+                  <th className="p-4 font-semibold">Setor/Bloco</th>
+                  <th className="p-4 font-semibold">Apartamento Vinculado</th>
+                  <th className="p-4 font-semibold text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-700">
+                {loading ? (
+                  <tr><td colSpan={4} className="p-8 text-center">Carregando...</td></tr>
+                ) : vagas.map((vaga) => (
+                  <tr key={vaga.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
+                    <td className="p-4 font-medium">{vaga.number}</td>
+                    <td className="p-4">{vaga.block}</td>
+                    <td className="p-4">
+                      {vaga.unit ? (
+                        <span className="flex items-center gap-1 text-primary">
+                          <Building size={14} /> {vaga.unit.number} - {vaga.unit.block}
+                        </span>
+                      ) : <span className="text-gray-400">Não vinculada</span>}
+                    </td>
+                    <td className="p-4 flex justify-center gap-3">
+                      <button onClick={() => openEditModal(vaga)} className="text-primary"><Edit2 size={18} /></button>
+                      <button onClick={() => handleDelete(vaga.id)} className="text-red-500"><Trash2 size={18} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-primary">{isEditMode ? 'Editar Vaga' : 'Nova Vaga'}</h2>
+              <button onClick={() => setIsModalOpen(false)}><X size={24} /></button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input type="text" placeholder="Número da Vaga" className="w-full p-2 border rounded" value={formData.number} onChange={(e) => setFormData({...formData, number: e.target.value})} />
+              <input type="text" placeholder="Bloco/Setor" className="w-full p-2 border rounded" value={formData.block} onChange={(e) => setFormData({...formData, block: e.target.value})} />
+              
+              <select className="w-full p-2 border rounded bg-white" value={formData.unitId} onChange={(e) => setFormData({...formData, unitId: e.target.value})}>
+                <option value="">Pertence a qual Apartamento? (Opcional)</option>
+                {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+              </select>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border rounded">Cancelar</button>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Salvar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
