@@ -20,6 +20,13 @@ enum EmployeeRole {
   MANUTENCAO
 }
 
+enum TaskStatus {
+  BACKLOG
+  IN_PROGRESS
+  CANCELED
+  DONE
+}
+
 model User {
   id        String   @id @default(uuid())
   cpf       String   @unique
@@ -60,6 +67,16 @@ model Maintenance {
   nextMaintenanceAt DateTime
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus @default(BACKLOG)
+  performedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Unit {
