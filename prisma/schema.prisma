@@ -39,6 +39,8 @@ model User {
   
   unitId    String?
   unit      Unit?    @relation(fields: [unitId], references: [id])
+  ddd       String?
+  phone     String?
   
   vehicles     Vehicle[]
   reservations Reservation[]

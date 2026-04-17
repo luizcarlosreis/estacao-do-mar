@@ -18,6 +18,8 @@ type User = {
   createdAt: string;
   unitId?: string;
   unit?: Unit;
+  ddd?: string;
+  phone?: string;
 };
 
 export default function MoradoresPage() {
@@ -27,7 +29,7 @@ export default function MoradoresPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '' });
+  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '' });
 
   const API_URL = '/api/moradores';
   const UNIDADES_URL = '/api/unidades';
@@ -78,7 +80,7 @@ export default function MoradoresPage() {
       if (res.ok) {
         setIsModalOpen(false);
         fetchMoradores();
-        setFormData({ cpf: '', name: '', email: '', password: '', unitId: '' });
+        setFormData({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '' });
       } else {
         const errorData = await res.json();
         alert(`Erro: ${errorData.message || 'Falha ao salvar'}`);
@@ -104,14 +106,16 @@ export default function MoradoresPage() {
       name: morador.name, 
       email: morador.email, 
       password: '', 
-      unitId: morador.unitId || '' 
+      unitId: morador.unitId || '',
+      ddd: morador.ddd || '',
+      phone: morador.phone || ''
     });
     setIsEditMode(true);
     setIsModalOpen(true);
   };
 
   const openCreateModal = () => {
-    setFormData({ cpf: '', name: '', email: '', password: '', unitId: '' });
+    setFormData({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '' });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -139,6 +143,7 @@ export default function MoradoresPage() {
                   <th className="p-4 font-semibold">CPF</th>
                   <th className="p-4 font-semibold">Apartamento</th>
                   <th className="p-4 font-semibold">E-mail</th>
+                  <th className="p-4 font-semibold">Telefone</th>
                   <th className="p-4 font-semibold text-center">Ações</th>
                 </tr>
               </thead>
@@ -157,6 +162,7 @@ export default function MoradoresPage() {
                       ) : <span className="text-gray-400">Não vinculado</span>}
                     </td>
                     <td className="p-4">{morador.email}</td>
+                    <td className="p-4">{morador.ddd ? `(${morador.ddd}) ` : ''}{morador.phone || '-'}</td>
                     <td className="p-4 flex justify-center gap-3">
                       <button onClick={() => openEditModal(morador)} className="text-primary"><Edit2 size={18} /></button>
                       <button onClick={() => handleDelete(morador.cpf)} className="text-red-500"><Trash2 size={18} /></button>
@@ -182,6 +188,11 @@ export default function MoradoresPage() {
               <input type="text" placeholder="Nome" className="w-full p-2 border rounded" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
               <input type="email" placeholder="E-mail" className="w-full p-2 border rounded" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
               <input type="password" placeholder="Senha" className="w-full p-2 border rounded" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+              
+              <div className="flex gap-2">
+                <input type="text" placeholder="DDD" className="w-1/4 p-2 border rounded" value={formData.ddd} onChange={(e) => setFormData({...formData, ddd: e.target.value})} />
+                <input type="text" placeholder="Telefone" className="w-3/4 p-2 border rounded" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+              </div>
               
               <select className="w-full p-2 border rounded bg-white" value={formData.unitId} onChange={(e) => setFormData({...formData, unitId: e.target.value})}>
                 <option value="">Vincular Apartamento (Opcional)</option>

@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: Request) {
   
   try {
-    const { cpf, name, email, password, unitId } = await request.json();
+    const { cpf, name, email, password, unitId, ddd, phone } = await request.json();
     const hashedPassword = await bcrypt.hash(password || cpf, 10);
     const user = await (getPrisma()).user.create({
       data: {
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: 'MORADOR',
         unitId: unitId || null,
+        ddd,
+        phone,
       },
     });
     return NextResponse.json(user, { status: 201 });
