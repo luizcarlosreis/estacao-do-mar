@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  SINDICO
+  PORTEIRO
+  MORADOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  cpf       String   @unique
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(MORADOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  units        Unit[]
+  vehicles     Vehicle[]
+  reservations Reservation[]
+  visitors     Visitor[]
+  occurrences  Occurrence[]
+}
+
+model Unit {
+  id        String   @id @default(uuid())
+  block     String   
+  number    String   
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  parkingSpaces ParkingSpace[]
+}
+
+model Vehicle {
+  id        String   @id @default(uuid())
+  plate     String   @unique
+  model     String
+  color     String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+}
+
+model ParkingSpace {
+  id        String   @id @default(uuid())
+  number    String
+  block     String
+  unitId    String?
+  unit      Unit?    @relation(fields: [unitId], references: [id])
+}
+
+model Reservation {
+  id        String   @id @default(uuid())
+  area      String   
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  status    String   @default("PENDING") 
+}
+
+model Visitor {
+  id        String   @id @default(uuid())
+  name      String
+  document  String   
+  qrCode    String?  @unique 
+  validUntil DateTime?
+  hostId    String
+  host      User     @relation(fields: [hostId], references: [id])
+  logs      AccessLog[]
+}
+
+model AccessLog {
+  id        String   @id @default(uuid())
+  visitorId String?
+  visitor   Visitor? @relation(fields: [visitorId], references: [id])
+  type      String   
+  timestamp DateTime @default(now())
+  notes     String?
+}
+
+model Notice {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  authorId  String   
+}
+
+model Occurrence {
+  id        String   @id @default(uuid())
+  title     String
+  description String
+  photoUrl  String?
+  status    String   @default("OPEN") 
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
