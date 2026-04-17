@@ -25,6 +25,7 @@ model User {
   
   units        Unit[]
   vehicles     Vehicle[]
+  parkingSpaces ParkingSpace[]
   reservations Reservation[]
   visitors     Visitor[]
   occurrences  Occurrence[]
@@ -36,7 +37,6 @@ model Unit {
   number    String   
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id])
-  parkingSpaces ParkingSpace[]
 }
 
 model Vehicle {
@@ -52,8 +52,8 @@ model ParkingSpace {
   id        String   @id @default(uuid())
   number    String
   block     String
-  unitId    String?
-  unit      Unit?    @relation(fields: [unitId], references: [id])
+  ownerId   String?
+  owner     User?    @relation(fields: [ownerId], references: [id])
 }
 
 model Reservation {

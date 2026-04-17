@@ -6,21 +6,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppModule = void 0;
+exports.ParkingSpacesModule = void 0;
 const common_1 = require("@nestjs/common");
-const app_controller_1 = require("./app.controller");
-const app_service_1 = require("./app.service");
-const prisma_module_1 = require("./prisma/prisma.module");
-const users_module_1 = require("./users/users.module");
-const parking_spaces_module_1 = require("./parking-spaces/parking-spaces.module");
-let AppModule = class AppModule {
+const parking_spaces_service_1 = require("./parking-spaces.service");
+const parking_spaces_controller_1 = require("./parking-spaces.controller");
+let ParkingSpacesModule = class ParkingSpacesModule {
 };
-exports.AppModule = AppModule;
-exports.AppModule = AppModule = __decorate([
+exports.ParkingSpacesModule = ParkingSpacesModule;
+exports.ParkingSpacesModule = ParkingSpacesModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, parking_spaces_module_1.ParkingSpacesModule],
-        controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        controllers: [parking_spaces_controller_1.ParkingSpacesController],
+        providers: [parking_spaces_service_1.ParkingSpacesService],
     })
-], AppModule);
-//# sourceMappingURL=app.module.js.map
+], ParkingSpacesModule);
+//# sourceMappingURL=parking-spaces.module.js.map
