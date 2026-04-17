@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   
-  const users = await prisma.user.findMany({
+  const users = await (getPrisma()).user.findMany({
     where: { role: 'MORADOR' },
     include: { unit: true }
   });
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   try {
     const { cpf, name, email, password, unitId } = await request.json();
     const hashedPassword = await bcrypt.hash(password || cpf, 10);
-    const user = await prisma.user.create({
+    const user = await (getPrisma()).user.create({
       data: {
         cpf,
         name,
@@ -33,4 +33,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }
+
 

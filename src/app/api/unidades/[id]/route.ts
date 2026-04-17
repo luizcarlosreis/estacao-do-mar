@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const prisma = getPrisma();
     const { id } = await params;
     const body = await request.json();
     const unit = await prisma.unit.update({ where: { id }, data: body });
@@ -16,6 +17,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const prisma = getPrisma();
     const { id } = await params;
     await prisma.unit.delete({ where: { id } });
     return new Response(null, { status: 204 });

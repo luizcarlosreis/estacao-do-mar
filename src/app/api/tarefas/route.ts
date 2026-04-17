@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const prisma = getPrisma();
     const data = await prisma.task.findMany({ orderBy: { createdAt: 'desc' } });
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error('Error fetching tasks:', error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  
   try {
+    const prisma = getPrisma();
     const body = await request.json();
     const data = await prisma.task.create({
       data: {
@@ -28,4 +28,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }
-

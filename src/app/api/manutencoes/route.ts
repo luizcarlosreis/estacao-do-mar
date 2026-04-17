@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   
-  const data = await prisma.maintenance.findMany({ orderBy: { performedAt: 'desc' } });
+  const data = await (getPrisma()).maintenance.findMany({ orderBy: { performedAt: 'desc' } });
   return NextResponse.json(data);
 }
 
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   
   try {
     const body = await request.json();
-    const data = await prisma.maintenance.create({
+    const data = await (getPrisma()).maintenance.create({
       data: {
         ...body,
         performedAt: new Date(body.performedAt),
@@ -25,4 +25,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }
+
 
