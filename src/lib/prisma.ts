@@ -1,18 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 
-const getPrismaInstance = () => {
-  // Injeta uma URL dummy se a variável estiver ausente durante o build
-  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.trim() === "") {
-    process.env.DATABASE_URL = "postgresql://dummy:dummy@localhost:5432/dummy";
-  }
+const prismaClientSingleton = () => {
   return new PrismaClient();
 };
 
 declare global {
-  var prisma: undefined | ReturnType<typeof getPrismaInstance>;
+  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
-const prisma = globalThis.prisma ?? getPrismaInstance();
+const prisma = globalThis.prisma ?? prismaClientSingleton();
 
 export default prisma;
 export const getPrisma = () => prisma;

@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Removido o bloco eslint que causou erro no Next.js 16
+  env: {
+    // Força a existência da variável durante o build para o Prisma não quebrar
+    DATABASE_URL: process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy",
+  }
 };
 
 export default nextConfig;
