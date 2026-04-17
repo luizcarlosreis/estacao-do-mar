@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const prisma = getPrisma();
   const data = await prisma.task.findMany({ orderBy: { createdAt: 'desc' } });
   return NextResponse.json(data);
 }
 
 export async function POST(request: Request) {
+  const prisma = getPrisma();
   try {
     const body = await request.json();
     const data = await prisma.task.create({

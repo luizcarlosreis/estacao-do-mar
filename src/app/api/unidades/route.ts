@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const prisma = getPrisma();
   const units = await prisma.unit.findMany({
     include: {
       residents: { select: { name: true, cpf: true } },
@@ -14,6 +15,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const prisma = getPrisma();
   try {
     const body = await request.json();
     const unit = await prisma.unit.create({ data: body });

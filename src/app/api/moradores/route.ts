@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const prisma = getPrisma();
   const users = await prisma.user.findMany({
     where: { role: 'MORADOR' },
     include: { unit: true }
@@ -13,6 +14,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const prisma = getPrisma();
   try {
     const { cpf, name, email, password, unitId } = await request.json();
     

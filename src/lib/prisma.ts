@@ -4,20 +4,20 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-const getPrisma = (): PrismaClient => {
+export const getPrisma = (): PrismaClient => {
+  // Se já existir no global (desenvolvimento), retorna
   if (globalThis.prisma) return globalThis.prisma;
 
-  // Só cria o cliente se a DATABASE_URL existir.
-  // Se não existir (ex: durante o build do Next.js), retornamos uma instância "dummy" 
-  // ou lidamos com o erro de forma que não quebre o build.
-  if (!process.env.DATABASE_URL) {
-    // Durante o build, o Next.js às vezes avalia os módulos. 
-    // Se não houver URL, retornamos um objeto que satisfaça o tipo mas não inicialize o binário do Prisma.
+  const url = process.env.DATABASE_URL;
+
+  // Se não houver URL (fase de build ou erro de config)
+  if (!url || url.trim() === "") {
+    console.warn("⚠️ DATABASE_URL não encontrada. Usando Proxy para evitar quebra no build.");
     return new Proxy({} as PrismaClient, {
       get: (target, prop) => {
         if (prop === 'then') return undefined;
         return () => {
-          throw new Error(`Prisma falhou: DATABASE_URL não configurada. Verifique as variáveis de ambiente na Vercel.`);
+          throw new Error(`Prisma falhou: DATABASE_URL não configurada ou vazia. Verifique as variáveis de ambiente na Vercel.`);
         };
       },
     });
@@ -32,6 +32,6 @@ const getPrisma = (): PrismaClient => {
   return client;
 };
 
-// Exportamos o resultado da função como default para manter compatibilidade com os imports atuais
-const prisma = getPrisma();
-export default prisma;
+// Removemos a inicialização imediata do singleton no topo do arquivo
+// Para manter compatibilidade, o default export agora é uma função getter disfarçada? 
+// Não, melhor mudar os imports para usar getPrisma() explicitamente.
