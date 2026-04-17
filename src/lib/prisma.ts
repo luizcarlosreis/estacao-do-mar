@@ -1,19 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 
-// @ts-ignore
-const prisma = global.prisma || new PrismaClient({
-  // Fallback para evitar erro durante o build estático
-  datasourceUrl: process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy"
-});
+const getPrismaInstance = () => {
+  // Injeta uma URL dummy se a variável estiver ausente durante o build
+  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.trim() === "") {
+    process.env.DATABASE_URL = "postgresql://dummy:dummy@localhost:5432/dummy";
+  }
+  return new PrismaClient();
+};
 
-if (process.env.NODE_ENV !== 'production') {
-  // @ts-ignore
-  global.prisma = prisma;
+declare global {
+  var prisma: undefined | ReturnType<typeof getPrismaInstance>;
 }
+
+const prisma = globalThis.prisma ?? getPrismaInstance();
 
 export default prisma;
 export const getPrisma = () => prisma;
 
-declare global {
-  var prisma: PrismaClient | undefined;
-}
+if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
