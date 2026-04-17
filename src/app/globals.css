@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+}
+
 :root {
   --background: #ffffff;
   --foreground: #1e293b;
@@ -14,7 +21,6 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
-/* Estilos para evitar saltos de layout */
 .main-container {
   min-height: calc(100vh - 64px);
 }
