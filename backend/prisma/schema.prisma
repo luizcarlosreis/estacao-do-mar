@@ -44,18 +44,28 @@ model Employee {
   name      String
   cpf       String       @unique
   email     String?      @unique
-  password  String?      // Senha para porteiros/acesso ao sistema
+  password  String?      
   phone     String?
   role      EmployeeRole
-  shift     String?      // Turno: Manhã, Tarde, Noite, 12x36
+  shift     String?      
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+}
+
+model Maintenance {
+  id                String   @id @default(uuid())
+  title             String
+  description       String?
+  performedAt       DateTime
+  nextMaintenanceAt DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Unit {
   id            String         @id @default(uuid())
   block         String   
-  number        String   
+  number    String   
   residents     User[]
   parkingSpaces ParkingSpace[]
 }
