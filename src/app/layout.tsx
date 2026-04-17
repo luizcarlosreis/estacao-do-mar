@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -22,7 +22,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const menuItems = [
     { title: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
@@ -33,6 +38,8 @@ export default function RootLayout({
     { title: 'Manutenções', icon: <Wrench size={20} />, path: '/manutencoes' },
     { title: 'Tarefas', icon: <ListTodo size={20} />, path: '/tarefas' },
   ];
+
+  if (!mounted) return null;
 
   return (
     <html lang="pt-br">
