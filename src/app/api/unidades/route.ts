@@ -14,7 +14,8 @@ export async function GET() {
     });
     return NextResponse.json(units);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error('API GET Unidades Error:', error.message);
+    return NextResponse.json({ message: error.message || 'Erro interno no servidor' }, { status: 500 });
   }
 }
 
@@ -22,9 +23,21 @@ export async function POST(request: Request) {
   try {
     const prisma = getPrisma();
     const body = await request.json();
-    const unit = await prisma.unit.create({ data: body });
+    
+    // Validação básica
+    if (!body.number || !body.block) {
+      return NextResponse.json({ message: 'Número e Bloco são obrigatórios' }, { status: 400 });
+    }
+
+    const unit = await prisma.unit.create({ 
+      data: {
+        number: String(body.number),
+        block: String(body.block)
+      }
+    });
     return NextResponse.json(unit, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 400 });
+    console.error('API POST Unidades Error:', error.message);
+    return NextResponse.json({ message: error.message || 'Erro ao salvar unidade' }, { status: 500 });
   }
 }
