@@ -33,7 +33,7 @@ export declare class UsersController {
             number: string;
             id: string;
             block: string;
-            ownerId: string;
+            ownerId: string | null;
         }[];
         vehicles: {
             id: string;

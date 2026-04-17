@@ -35,8 +35,8 @@ model Unit {
   id        String   @id @default(uuid())
   block     String   
   number    String   
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String?
+  owner     User?    @relation(fields: [ownerId], references: [id])
 }
 
 model Vehicle {
