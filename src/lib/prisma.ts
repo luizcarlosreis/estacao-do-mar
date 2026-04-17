@@ -4,33 +4,27 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+// Esta função garante que o PrismaClient NUNCA seja instanciado sem uma URL.
+// Se a URL faltar (como no build), ele retorna null ou lança erro apenas quando usado.
 export const getPrisma = (): PrismaClient => {
-  if (typeof window !== 'undefined') {
-    return {} as PrismaClient;
+  if (global.prisma) return global.prisma;
+
+  const url = process.env.DATABASE_URL;
+  
+  if (!url || url.trim() === "") {
+    // No build da Vercel, retornamos um Proxy "burro" que não faz nada,
+    // mas que permite que o arquivo seja importado sem quebrar.
+    return new Proxy({} as any, {
+      get: () => {
+        throw new Error("DATABASE_URL não configurada no ambiente da Vercel.");
+      }
+    }) as PrismaClient;
   }
 
-  if (!global.prisma) {
-    // Padrão mais compatível para injetar a URL diretamente no construtor
-    // Isso evita que o Prisma reclame da variável de ambiente ausente
-    const url = process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy";
-    
-    global.prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: url,
-        },
-      },
-    });
-  }
-  
+  global.prisma = new PrismaClient();
   return global.prisma;
 };
 
-const prismaProxy = new Proxy({} as PrismaClient, {
-  get: (target, prop) => {
-    const instance = getPrisma();
-    return (instance as any)[prop];
-  }
-});
-
-export default prismaProxy;
+// Export padrão para quem preferir
+const prisma = getPrisma();
+export default prisma;
