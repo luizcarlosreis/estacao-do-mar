@@ -13,6 +13,13 @@ enum Role {
   MORADOR
 }
 
+enum EmployeeRole {
+  PORTEIRO
+  ZELADOR
+  LIMPEZA
+  MANUTENCAO
+}
+
 model User {
   id        String   @id @default(uuid())
   cpf       String   @unique
@@ -32,11 +39,23 @@ model User {
   occurrences  Occurrence[]
 }
 
+model Employee {
+  id        String       @id @default(uuid())
+  name      String
+  cpf       String       @unique
+  email     String?      @unique
+  password  String?      // Senha para porteiros/acesso ao sistema
+  phone     String?
+  role      EmployeeRole
+  shift     String?      // Turno: Manhã, Tarde, Noite, 12x36
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
 model Unit {
-  id        String   @id @default(uuid())
-  block     String   
-  number    String   
-  
+  id            String         @id @default(uuid())
+  block         String   
+  number        String   
   residents     User[]
   parkingSpaces ParkingSpace[]
 }

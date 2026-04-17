@@ -14,12 +14,13 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const users_module_1 = require("./users/users.module");
 const parking_spaces_module_1 = require("./parking-spaces/parking-spaces.module");
 const units_module_1 = require("./units/units.module");
+const employees_module_1 = require("./employees/employees.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, parking_spaces_module_1.ParkingSpacesModule, units_module_1.UnitsModule],
+        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, parking_spaces_module_1.ParkingSpacesModule, units_module_1.UnitsModule, employees_module_1.EmployeesModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
