@@ -17,9 +17,7 @@ export async function POST(request: Request) {
   const prisma = getPrisma();
   try {
     const { cpf, name, email, password, unitId } = await request.json();
-    
     const hashedPassword = await bcrypt.hash(password || cpf, 10);
-
     const user = await prisma.user.create({
       data: {
         cpf,
@@ -30,7 +28,6 @@ export async function POST(request: Request) {
         unitId: unitId || null,
       },
     });
-
     return NextResponse.json(user, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 400 });
