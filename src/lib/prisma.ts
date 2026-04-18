@@ -13,13 +13,20 @@ export const getPrisma = (): PrismaClient => {
 
   const dbUrl = process.env.DATABASE_URL;
 
-  // Se não houver URL, usamos o modo biblioteca padrão (fallback para build)
+  // Se não houver URL (fase de BUILD na Vercel), retornamos um Proxy inofensivo
   if (!dbUrl || dbUrl.trim() === "") {
-    global.prisma = new PrismaClient();
-    return global.prisma;
+    return new Proxy({} as any, {
+      get: (target, prop) => {
+        if (prop === 'then') return undefined;
+        // Retornamos uma função que não faz nada ou lança erro apenas se for chamada
+        return () => {
+          console.warn("Prisma chamado durante o build ou sem DATABASE_URL.");
+          return Promise.resolve(null);
+        };
+      }
+    }) as any;
   }
 
-  // No runtime real, usamos o Driver Adapter (pg) que é mais estável na Vercel
   try {
     const pool = new Pool({ connectionString: dbUrl });
     const adapter = new PrismaPg(pool);
@@ -27,7 +34,7 @@ export const getPrisma = (): PrismaClient => {
     return global.prisma;
   } catch (err) {
     console.error("Erro ao inicializar Driver Adapter:", err);
-    global.prisma = new PrismaClient(); // Fallback
-    return global.prisma;
+    // Fallback mínimo
+    return new PrismaClient() as any;
   }
 };

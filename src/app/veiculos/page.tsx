@@ -64,12 +64,12 @@ export default function VeiculosPage() {
       const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
       const method = isEditMode ? 'PATCH' : 'POST';
       
-      const payload = { ...formData };
+      let finalPayload: any;
       if (!isEditMode) {
-        const { id, ...createPayload } = payload;
-        var finalPayload = createPayload;
+        const { id, ...createPayload } = formData;
+        finalPayload = createPayload;
       } else {
-        var finalPayload = payload;
+        finalPayload = formData;
       }
 
       const res = await fetch(url, {
