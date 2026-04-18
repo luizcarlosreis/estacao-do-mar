@@ -9,7 +9,8 @@ export async function GET() {
     const units = await prisma.unit.findMany({
       include: {
         residents: { select: { name: true, cpf: true } },
-        parkingSpaces: { select: { number: true, block: true } }
+        parkingSpaces: { select: { number: true, block: true } },
+        vehicles: { select: { plate: true, model: true, type: true } }
       }
     });
     return NextResponse.json(units);

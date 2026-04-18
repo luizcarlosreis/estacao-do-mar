@@ -6,12 +6,15 @@ import { Plus, Edit2, Trash2, Home, Users, Car, Loader2 } from 'lucide-react';
 type Resident = { name: string; cpf: string };
 type ParkingSpace = { number: string; block: string };
 
+type Vehicle = { plate: string; model: string; type: string };
+
 type Unit = {
   id: string;
   number: string;
   block: string;
   residents?: Resident[];
   parkingSpaces?: ParkingSpace[];
+  vehicles?: Vehicle[];
 };
 
 export default function UnidadesPage() {
@@ -150,6 +153,18 @@ export default function UnidadesPage() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vagas</p>
                     <p className="text-sm font-bold text-slate-700">
                       {u.parkingSpaces && u.parkingSpaces.length > 0 ? u.parkingSpaces.map(v => v.number).join(', ') : 'Nenhuma'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                    <Car size={16} className="rotate-0" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Veículos</p>
+                    <p className="text-sm font-bold text-slate-700 truncate max-w-[180px]">
+                      {u.vehicles && u.vehicles.length > 0 ? u.vehicles.map(v => `${v.model} (${v.plate})`).join(', ') : 'Nenhum'}
                     </p>
                   </div>
                 </div>
