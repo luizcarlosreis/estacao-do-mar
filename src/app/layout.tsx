@@ -27,6 +27,7 @@ export default function RootLayout({
     { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades' },
     { title: 'Moradores', icon: <Users size={18} />, path: '/moradores' },
     { title: 'Vagas', icon: <Car size={18} />, path: '/vagas' },
+    { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos' },
     { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores' },
     { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes' },
     { title: 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas' },

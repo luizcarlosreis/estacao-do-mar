@@ -27,6 +27,13 @@ enum TaskStatus {
   DONE
 }
 
+enum VehicleType {
+  CARRO
+  MOTO
+  UTILITARIO
+  BICICLETA
+}
+
 model User {
   id        String   @id @default(uuid())
   cpf       String   @unique
@@ -42,7 +49,6 @@ model User {
   ddd       String?
   phone     String?
   
-  vehicles     Vehicle[]
   reservations Reservation[]
   visitors     Visitor[]
   occurrences  Occurrence[]
@@ -86,16 +92,20 @@ model Unit {
   block         String   
   number    String   
   residents     User[]
+  vehicles      Vehicle[]
   parkingSpaces ParkingSpace[]
 }
 
 model Vehicle {
-  id        String   @id @default(uuid())
-  plate     String   @unique
+  id        String      @id @default(uuid())
+  plate     String      @unique
   model     String
   color     String
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id])
+  type      VehicleType @default(CARRO)
+  unitId    String
+  unit      Unit        @relation(fields: [unitId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 model ParkingSpace {
