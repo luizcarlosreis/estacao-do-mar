@@ -24,6 +24,7 @@ export default function VeiculosPage() {
   const [unidades, setUnidades] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -41,10 +42,18 @@ export default function VeiculosPage() {
   const fetchVeiculos = async () => {
     try {
       const res = await fetch(API_URL);
-      const data = await res.json();
+    const data = await res.json();
+    
+    if (Array.isArray(data)) {
       setVeiculos(data);
-    } catch (error) {
+      setFetchError(null);
+    } else {
+      setVeiculos([]);
+      setFetchError(data.message || 'Erro inesperado na API');
+    }
+  } catch (error: any) {
       console.error('Erro ao buscar veículos', error);
+      setFetchError(error.message);
     } finally {
       setLoading(false);
     }
@@ -147,6 +156,12 @@ export default function VeiculosPage() {
             Novo Veículo
           </button>
         </div>
+
+        {fetchError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2 animate-pulse">
+            <span className="font-bold">Aviso:</span> {fetchError}
+          </div>
+        )}
 
         <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20 overflow-hidden">
           <div className="overflow-x-auto">
