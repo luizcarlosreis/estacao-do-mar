@@ -12,7 +12,11 @@ export async function GET() {
     });
     return NextResponse.json(data);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error('ERRO FATAL NA API DE VEICULOS:', error);
+    return NextResponse.json({ 
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+    }, { status: 500 });
   }
 }
 

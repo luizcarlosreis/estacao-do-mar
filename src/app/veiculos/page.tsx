@@ -23,6 +23,7 @@ export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
   const [unidades, setUnidades] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -32,6 +33,7 @@ export default function VeiculosPage() {
   const UNIDADES_URL = '/api/unidades';
 
   useEffect(() => {
+    setMounted(true);
     fetchVeiculos();
     fetchUnidades();
   }, []);
@@ -127,6 +129,8 @@ export default function VeiculosPage() {
       default: return <Car size={18} />;
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen p-8">
