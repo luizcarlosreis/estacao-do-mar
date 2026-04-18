@@ -1,0 +1,423 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp } from 'lucide-react';
+
+type Unit = { id: string; number: string; block: string };
+type Companion = { id?: string; name: string; rg: string; cpf: string };
+type Authorization = {
+  id: string;
+  unitId: string;
+  unit?: Unit;
+  name: string;
+  rg: string;
+  cpf: string;
+  ddd: string;
+  phone: string;
+  hasGarageAccess: boolean;
+  vehiclePlate: string;
+  vehicleModel: string;
+  vehicleColor: string;
+  entryDate: string;
+  exitDate: string;
+  notes: string;
+  companions: Companion[];
+};
+
+const emptyForm = {
+  id: '', unitId: '', name: '', rg: '', cpf: '', ddd: '', phone: '',
+  hasGarageAccess: false, vehiclePlate: '', vehicleModel: '', vehicleColor: '',
+  entryDate: '', exitDate: '', notes: '',
+};
+
+function formatDate(d: string) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('pt-BR');
+}
+
+function getStatus(entry: string, exit: string) {
+  const now = new Date();
+  if (!entry && !exit) return null;
+  const e = entry ? new Date(entry) : null;
+  const x = exit ? new Date(exit) : null;
+  if (x && now > x) return 'expirado';
+  if (e && now < e) return 'aguardando';
+  return 'ativo';
+}
+
+const statusStyle: Record<string, string> = {
+  ativo: 'bg-emerald-100 text-emerald-700',
+  expirado: 'bg-red-100 text-red-600',
+  aguardando: 'bg-amber-100 text-amber-700',
+};
+const statusLabel: Record<string, string> = { ativo: 'Ativo', expirado: 'Expirado', aguardando: 'Aguardando' };
+
+export default function AutorizacoesPage() {
+  const [list, setList] = useState<Authorization[]>([]);
+  const [unidades, setUnidades] = useState<Unit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formData, setFormData] = useState({ ...emptyForm });
+  const [companions, setCompanions] = useState<Companion[]>([]);
+  const [filterUnit, setFilterUnit] = useState('');
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { fetchList(); fetchUnidades(); }, []);
+
+  const fetchList = async () => {
+    try {
+      const res = await fetch('/api/autorizacoes');
+      setList(await res.json());
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  const fetchUnidades = async () => {
+    try {
+      const res = await fetch('/api/unidades');
+      setUnidades(await res.json());
+    } catch (e) { console.error(e); }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const { id, ...data } = formData;
+      const url = isEditMode ? `/api/autorizacoes/${id}` : '/api/autorizacoes';
+      const method = isEditMode ? 'PATCH' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, companions }),
+      });
+      if (res.ok) {
+        setIsModalOpen(false);
+        fetchList();
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.message}`);
+      }
+    } catch (e) { console.error(e); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Excluir autorização de "${name}"?`)) return;
+    await fetch(`/api/autorizacoes/${id}`, { method: 'DELETE' });
+    fetchList();
+  };
+
+  const openCreate = () => {
+    setFormData({ ...emptyForm });
+    setCompanions([]);
+    setIsEditMode(false);
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (a: Authorization) => {
+    setFormData({
+      id: a.id, unitId: a.unitId, name: a.name, rg: a.rg || '', cpf: a.cpf,
+      ddd: a.ddd || '', phone: a.phone || '',
+      hasGarageAccess: a.hasGarageAccess,
+      vehiclePlate: a.vehiclePlate || '', vehicleModel: a.vehicleModel || '', vehicleColor: a.vehicleColor || '',
+      entryDate: a.entryDate ? a.entryDate.slice(0, 10) : '',
+      exitDate: a.exitDate ? a.exitDate.slice(0, 10) : '',
+      notes: a.notes || '',
+    });
+    setCompanions(a.companions.map(c => ({ name: c.name, rg: c.rg || '', cpf: c.cpf || '' })));
+    setIsEditMode(true);
+    setIsModalOpen(true);
+  };
+
+  const addCompanion = () => setCompanions([...companions, { name: '', rg: '', cpf: '' }]);
+  const removeCompanion = (i: number) => setCompanions(companions.filter((_, idx) => idx !== i));
+  const updateCompanion = (i: number, field: keyof Companion, val: string) =>
+    setCompanions(companions.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
+
+  const filtered = filterUnit ? list.filter(a => a.unitId === filterUnit) : list;
+
+  const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
+  const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
+
+  return (
+    <div className="min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <ShieldCheck size={26} className="text-blue-600" /> Autorizações de Uso
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">Controle de acesso por apartamento</p>
+        </div>
+        <button onClick={openCreate}
+          className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
+          <Plus size={18} /> Nova Autorização
+        </button>
+      </div>
+
+      {/* Filtro */}
+      <div className="mb-4 flex items-center gap-3">
+        <select value={filterUnit} onChange={e => setFilterUnit(e.target.value)}
+          className="border border-slate-200 rounded-lg p-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-52">
+          <option value="">Todos os apartamentos</option>
+          {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+        </select>
+        <span className="text-slate-400 text-sm">{filtered.length} registro(s)</span>
+      </div>
+
+      {/* Tabela */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-100">
+                <th className="p-4 font-semibold">Apartamento</th>
+                <th className="p-4 font-semibold">Pessoa Autorizada</th>
+                <th className="p-4 font-semibold">CPF</th>
+                <th className="p-4 font-semibold">Período</th>
+                <th className="p-4 font-semibold">Garagem</th>
+                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-700">
+              {loading ? (
+                <tr><td colSpan={7} className="p-10 text-center text-slate-400">Carregando...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={7} className="p-10 text-center text-slate-400">Nenhuma autorização cadastrada.</td></tr>
+              ) : filtered.map(a => {
+                const status = getStatus(a.entryDate, a.exitDate);
+                const isExpanded = expandedRow === a.id;
+                return (
+                  <>
+                    <tr key={a.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition">
+                      <td className="p-4">
+                        <span className="flex items-center gap-1.5 text-blue-600 font-medium">
+                          <Building size={14} /> {a.unit?.number} - {a.unit?.block}
+                        </span>
+                      </td>
+                      <td className="p-4 font-medium">{a.name}</td>
+                      <td className="p-4 font-mono text-sm">{a.cpf}</td>
+                      <td className="p-4 text-sm">
+                        {formatDate(a.entryDate)} → {formatDate(a.exitDate)}
+                      </td>
+                      <td className="p-4">
+                        {a.hasGarageAccess
+                          ? <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold"><Car size={13} /> {a.vehiclePlate || 'Sim'}</span>
+                          : <span className="text-slate-400 text-xs">Não</span>}
+                      </td>
+                      <td className="p-4">
+                        {status
+                          ? <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusStyle[status]}`}>{statusLabel[status]}</span>
+                          : <span className="text-slate-400 text-xs">—</span>}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-center items-center gap-2">
+                          {a.companions.length > 0 && (
+                            <button onClick={() => setExpandedRow(isExpanded ? null : a.id)}
+                              title="Acompanhantes"
+                              className="text-slate-500 hover:text-blue-600 transition flex items-center gap-0.5 text-xs">
+                              <Users size={15} />
+                              <span>{a.companions.length}</span>
+                              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+                          )}
+                          <button onClick={() => openEdit(a)} className="text-blue-500 hover:scale-110 transition"><Edit2 size={16} /></button>
+                          <button onClick={() => handleDelete(a.id, a.name)} className="text-red-500 hover:scale-110 transition"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpanded && a.companions.length > 0 && (
+                      <tr key={`${a.id}-companions`} className="bg-blue-50/40 border-b border-slate-100">
+                        <td colSpan={7} className="px-8 py-3">
+                          <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Acompanhantes</p>
+                          <div className="flex flex-wrap gap-3">
+                            {a.companions.map((c, i) => (
+                              <div key={i} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm">
+                                <span className="font-medium text-slate-700">{c.name}</span>
+                                {c.cpf && <span className="text-slate-400 ml-2 font-mono text-xs">CPF: {c.cpf}</span>}
+                                {c.rg && <span className="text-slate-400 ml-2 text-xs">RG: {c.rg}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-6">
+            {/* Header */}
+            <div className="bg-blue-600 p-5 rounded-t-2xl text-white flex justify-between items-center">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <ShieldCheck size={20} /> {isEditMode ? 'Editar Autorização' : 'Nova Autorização'}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="hover:rotate-90 transition-transform"><X size={22} /></button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {/* Apartamento */}
+              <div>
+                <label className={lbl}>Apartamento *</label>
+                <select required className={inp} value={formData.unitId}
+                  onChange={e => setFormData({ ...formData, unitId: e.target.value })}>
+                  <option value="">Selecione o apartamento</option>
+                  {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+                </select>
+              </div>
+
+              {/* Dados pessoais */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-sm font-semibold text-slate-600 mb-3">Pessoa Autorizada</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className={lbl}>Nome completo *</label>
+                    <input required type="text" className={inp} placeholder="Nome da pessoa autorizada"
+                      value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={lbl}>CPF *</label>
+                    <input required type="text" className={inp} placeholder="000.000.000-00"
+                      value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={lbl}>RG</label>
+                    <input type="text" className={inp} placeholder="RG"
+                      value={formData.rg} onChange={e => setFormData({ ...formData, rg: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={lbl}>Telefone</label>
+                    <div className="flex gap-2">
+                      <input type="text" className={`${inp} w-20`} placeholder="DDD"
+                        value={formData.ddd} onChange={e => setFormData({ ...formData, ddd: e.target.value })} />
+                      <input type="text" className={inp} placeholder="Número"
+                        value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Garagem */}
+              <div className="border-t border-slate-100 pt-4">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <div className={`w-11 h-6 rounded-full transition-colors relative ${formData.hasGarageAccess ? 'bg-blue-600' : 'bg-slate-300'}`}
+                    onClick={() => setFormData({ ...formData, hasGarageAccess: !formData.hasGarageAccess })}>
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.hasGarageAccess ? 'translate-x-5' : ''}`} />
+                  </div>
+                  <span className="text-sm font-semibold text-slate-700 flex items-center gap-1.5"><Car size={16} /> Autorizado a utilizar vaga de garagem</span>
+                </label>
+
+                {formData.hasGarageAccess && (
+                  <div className="grid grid-cols-3 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div>
+                      <label className={lbl}>Placa *</label>
+                      <input type="text" className={inp} placeholder="ABC-1234"
+                        value={formData.vehiclePlate}
+                        onChange={e => setFormData({ ...formData, vehiclePlate: e.target.value.toUpperCase() })} />
+                    </div>
+                    <div>
+                      <label className={lbl}>Marca/Modelo</label>
+                      <input type="text" className={inp} placeholder="Ex: Honda Civic"
+                        value={formData.vehicleModel} onChange={e => setFormData({ ...formData, vehicleModel: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className={lbl}>Cor</label>
+                      <input type="text" className={inp} placeholder="Ex: Prata"
+                        value={formData.vehicleColor} onChange={e => setFormData({ ...formData, vehicleColor: e.target.value })} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Acompanhantes */}
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-sm font-semibold text-slate-600 flex items-center gap-1.5"><Users size={15} /> Acompanhantes</p>
+                  <button type="button" onClick={addCompanion}
+                    className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition font-medium flex items-center gap-1">
+                    <Plus size={13} /> Adicionar
+                  </button>
+                </div>
+                {companions.length === 0 && (
+                  <p className="text-xs text-slate-400 text-center py-3 bg-slate-50 rounded-lg">Nenhum acompanhante adicionado</p>
+                )}
+                <div className="space-y-3">
+                  {companions.map((c, i) => (
+                    <div key={i} className="grid grid-cols-7 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 items-end">
+                      <div className="col-span-3">
+                        <label className={lbl}>Nome *</label>
+                        <input required type="text" className={inp} placeholder="Nome completo"
+                          value={c.name} onChange={e => updateCompanion(i, 'name', e.target.value)} />
+                      </div>
+                      <div className="col-span-2">
+                        <label className={lbl}>CPF</label>
+                        <input type="text" className={inp} placeholder="CPF"
+                          value={c.cpf} onChange={e => updateCompanion(i, 'cpf', e.target.value)} />
+                      </div>
+                      <div className="col-span-1">
+                        <label className={lbl}>RG</label>
+                        <input type="text" className={inp} placeholder="RG"
+                          value={c.rg} onChange={e => updateCompanion(i, 'rg', e.target.value)} />
+                      </div>
+                      <div className="col-span-1 flex justify-end">
+                        <button type="button" onClick={() => removeCompanion(i)}
+                          className="text-red-400 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Período */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-sm font-semibold text-slate-600 mb-3">Período de Permanência</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={lbl}>Data de Entrada</label>
+                    <input type="date" className={inp}
+                      value={formData.entryDate} onChange={e => setFormData({ ...formData, entryDate: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className={lbl}>Data de Saída</label>
+                    <input type="date" className={inp}
+                      value={formData.exitDate} onChange={e => setFormData({ ...formData, exitDate: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Observações */}
+              <div className="border-t border-slate-100 pt-4">
+                <label className={lbl}>Observações</label>
+                <textarea rows={3} className={`${inp} resize-none`} placeholder="Informações adicionais..."
+                  value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition text-sm font-medium">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={saving}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-200 text-sm disabled:opacity-60">
+                  {saving ? 'Salvando...' : isEditMode ? 'Salvar Alterações' : 'Criar Autorização'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

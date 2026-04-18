@@ -9,7 +9,8 @@ import {
   UserCog, 
   Wrench, 
   ListTodo, 
-  Home
+  Home,
+  ShieldCheck
 } from 'lucide-react';
 import './globals.css';
 
@@ -28,6 +29,7 @@ export default function RootLayout({
     { title: 'Moradores', icon: <Users size={18} />, path: '/moradores' },
     { title: 'Vagas', icon: <Car size={18} />, path: '/vagas' },
     { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos' },
+    { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes' },
     { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores' },
     { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes' },
     { title: 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas' },
