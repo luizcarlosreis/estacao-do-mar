@@ -15,7 +15,8 @@ export default function Home() {
   const modules = [
     { title: 'Apartamentos', icon: <Building2 className="text-blue-600" />, path: '/unidades', desc: 'Gestão de unidades e blocos.' },
     { title: 'Moradores', icon: <Users className="text-emerald-600" />, path: '/moradores', desc: 'Cadastro de residentes.' },
-    { title: 'Vagas de Garagem', icon: <Car className="text-orange-600" />, path: '/vagas', desc: 'Controle de vagas e veículos.' },
+    { title: 'Vagas de Garagem', icon: <Car className="text-orange-600" />, path: '/vagas', desc: 'Controle de numeração de vagas.' },
+    { title: 'Veículos', icon: <Car className="text-blue-500" />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.' },
     { title: 'Colaboradores', icon: <UserCog className="text-purple-600" />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.' },
     { title: 'Manutenções', icon: <Wrench className="text-red-600" />, path: '/manutencoes', desc: 'Controle de manutenção predial.' },
     { title: 'Tarefas Pendentes', icon: <ListTodo className="text-indigo-600" />, path: '/tarefas', desc: 'Backlog de atividades.' },
