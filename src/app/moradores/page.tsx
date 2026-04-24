@@ -63,7 +63,14 @@ export default function MoradoresPage() {
     try {
       const res = await fetch(UNIDADES_URL);
       const data = await res.json();
-      setUnidades(data);
+      const sortedData = Array.isArray(data) 
+        ? [...data].sort((a, b) => {
+            const apA = `${a.block}-${a.number}`;
+            const apB = `${b.block}-${b.number}`;
+            return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
+          })
+        : [];
+      setUnidades(sortedData);
     } catch (error) {
       console.error('Erro ao buscar unidades', error);
     }
