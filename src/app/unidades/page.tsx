@@ -33,7 +33,14 @@ export default function UnidadesPage() {
       const res = await fetch('/api/unidades');
       if (!res.ok) throw new Error('Falha ao buscar dados');
       const data = await res.json();
-      setUnidades(Array.isArray(data) ? data : []);
+      const sortedData = Array.isArray(data) 
+        ? [...data].sort((a, b) => {
+            const apA = `${a.block}-${a.number}`;
+            const apB = `${b.block}-${b.number}`;
+            return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
+          })
+        : [];
+      setUnidades(sortedData);
     } catch (error) {
       console.error('Erro ao buscar unidades:', error);
     } finally {
