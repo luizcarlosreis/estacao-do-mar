@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Car, X, Building, Bike, Truck } from 'lucide-react';
+import { Plus, Edit2, Trash2, Car, X, Building, Bike, Truck, Search } from 'lucide-react';
 
 type Unit = {
   id: string;
@@ -25,6 +25,7 @@ export default function VeiculosPage() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [filterUnit, setFilterUnit] = useState('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -42,16 +43,21 @@ export default function VeiculosPage() {
   const fetchVeiculos = async () => {
     try {
       const res = await fetch(API_URL);
-    const data = await res.json();
+      const data = await res.json();
     
-    if (Array.isArray(data)) {
-      setVeiculos(data);
-      setFetchError(null);
-    } else {
-      setVeiculos([]);
-      setFetchError(data.message || 'Erro inesperado na API');
-    }
-  } catch (error: any) {
+      if (Array.isArray(data)) {
+        const sortedData = [...data].sort((a, b) => {
+          const apA = a.unit ? `${a.unit.block}-${a.unit.number}` : 'ZZZ';
+          const apB = b.unit ? `${b.unit.block}-${b.unit.number}` : 'ZZZ';
+          return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
+        });
+        setVeiculos(sortedData);
+        setFetchError(null);
+      } else {
+        setVeiculos([]);
+        setFetchError(data.message || 'Erro inesperado na API');
+      }
+    } catch (error: any) {
       console.error('Erro ao buscar veículos', error);
       setFetchError(error.message);
     } finally {
@@ -63,7 +69,14 @@ export default function VeiculosPage() {
     try {
       const res = await fetch(UNIDADES_URL);
       const data = await res.json();
-      setUnidades(data);
+      const sortedData = Array.isArray(data) 
+        ? [...data].sort((a, b) => {
+            const apA = `${a.block}-${a.number}`;
+            const apB = `${b.block}-${b.number}`;
+            return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
+          })
+        : [];
+      setUnidades(sortedData);
     } catch (error) {
       console.error('Erro ao buscar unidades', error);
     }
@@ -139,22 +152,42 @@ export default function VeiculosPage() {
     }
   };
 
+  const filteredVeiculos = veiculos.filter(v => {
+    if (filterUnit === '') return true;
+    return v.unitId === filterUnit;
+  });
+
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
             <Car size={32} /> Gestão de Veículos
           </h1>
-          <button 
-            onClick={openCreateModal}
-            className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition shadow-md"
-          >
-            <Plus size={20} />
-            Novo Veículo
-          </button>
+          
+          <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="relative flex items-center w-full md:w-auto">
+              <Search className="absolute left-3 text-gray-400" size={18} />
+              <select 
+                className="w-full md:w-auto pl-10 pr-8 py-2 border border-gray-200 rounded-lg appearance-none bg-white/80 backdrop-blur-md text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
+                value={filterUnit}
+                onChange={(e) => setFilterUnit(e.target.value)}
+              >
+                <option value="">Todos os Apartamentos</option>
+                {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+              </select>
+            </div>
+
+            <button 
+              onClick={openCreateModal}
+              className="w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-opacity-90 transition shadow-md shrink-0"
+            >
+              <Plus size={20} />
+              Novo Veículo
+            </button>
+          </div>
         </div>
 
         {fetchError && (
@@ -179,9 +212,9 @@ export default function VeiculosPage() {
               <tbody className="text-gray-700">
                 {loading ? (
                   <tr><td colSpan={6} className="p-8 text-center text-gray-500">Carregando veículos...</td></tr>
-                ) : veiculos.length === 0 ? (
-                  <tr><td colSpan={6} className="p-8 text-center text-gray-500">Nenhum veículo cadastrado.</td></tr>
-                ) : veiculos.map((v) => (
+                ) : filteredVeiculos.length === 0 ? (
+                  <tr><td colSpan={6} className="p-8 text-center text-gray-500">Nenhum veículo encontrado.</td></tr>
+                ) : filteredVeiculos.map((v) => (
                   <tr key={v.id} className="border-b border-gray-50 hover:bg-white/50 transition">
                     <td className="p-4">
                       <span className="flex items-center gap-2 text-primary">
