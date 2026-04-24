@@ -8,7 +8,8 @@ import {
   UserCog, 
   Wrench, 
   ListTodo,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
     { title: 'Moradores', icon: <Users className="text-emerald-600" />, path: '/moradores', desc: 'Cadastro de residentes.' },
     { title: 'Vagas de Garagem', icon: <Car className="text-orange-600" />, path: '/vagas', desc: 'Controle de numeração de vagas.' },
     { title: 'Veículos', icon: <Car className="text-blue-500" />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.' },
+    { title: 'Autorizações', icon: <ShieldCheck className="text-teal-600" />, path: '/autorizacoes', desc: 'Controle de acesso e uso por apartamento.' },
     { title: 'Colaboradores', icon: <UserCog className="text-purple-600" />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.' },
     { title: 'Manutenções', icon: <Wrench className="text-red-600" />, path: '/manutencoes', desc: 'Controle de manutenção predial.' },
     { title: 'Tarefas Pendentes', icon: <ListTodo className="text-indigo-600" />, path: '/tarefas', desc: 'Backlog de atividades.' },

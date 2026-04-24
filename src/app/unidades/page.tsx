@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit2, Trash2, Home, Users, Car, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Home, Users, Car, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type Resident = { name: string; cpf: string };
 type ParkingSpace = { number: string; block: string };
@@ -24,6 +24,8 @@ export default function UnidadesPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({ id: '', number: '', block: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18;
 
   const fetchUnidades = useCallback(async () => {
     try {
@@ -118,60 +120,99 @@ export default function UnidadesPage() {
           <p className="text-slate-400 font-medium">Nenhum apartamento cadastrado.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {unidades.map((u) => (
-            <div key={u.id} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:border-blue-200 transition-all group">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">Apto {u.number}</h3>
-                  <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">{u.block}</p>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {unidades.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((u) => (
+              <div key={u.id} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:border-blue-200 transition-all group flex flex-col">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">Apto {u.number}</h3>
+                    <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">{u.block}</p>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button onClick={() => { setFormData({id:u.id, number:u.number, block:u.block}); setIsEditMode(true); setIsModalOpen(true); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={18} /></button>
+                    <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <button onClick={() => { setFormData({id:u.id, number:u.number, block:u.block}); setIsEditMode(true); setIsModalOpen(true); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={18} /></button>
-                  <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+
+                <div className="space-y-4 pt-4 border-t border-slate-50 flex-grow">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                      <Users size={16} />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Moradores</p>
+                      <p className="text-xs font-bold text-slate-700 break-words whitespace-normal leading-relaxed">
+                        {u.residents && u.residents.length > 0 ? u.residents.map(r => r.name).join(', ') : 'Vazio'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                      <Car size={16} />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vagas</p>
+                      <p className="text-xs font-bold text-slate-700 break-words whitespace-normal leading-relaxed">
+                        {u.parkingSpaces && u.parkingSpaces.length > 0 ? u.parkingSpaces.map(v => v.number).join(', ') : 'Nenhuma'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 mt-1">
+                      <Car size={16} className="rotate-0" />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Veículos</p>
+                      <p className="text-xs font-bold text-slate-700 break-words whitespace-normal leading-relaxed">
+                        {u.vehicles && u.vehicles.length > 0 ? u.vehicles.map(v => `${v.model} (${v.plate})`).join(', ') : 'Nenhum'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
 
-              <div className="space-y-4 pt-4 border-t border-slate-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                    <Users size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Moradores</p>
-                    <p className="text-sm font-bold text-slate-700 truncate max-w-[180px]">
-                      {u.residents && u.residents.length > 0 ? u.residents.map(r => r.name).join(', ') : 'Vazio'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center shrink-0">
-                    <Car size={16} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vagas</p>
-                    <p className="text-sm font-bold text-slate-700">
-                      {u.parkingSpaces && u.parkingSpaces.length > 0 ? u.parkingSpaces.map(v => v.number).join(', ') : 'Nenhuma'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                    <Car size={16} className="rotate-0" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Veículos</p>
-                    <p className="text-sm font-bold text-slate-700 truncate max-w-[180px]">
-                      {u.vehicles && u.vehicles.length > 0 ? u.vehicles.map(v => `${v.model} (${v.plate})`).join(', ') : 'Nenhum'}
-                    </p>
-                  </div>
-                </div>
+          {/* Paginação */}
+          {Math.ceil(unidades.length / itemsPerPage) > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.ceil(unidades.length / itemsPerPage) }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                        : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(Math.ceil(unidades.length / itemsPerPage), p + 1))}
+                disabled={currentPage === Math.ceil(unidades.length / itemsPerPage)}
+                className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {isModalOpen && (
