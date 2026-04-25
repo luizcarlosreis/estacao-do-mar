@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { 
   Building2, 
   Users, 
@@ -10,11 +11,10 @@ import {
   Wrench, 
   ListTodo, 
   Home,
-  ShieldCheck
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 import './globals.css';
-
-// Deploy Trigger: 2026-04-17 20:43 - Driver Adapter
 
 export default function RootLayout({
   children,
@@ -22,23 +22,74 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  const menuItems = [
-    { title: 'Início', icon: <Home size={18} />, path: '/' },
-    { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades' },
-    { title: 'Moradores', icon: <Users size={18} />, path: '/moradores' },
-    { title: 'Vagas', icon: <Car size={18} />, path: '/vagas' },
-    { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos' },
-    { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes' },
-    { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores' },
-    { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes' },
-    { title: 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas' },
+  useEffect(() => {
+    if (pathname === '/login') {
+      setLoadingUser(false);
+      return;
+    }
+
+    fetch('/api/me')
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error('Not auth');
+      })
+      .then(data => {
+        setUser(data.user);
+        setLoadingUser(false);
+      })
+      .catch(() => {
+        setUser(null);
+        setLoadingUser(false);
+        if (pathname !== '/login') router.push('/login');
+      });
+  }, [pathname, router]);
+
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/login';
+  };
+
+  if (pathname === '/login') {
+    return (
+      <html lang="pt-br">
+        <body className="bg-slate-50">
+          {children}
+        </body>
+      </html>
+    );
+  }
+
+  if (loadingUser) {
+    return (
+      <html lang="pt-br">
+        <body className="bg-slate-50 flex items-center justify-center min-h-screen">
+          <div className="text-slate-500 font-bold">Carregando portal...</div>
+        </body>
+      </html>
+    );
+  }
+
+  const allMenuItems = [
+    { title: 'Início', icon: <Home size={18} />, path: '/', roles: ['SUPER_ADMIN', 'PORTEIRO', 'ZELADOR'] },
+    { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades', roles: ['SUPER_ADMIN', 'PORTEIRO', 'ZELADOR'] },
+    { title: 'Moradores', icon: <Users size={18} />, path: '/moradores', roles: ['SUPER_ADMIN', 'PORTEIRO', 'ZELADOR', 'MORADOR'] },
+    { title: 'Vagas', icon: <Car size={18} />, path: '/vagas', roles: ['SUPER_ADMIN'] },
+    { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos', roles: ['SUPER_ADMIN', 'PORTEIRO', 'ZELADOR', 'MORADOR'] },
+    { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes', roles: ['SUPER_ADMIN', 'PORTEIRO', 'ZELADOR', 'MORADOR'] },
+    { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores', roles: ['SUPER_ADMIN'] },
+    { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'ZELADOR'] },
+    { title: 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'ZELADOR'] },
   ];
+
+  const menuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];
 
   return (
     <html lang="pt-br">
       <body className="bg-slate-50">
-        {/* Navbar Superior */}
         <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
@@ -47,7 +98,7 @@ export default function RootLayout({
                   <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">EM</div>
                   <span className="font-bold text-slate-900 text-xl hidden md:block">Estação do Mar</span>
                 </div>
-                <div className="hidden md:flex space-x-4">
+                <div className="hidden md:flex space-x-1">
                   {menuItems.map((item) => (
                     <Link
                       key={item.path}
@@ -64,16 +115,22 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="ml-3 relative flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
-                  <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-[10px] font-bold">AD</div>
-                  <span className="text-xs font-bold text-slate-700">Admin</span>
+                <div className="ml-3 relative flex items-center gap-4">
+                  <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
+                    <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-[10px] font-bold">
+                      {user?.name?.substring(0,2).toUpperCase()}
+                    </div>
+                    <span className="text-xs font-bold text-slate-700">{user?.name}</span>
+                  </div>
+                  <button onClick={handleLogout} className="text-slate-400 hover:text-red-500 transition-colors" title="Sair">
+                    <LogOut size={20} />
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </nav>
 
-        {/* Conteúdo Mobile (Horizontal Scroll) */}
         <div className="md:hidden bg-white border-b border-slate-200 overflow-x-auto whitespace-nowrap px-4 py-2 scrollbar-hide">
           {menuItems.map((item) => (
             <Link
@@ -89,7 +146,6 @@ export default function RootLayout({
           ))}
         </div>
 
-        {/* Main Content */}
         <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container">
           {children}
         </main>

@@ -4,10 +4,23 @@ import bcrypt from 'bcrypt';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const role = request.headers.get('x-user-role');
+  const unitId = request.headers.get('x-user-unit');
   
+  const whereClause: any = { role: 'MORADOR' };
+  
+  if (role === 'MORADOR') {
+    if (unitId) {
+      whereClause.unitId = unitId;
+    } else {
+      // Se é morador e não tem unidade vinculada, não vê ninguém
+      whereClause.unitId = 'none-placeholder';
+    }
+  }
+
   const users = await (getPrisma()).user.findMany({
-    where: { role: 'MORADOR' },
+    where: whereClause,
     include: { unit: true }
   });
   return NextResponse.json(users);
