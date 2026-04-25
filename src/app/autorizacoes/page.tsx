@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 
 type Unit = { id: string; number: string; block: string };
 type Companion = { id?: string; name: string; rg: string; cpf: string };
@@ -64,6 +64,7 @@ export default function AutorizacoesPage() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isReportMode, setIsReportMode] = useState(false);
 
   useEffect(() => { 
     fetchList(); 
@@ -119,6 +120,7 @@ export default function AutorizacoesPage() {
     setFormData({ ...emptyForm, unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '' });
     setCompanions([]);
     setIsEditMode(false);
+    setIsReportMode(false);
     setIsModalOpen(true);
   };
 
@@ -134,6 +136,23 @@ export default function AutorizacoesPage() {
     });
     setCompanions(a.companions.map(c => ({ name: c.name, rg: c.rg || '', cpf: c.cpf || '' })));
     setIsEditMode(true);
+    setIsReportMode(false);
+    setIsModalOpen(true);
+  };
+
+  const openReport = (a: Authorization) => {
+    setFormData({
+      id: a.id, unitId: a.unitId, name: a.name, rg: a.rg || '', cpf: a.cpf,
+      ddd: a.ddd || '', phone: a.phone || '',
+      hasGarageAccess: a.hasGarageAccess,
+      vehiclePlate: a.vehiclePlate || '', vehicleModel: a.vehicleModel || '', vehicleColor: a.vehicleColor || '',
+      entryDate: a.entryDate ? a.entryDate.slice(0, 10) : '',
+      exitDate: a.exitDate ? a.exitDate.slice(0, 10) : '',
+      notes: a.notes || '',
+    });
+    setCompanions(a.companions.map(c => ({ name: c.name, rg: c.rg || '', cpf: c.cpf || '' })));
+    setIsEditMode(false);
+    setIsReportMode(true);
     setIsModalOpen(true);
   };
 
@@ -221,19 +240,30 @@ export default function AutorizacoesPage() {
                           : <span className="text-slate-400 text-xs">—</span>}
                       </td>
                       <td className="p-4">
-                        <div className="flex justify-center items-center gap-2">
-                          {a.companions.length > 0 && (
-                            <button onClick={() => setExpandedRow(isExpanded ? null : a.id)}
-                              title="Acompanhantes"
-                              className="text-slate-500 hover:text-blue-600 transition flex items-center gap-0.5 text-xs">
-                              <Users size={15} />
-                              <span>{a.companions.length}</span>
-                              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                            </button>
-                          )}
-                          <button onClick={() => openEdit(a)} className="text-blue-500 hover:scale-110 transition"><Edit2 size={16} /></button>
-                          <button onClick={() => handleDelete(a.id, a.name)} className="text-red-500 hover:scale-110 transition"><Trash2 size={16} /></button>
-                        </div>
+                          <div className="flex justify-center items-center gap-2">
+                            {a.companions.length > 0 && (
+                              <button onClick={() => setExpandedRow(isExpanded ? null : a.id)}
+                                title="Acompanhantes"
+                                className="text-slate-500 hover:text-blue-600 transition flex items-center gap-0.5 text-xs">
+                                <Users size={15} />
+                                <span>{a.companions.length}</span>
+                                {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                              </button>
+                            )}
+                            
+                            {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'MORADOR') && (
+                              <>
+                                <button onClick={() => openEdit(a)} title="Editar" className="text-blue-500 hover:scale-110 transition"><Edit2 size={16} /></button>
+                                <button onClick={() => handleDelete(a.id, a.name)} title="Excluir" className="text-red-500 hover:scale-110 transition"><Trash2 size={16} /></button>
+                              </>
+                            )}
+                            
+                            {(currentUser?.role === 'SINDICO' || currentUser?.role === 'PORTEIRO') && (
+                              <button onClick={() => openReport(a)} className="text-emerald-500 hover:scale-110 transition flex items-center gap-1 text-[10px] font-bold uppercase border border-emerald-100 px-2 py-1 rounded-lg bg-emerald-50">
+                                <FileText size={14} /> Relatório
+                              </button>
+                            )}
+                          </div>
                       </td>
                     </tr>
                     {isExpanded && a.companions.length > 0 && (
@@ -265,9 +295,10 @@ export default function AutorizacoesPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-6">
             {/* Header */}
-            <div className="bg-blue-600 p-5 rounded-t-2xl text-white flex justify-between items-center">
+            <div className={`${isReportMode ? 'bg-emerald-600' : 'bg-blue-600'} p-5 rounded-t-2xl text-white flex justify-between items-center`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <ShieldCheck size={20} /> {isEditMode ? 'Editar Autorização' : 'Nova Autorização'}
+                {isReportMode ? <FileText size={20} /> : <ShieldCheck size={20} />} 
+                {isReportMode ? 'Relatório de Autorização' : isEditMode ? 'Editar Autorização' : 'Nova Autorização'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="hover:rotate-90 transition-transform"><X size={22} /></button>
             </div>
@@ -276,9 +307,9 @@ export default function AutorizacoesPage() {
               {/* Apartamento */}
               <div>
                 <label className={lbl}>Apartamento *</label>
-                <select required className={`${inp} ${currentUser?.role === 'MORADOR' ? 'bg-slate-100 cursor-not-allowed' : ''}`} value={formData.unitId}
+                <select required className={`${inp} ${(currentUser?.role === 'MORADOR' || isReportMode) ? 'bg-slate-100 cursor-not-allowed' : ''}`} value={formData.unitId}
                   onChange={e => setFormData({ ...formData, unitId: e.target.value })}
-                  disabled={currentUser?.role === 'MORADOR'}>
+                  disabled={currentUser?.role === 'MORADOR' || isReportMode}>
                   <option value="">Selecione o apartamento</option>
                   {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
                 </select>
@@ -290,25 +321,25 @@ export default function AutorizacoesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className={lbl}>Nome completo *</label>
-                    <input required type="text" className={inp} placeholder="Nome da pessoa autorizada"
+                    <input required type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="Nome da pessoa autorizada"
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                   </div>
                   <div>
                     <label className={lbl}>CPF *</label>
-                    <input required type="text" className={inp} placeholder="000.000.000-00"
+                    <input required type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="000.000.000-00"
                       value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} />
                   </div>
                   <div>
                     <label className={lbl}>RG</label>
-                    <input type="text" className={inp} placeholder="RG"
+                    <input type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="RG"
                       value={formData.rg} onChange={e => setFormData({ ...formData, rg: e.target.value })} />
                   </div>
                   <div>
                     <label className={lbl}>Telefone</label>
                     <div className="flex gap-2">
-                      <input type="text" className={`${inp} w-20`} placeholder="DDD"
+                      <input type="text" className={`${inp} w-20 ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="DDD"
                         value={formData.ddd} onChange={e => setFormData({ ...formData, ddd: e.target.value })} />
-                      <input type="text" className={inp} placeholder="Número"
+                      <input type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="Número"
                         value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                     </div>
                   </div>
@@ -317,9 +348,9 @@ export default function AutorizacoesPage() {
 
               {/* Garagem */}
               <div className="border-t border-slate-100 pt-4">
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <div className={`w-11 h-6 rounded-full transition-colors relative ${formData.hasGarageAccess ? 'bg-blue-600' : 'bg-slate-300'}`}
-                    onClick={() => setFormData({ ...formData, hasGarageAccess: !formData.hasGarageAccess })}>
+                <label className={`flex items-center gap-3 select-none ${isReportMode ? 'cursor-default' : 'cursor-pointer'}`}>
+                  <div className={`w-11 h-6 rounded-full transition-colors relative ${formData.hasGarageAccess ? 'bg-blue-600' : 'bg-slate-300'} ${isReportMode ? 'opacity-70' : ''}`}
+                    onClick={() => !isReportMode && setFormData({ ...formData, hasGarageAccess: !formData.hasGarageAccess })}>
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.hasGarageAccess ? 'translate-x-5' : ''}`} />
                   </div>
                   <span className="text-sm font-semibold text-slate-700 flex items-center gap-1.5"><Car size={16} /> Autorizado a utilizar vaga de garagem</span>
@@ -329,18 +360,18 @@ export default function AutorizacoesPage() {
                   <div className="grid grid-cols-3 gap-3 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <div>
                       <label className={lbl}>Placa *</label>
-                      <input type="text" className={inp} placeholder="ABC-1234"
+                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="ABC-1234"
                         value={formData.vehiclePlate}
                         onChange={e => setFormData({ ...formData, vehiclePlate: e.target.value.toUpperCase() })} />
                     </div>
                     <div>
                       <label className={lbl}>Marca/Modelo</label>
-                      <input type="text" className={inp} placeholder="Ex: Honda Civic"
+                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Ex: Honda Civic"
                         value={formData.vehicleModel} onChange={e => setFormData({ ...formData, vehicleModel: e.target.value })} />
                     </div>
                     <div>
                       <label className={lbl}>Cor</label>
-                      <input type="text" className={inp} placeholder="Ex: Prata"
+                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Ex: Prata"
                         value={formData.vehicleColor} onChange={e => setFormData({ ...formData, vehicleColor: e.target.value })} />
                     </div>
                   </div>
@@ -351,10 +382,12 @@ export default function AutorizacoesPage() {
               <div className="border-t border-slate-100 pt-4">
                 <div className="flex justify-between items-center mb-3">
                   <p className="text-sm font-semibold text-slate-600 flex items-center gap-1.5"><Users size={15} /> Acompanhantes</p>
-                  <button type="button" onClick={addCompanion}
-                    className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition font-medium flex items-center gap-1">
-                    <Plus size={13} /> Adicionar
-                  </button>
+                  {!isReportMode && (
+                    <button type="button" onClick={addCompanion}
+                      className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition font-medium flex items-center gap-1">
+                      <Plus size={13} /> Adicionar
+                    </button>
+                  )}
                 </div>
                 {companions.length === 0 && (
                   <p className="text-xs text-slate-400 text-center py-3 bg-slate-50 rounded-lg">Nenhum acompanhante adicionado</p>
@@ -364,25 +397,27 @@ export default function AutorizacoesPage() {
                     <div key={i} className="grid grid-cols-7 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 items-end">
                       <div className="col-span-3">
                         <label className={lbl}>Nome *</label>
-                        <input required type="text" className={inp} placeholder="Nome completo"
+                        <input required type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Nome completo"
                           value={c.name} onChange={e => updateCompanion(i, 'name', e.target.value)} />
                       </div>
                       <div className="col-span-2">
                         <label className={lbl}>CPF</label>
-                        <input type="text" className={inp} placeholder="CPF"
+                        <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="CPF"
                           value={c.cpf} onChange={e => updateCompanion(i, 'cpf', e.target.value)} />
                       </div>
                       <div className="col-span-1">
                         <label className={lbl}>RG</label>
-                        <input type="text" className={inp} placeholder="RG"
+                        <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="RG"
                           value={c.rg} onChange={e => updateCompanion(i, 'rg', e.target.value)} />
                       </div>
-                      <div className="col-span-1 flex justify-end">
-                        <button type="button" onClick={() => removeCompanion(i)}
-                          className="text-red-400 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50">
-                          <X size={16} />
-                        </button>
-                      </div>
+                      {!isReportMode && (
+                        <div className="col-span-1 flex justify-end">
+                          <button type="button" onClick={() => removeCompanion(i)}
+                            className="text-red-400 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50">
+                            <X size={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -394,12 +429,12 @@ export default function AutorizacoesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={lbl}>Data de Entrada</label>
-                    <input type="date" className={inp}
+                    <input type="date" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode}
                       value={formData.entryDate} onChange={e => setFormData({ ...formData, entryDate: e.target.value })} />
                   </div>
                   <div>
                     <label className={lbl}>Data de Saída</label>
-                    <input type="date" className={inp}
+                    <input type="date" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode}
                       value={formData.exitDate} onChange={e => setFormData({ ...formData, exitDate: e.target.value })} />
                   </div>
                 </div>
@@ -408,19 +443,21 @@ export default function AutorizacoesPage() {
               {/* Observações */}
               <div className="border-t border-slate-100 pt-4">
                 <label className={lbl}>Observações</label>
-                <textarea rows={3} className={`${inp} resize-none`} placeholder="Informações adicionais..."
+                <textarea rows={3} className={`${inp} resize-none ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="Informações adicionais..."
                   value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)}
                   className="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition text-sm font-medium">
-                  Cancelar
+                  {isReportMode ? 'Fechar' : 'Cancelar'}
                 </button>
-                <button type="submit" disabled={saving}
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-200 text-sm disabled:opacity-60">
-                  {saving ? 'Salvando...' : isEditMode ? 'Salvar Alterações' : 'Criar Autorização'}
-                </button>
+                {!isReportMode && (
+                  <button type="submit" disabled={saving}
+                    className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-200 text-sm disabled:opacity-60">
+                    {saving ? 'Salvando...' : isEditMode ? 'Salvar Alterações' : 'Criar Autorização'}
+                  </button>
+                )}
               </div>
             </form>
           </div>
