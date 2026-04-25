@@ -63,8 +63,13 @@ export default function AutorizacoesPage() {
   const [filterUnit, setFilterUnit] = useState('');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  useEffect(() => { fetchList(); fetchUnidades(); }, []);
+  useEffect(() => { 
+    fetchList(); 
+    fetchUnidades(); 
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
+  }, []);
 
   const fetchList = async () => {
     try {
@@ -111,7 +116,7 @@ export default function AutorizacoesPage() {
   };
 
   const openCreate = () => {
-    setFormData({ ...emptyForm });
+    setFormData({ ...emptyForm, unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '' });
     setCompanions([]);
     setIsEditMode(false);
     setIsModalOpen(true);
@@ -158,14 +163,16 @@ export default function AutorizacoesPage() {
       </div>
 
       {/* Filtro */}
-      <div className="mb-4 flex items-center gap-3">
-        <select value={filterUnit} onChange={e => setFilterUnit(e.target.value)}
-          className="border border-slate-200 rounded-lg p-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-52">
-          <option value="">Todos os apartamentos</option>
-          {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
-        </select>
-        <span className="text-slate-400 text-sm">{filtered.length} registro(s)</span>
-      </div>
+      {currentUser?.role !== 'MORADOR' && (
+        <div className="mb-4 flex items-center gap-3">
+          <select value={filterUnit} onChange={e => setFilterUnit(e.target.value)}
+            className="border border-slate-200 rounded-lg p-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-52">
+            <option value="">Todos os apartamentos</option>
+            {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+          </select>
+          <span className="text-slate-400 text-sm">{filtered.length} registro(s)</span>
+        </div>
+      )}
 
       {/* Tabela */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -269,8 +276,9 @@ export default function AutorizacoesPage() {
               {/* Apartamento */}
               <div>
                 <label className={lbl}>Apartamento *</label>
-                <select required className={inp} value={formData.unitId}
-                  onChange={e => setFormData({ ...formData, unitId: e.target.value })}>
+                <select required className={`${inp} ${currentUser?.role === 'MORADOR' ? 'bg-slate-100 cursor-not-allowed' : ''}`} value={formData.unitId}
+                  onChange={e => setFormData({ ...formData, unitId: e.target.value })}
+                  disabled={currentUser?.role === 'MORADOR'}>
                   <option value="">Selecione o apartamento</option>
                   {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
                 </select>

@@ -27,6 +27,7 @@ export default function MoradoresPage() {
   const [unidades, setUnidades] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterUnit, setFilterUnit] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -38,6 +39,7 @@ export default function MoradoresPage() {
   useEffect(() => {
     fetchMoradores();
     fetchUnidades();
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, []);
 
   const fetchMoradores = async () => {
@@ -130,7 +132,7 @@ export default function MoradoresPage() {
   };
 
   const openCreateModal = () => {
-    setFormData({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '' });
+    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '' });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -148,18 +150,20 @@ export default function MoradoresPage() {
           <h1 className="text-3xl font-bold text-primary">Gestão de Moradores</h1>
           
           <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-            <div className="relative flex items-center w-full md:w-auto">
-              <Search className="absolute left-3 text-gray-400" size={18} />
-              <select 
-                className="w-full md:w-auto pl-10 pr-8 py-2 border border-gray-200 rounded-lg appearance-none bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
-                value={filterUnit}
-                onChange={(e) => setFilterUnit(e.target.value)}
-              >
-                <option value="">Todos os Apartamentos</option>
-                <option value="none">Não vinculados</option>
-                {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
-              </select>
-            </div>
+            {currentUser?.role !== 'MORADOR' && (
+              <div className="relative flex items-center w-full md:w-auto">
+                <Search className="absolute left-3 text-gray-400" size={18} />
+                <select 
+                  className="w-full md:w-auto pl-10 pr-8 py-2 border border-gray-200 rounded-lg appearance-none bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
+                  value={filterUnit}
+                  onChange={(e) => setFilterUnit(e.target.value)}
+                >
+                  <option value="">Todos os Apartamentos</option>
+                  <option value="none">Não vinculados</option>
+                  {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+                </select>
+              </div>
+            )}
 
             <button 
               onClick={openCreateModal}
@@ -231,7 +235,12 @@ export default function MoradoresPage() {
                 <input type="text" placeholder="Telefone" className="w-3/4 p-2 border rounded" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
               </div>
               
-              <select className="w-full p-2 border rounded bg-white" value={formData.unitId} onChange={(e) => setFormData({...formData, unitId: e.target.value})}>
+              <select 
+                className={`w-full p-2 border rounded ${currentUser?.role === 'MORADOR' ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`} 
+                value={formData.unitId} 
+                onChange={(e) => setFormData({...formData, unitId: e.target.value})}
+                disabled={currentUser?.role === 'MORADOR'}
+              >
                 <option value="">Vincular Apartamento (Opcional)</option>
                 {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
               </select>
