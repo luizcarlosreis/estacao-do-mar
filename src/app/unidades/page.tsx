@@ -35,8 +35,8 @@ export default function UnidadesPage() {
       const data = await res.json();
       const sortedData = Array.isArray(data) 
         ? [...data].sort((a, b) => {
-            const apA = `${a.block}-${a.number}`;
-            const apB = `${b.block}-${b.number}`;
+            const apA = `${a.number}-${a.block}`;
+            const apB = `${b.number}-${b.block}`;
             return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
           })
         : [];
