@@ -36,7 +36,7 @@ export default function ManutencoesPage() {
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
-      const sortedData = [...data].sort((a, b) => new Date(a.performedAt).getTime() - new Date(b.performedAt).getTime());
+      const sortedData = [...data].sort((a, b) => new Date(a.nextMaintenanceAt).getTime() - new Date(b.nextMaintenanceAt).getTime());
       setMaintenances(sortedData);
     } catch (error) {
       console.error('Erro ao buscar manutenções', error);
@@ -93,7 +93,7 @@ export default function ManutencoesPage() {
 
   const filteredMaintenances = maintenances.filter(m => {
     if (filterYear === '') return true;
-    return new Date(m.performedAt).getFullYear().toString() === filterYear;
+    return new Date(m.nextMaintenanceAt).getFullYear().toString() === filterYear;
   });
 
   return (
@@ -113,7 +113,7 @@ export default function ManutencoesPage() {
                 onChange={(e) => setFilterYear(e.target.value)}
               >
                 <option value="">Todos os Anos</option>
-                {Array.from(new Set(maintenances.map(m => new Date(m.performedAt).getFullYear().toString()))).sort((a, b) => b.localeCompare(a)).map(year => (
+                {Array.from(new Set(maintenances.map(m => new Date(m.nextMaintenanceAt).getFullYear().toString()))).sort((a, b) => b.localeCompare(a)).map(year => (
                   <option key={year} value={year}>{year}</option>
                 ))}
               </select>
