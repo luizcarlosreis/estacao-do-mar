@@ -44,7 +44,7 @@ export async function GET() {
         name: 'Zeladoria',
         email: 'zeladoria@estacaodomar.com',
         password: passwordZeladoria,
-        role: 'ZELADOR',
+        role: 'SINDICO',
       },
     });
 

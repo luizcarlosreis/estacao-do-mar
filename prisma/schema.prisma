@@ -10,7 +10,6 @@ enum Role {
   SUPER_ADMIN
   SINDICO
   PORTEIRO
-  ZELADOR
   MORADOR
 }
 
