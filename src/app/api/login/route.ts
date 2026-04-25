@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-estacao-do-mar');
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'CPF e senha são obrigatórios' }, { status: 400 });
     }
 
+    const prisma = getPrisma();
     // Procura o usuário
     let user = await prisma.user.findUnique({
       where: { cpf }

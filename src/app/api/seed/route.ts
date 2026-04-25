@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 
 export async function GET() {
   try {
+    const prisma = getPrisma();
     const passwordAdmin = await bcrypt.hash('Admin', 10);
     const passwordPortaria = await bcrypt.hash('Portaria', 10);
     const passwordZeladoria = await bcrypt.hash('Zeladoria', 10);
