@@ -14,6 +14,7 @@ type Maintenance = {
 export default function ManutencoesPage() {
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterYear, setFilterYear] = useState('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -35,7 +36,8 @@ export default function ManutencoesPage() {
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
-      setMaintenances(data);
+      const sortedData = [...data].sort((a, b) => new Date(a.performedAt).getTime() - new Date(b.performedAt).getTime());
+      setMaintenances(sortedData);
     } catch (error) {
       console.error('Erro ao buscar manutenções', error);
     } finally {
@@ -89,19 +91,41 @@ export default function ManutencoesPage() {
     setIsModalOpen(true);
   };
 
+  const filteredMaintenances = maintenances.filter(m => {
+    if (filterYear === '') return true;
+    return new Date(m.performedAt).getFullYear().toString() === filterYear;
+  });
+
   return (
     <div className="min-h-screen bg-background font-sans p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
             <Wrench size={32} className="text-primary" /> Cronograma de Manutenções
           </h1>
-          <button 
-            onClick={() => { setFormData({id:'', title:'', description:'', performedAt:'', nextMaintenanceAt:''}); setIsEditMode(false); setIsModalOpen(true); }}
-            className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-opacity-90 transition shadow-sm"
-          >
-            <Plus size={20} /> Registrar Manutenção
-          </button>
+          
+          <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="relative flex items-center w-full md:w-auto">
+              <Calendar className="absolute left-3 text-gray-400" size={18} />
+              <select 
+                className="w-full md:w-auto pl-10 pr-8 py-2 border border-gray-200 rounded-lg appearance-none bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value)}
+              >
+                <option value="">Todos os Anos</option>
+                {Array.from(new Set(maintenances.map(m => new Date(m.performedAt).getFullYear().toString()))).sort((a, b) => b.localeCompare(a)).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            <button 
+              onClick={() => { setFormData({id:'', title:'', description:'', performedAt:'', nextMaintenanceAt:''}); setIsEditMode(false); setIsModalOpen(true); }}
+              className="w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
+            >
+              <Plus size={20} /> Registrar Manutenção
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -118,9 +142,9 @@ export default function ManutencoesPage() {
             <tbody className="text-gray-700">
               {loading ? (
                 <tr><td colSpan={5} className="p-8 text-center text-gray-400">Carregando...</td></tr>
-              ) : maintenances.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-gray-400">Nenhuma manutenção registrada.</td></tr>
-              ) : maintenances.map((m) => {
+              ) : filteredMaintenances.length === 0 ? (
+                <tr><td colSpan={5} className="p-8 text-center text-gray-400">Nenhuma manutenção encontrada.</td></tr>
+              ) : filteredMaintenances.map((m) => {
                 const isOverdue = new Date(m.nextMaintenanceAt) < new Date();
                 return (
                   <tr key={m.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
