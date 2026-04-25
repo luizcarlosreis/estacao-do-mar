@@ -24,7 +24,7 @@ export async function GET(request: Request) {
         unit: { select: { id: true, number: true, block: true } },
         companions: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { entryDate: 'asc' },
     });
     return NextResponse.json(authorizations);
   } catch (error: any) {
