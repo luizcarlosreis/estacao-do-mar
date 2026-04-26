@@ -8,9 +8,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const prisma = getPrisma();
     const { id } = await params;
     const body = await request.json();
+    
+    const updateData = { ...body };
+    if (updateData.model) updateData.model = updateData.model.toUpperCase();
+    if (updateData.plate) updateData.plate = updateData.plate.toUpperCase();
+
     const data = await prisma.vehicle.update({
       where: { id },
-      data: body
+      data: updateData
     });
     return NextResponse.json(data);
   } catch (error: any) {

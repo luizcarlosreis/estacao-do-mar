@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     
     const data = await prisma.vehicle.create({
       data: {
-        plate: body.plate,
-        model: body.model,
+        plate: body.plate?.toUpperCase(),
+        model: body.model?.toUpperCase(),
         color: body.color,
         type: body.type,
         unitId: body.unitId
