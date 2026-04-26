@@ -96,14 +96,14 @@ export default function RootLayout({
               <div className="flex items-center gap-8">
                 <div className="flex-shrink-0 flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">EM</div>
-                  <span className="font-bold text-slate-900 text-xl hidden lg:block">Estação do Mar</span>
+                  <span className="font-bold text-slate-900 text-xl hidden xl:block">Estação do Mar</span>
                 </div>
-                <div className="hidden lg:flex space-x-1">
+                <div className="hidden xl:flex space-x-1">
                   {menuItems.map((item) => (
                     <Link
                       key={item.path}
                       href={item.path}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      className={`px-2 py-2 rounded-md text-sm font-medium transition-colors ${
                         pathname === item.path 
                           ? 'bg-blue-50 text-blue-700' 
                           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -131,7 +131,7 @@ export default function RootLayout({
           </div>
         </nav>
 
-        <div className="lg:hidden bg-white border-b border-slate-200 overflow-x-auto whitespace-nowrap px-4 py-2 scrollbar-hide">
+        <div className="xl:hidden bg-white border-b border-slate-200 overflow-x-auto whitespace-nowrap px-4 py-2 scrollbar-hide">
           {menuItems.map((item) => (
             <Link
               key={item.path}
@@ -146,7 +146,7 @@ export default function RootLayout({
           ))}
         </div>
 
-        <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container lg:mt-0">
+        <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container xl:mt-0">
           {children}
         </main>
 
