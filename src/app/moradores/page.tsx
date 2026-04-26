@@ -13,7 +13,7 @@ type User = {
   id: string;
   cpf: string;
   name: string;
-  email: string;
+  email?: string;
   role: string;
   createdAt: string;
   unitId?: string;

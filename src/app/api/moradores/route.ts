@@ -27,15 +27,28 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  
   try {
     const { cpf, name, email, password, unitId, ddd, phone } = await request.json();
+    const prisma = getPrisma();
+
+    // Verificar se CPF já existe
+    const existingUser = await prisma.user.findUnique({
+      where: { cpf }
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { message: 'CPF já cadastrado na base de Moradores' },
+        { status: 400 }
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(password || cpf, 10);
-    const user = await (getPrisma()).user.create({
+    const user = await prisma.user.create({
       data: {
         cpf,
         name,
-        email,
+        email: email || null,
         password: hashedPassword,
         role: 'MORADOR',
         unitId: unitId || null,
