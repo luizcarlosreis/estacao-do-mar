@@ -211,6 +211,11 @@ export default function MoradoresPage() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="bg-gray-50 font-bold text-gray-600 border-t-2 border-gray-100">
+                <tr>
+                  <td colSpan={6} className="p-4 text-left">Total de Moradores: {filteredMoradores.length}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

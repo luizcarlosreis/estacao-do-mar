@@ -27,7 +27,6 @@ export default function VeiculosPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filterUnit, setFilterUnit] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [totalMoradores, setTotalMoradores] = useState(0);
   const [totalVeiculos, setTotalVeiculos] = useState(0);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,20 +41,7 @@ export default function VeiculosPage() {
     fetchVeiculos();
     fetchUnidades();
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
-    fetchTotals();
   }, []);
-
-  const fetchTotals = async () => {
-    try {
-      const resM = await fetch('/api/moradores');
-      const dataM = await resM.json();
-      if (Array.isArray(dataM)) setTotalMoradores(dataM.length);
-      
-      const resV = await fetch('/api/veiculos');
-      const dataV = await resV.json();
-      if (Array.isArray(dataV)) setTotalVeiculos(dataV.length);
-    } catch (e) { console.error(e); }
-  };
 
   const fetchVeiculos = async () => {
     try {
@@ -258,8 +244,7 @@ export default function VeiculosPage() {
               </tbody>
               <tfoot className="bg-gray-50/50 font-bold text-gray-600 border-t-2 border-gray-100">
                 <tr>
-                  <td colSpan={3} className="p-4">Total de Moradores: {totalMoradores}</td>
-                  <td colSpan={3} className="p-4 text-right">Total de Veículos: {totalVeiculos}</td>
+                  <td colSpan={6} className="p-4 text-left">Total de Veículos: {veiculos.length}</td>
                 </tr>
               </tfoot>
             </table>
