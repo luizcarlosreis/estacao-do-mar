@@ -12,6 +12,9 @@ export async function PATCH(request: Request, context: any) {
     if (body.password) {
       body.password = await bcrypt.hash(body.password, 10);
     }
+    if (body.name) {
+      body.name = body.name.toUpperCase();
+    }
     const resident = await prisma.user.update({ where: { cpf: params.cpf }, data: body });
     return NextResponse.json(resident);
   } catch (error: any) {
