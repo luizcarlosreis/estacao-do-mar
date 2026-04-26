@@ -23,8 +23,8 @@ export default function Home() {
       .then(data => {
         if (data && data.user) {
           setUser(data.user);
-          // Só busca estatísticas se for admin para o "Monitoramento em Tempo Real"
-          if (data.user.role === 'SUPER_ADMIN') {
+          // Busca estatísticas para Admin, Portaria e Zeladoria (Sindico)
+          if (['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(data.user.role)) {
             Promise.all([
               fetch('/api/unidades').then(res => res.ok ? res.json() : []),
               fetch('/api/moradores').then(res => res.ok ? res.json() : [])
@@ -80,7 +80,7 @@ export default function Home() {
         ))}
       </div>
 
-      {user?.role === 'SUPER_ADMIN' && (
+      {['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(user?.role) && (
         <div className="mt-12 p-8 bg-blue-600 rounded-2xl text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
           <div className="relative z-10">
             <h3 className="text-xl font-bold">Monitoramento em Tempo Real</h3>
