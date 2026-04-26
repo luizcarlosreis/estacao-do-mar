@@ -12,7 +12,11 @@ import {
   ListTodo, 
   Home,
   ShieldCheck,
-  LogOut
+  LogOut,
+  User,
+  Lock,
+  ChevronDown,
+  X
 } from 'lucide-react';
 import './globals.css';
 
@@ -25,6 +29,12 @@ export default function RootLayout({
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [fullProfile, setFullProfile] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (pathname === '/login') {
@@ -51,6 +61,38 @@ export default function RootLayout({
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST' });
     window.location.href = '/login';
+  };
+
+  const openProfile = async () => {
+    setIsDropdownOpen(false);
+    try {
+      const res = await fetch('/api/me/profile');
+      if (res.ok) {
+        setFullProfile(await res.json());
+        setIsProfileModalOpen(true);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordLoading(true);
+    try {
+      const res = await fetch('/api/me/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword })
+      });
+      if (res.ok) {
+        alert('Senha alterada com sucesso!');
+        setIsPasswordModalOpen(false);
+        setNewPassword('');
+      } else {
+        const data = await res.json();
+        alert(`Erro: ${data.message}`);
+      }
+    } catch (e) { console.error(e); }
+    finally { setPasswordLoading(false); }
   };
 
   if (pathname === '/login') {
@@ -115,16 +157,45 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="ml-3 relative flex items-center gap-4">
-                  <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
-                    <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-[10px] font-bold">
-                      {user?.name?.substring(0,2).toUpperCase()}
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 hidden sm:block">{user?.name}</span>
+                <div className="ml-3 relative flex items-center gap-2">
+                  {/* Menu do Perfil */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 transition-colors px-3 py-1.5 rounded-full"
+                    >
+                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                        {user?.name?.substring(0,2).toUpperCase()}
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 hidden sm:block">{user?.name}</span>
+                      <ChevronDown size={14} className={`text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="px-4 py-2 border-b border-slate-50 mb-1">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Logado como</p>
+                          <p className="text-xs font-bold text-slate-700 truncate">{user?.name}</p>
+                        </div>
+                        
+                        {user?.role === 'MORADOR' && (
+                          <>
+                            <button onClick={openProfile} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                              <User size={16} /> Meu Perfil
+                            </button>
+                            <button onClick={() => { setIsPasswordModalOpen(true); setIsDropdownOpen(false); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                              <Lock size={16} /> Alterar Senha
+                            </button>
+                            <div className="h-px bg-slate-50 my-1"></div>
+                          </>
+                        )}
+                        
+                        <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                          <LogOut size={16} /> Sair do Sistema
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <button onClick={handleLogout} className="text-slate-400 hover:text-red-500 transition-colors" title="Sair">
-                    <LogOut size={20} />
-                  </button>
                 </div>
               </div>
             </div>
@@ -155,6 +226,77 @@ export default function RootLayout({
             &copy; 2026 Condomínio Estação do Mar - Sistema de Gestão
           </div>
         </footer>
+
+        {/* Modal Perfil */}
+        {isProfileModalOpen && fullProfile && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-200">
+              <div className="bg-blue-600 p-6 text-white text-center relative">
+                <button onClick={() => setIsProfileModalOpen(false)} className="absolute right-4 top-4 hover:bg-white/20 p-1 rounded-full"><X size={20} /></button>
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-inner">
+                  {fullProfile.name?.substring(0,2).toUpperCase()}
+                </div>
+                <h2 className="text-xl font-bold">{fullProfile.name}</h2>
+                <p className="text-blue-100 text-xs opacity-80 uppercase tracking-widest font-semibold mt-1">Morador</p>
+              </div>
+              <div className="p-6 space-y-4 text-sm text-slate-600">
+                <div className="flex justify-between border-b border-slate-50 pb-2">
+                  <span className="font-semibold">CPF</span>
+                  <span>{fullProfile.cpf}</span>
+                </div>
+                {fullProfile.email && (
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <span className="font-semibold">E-mail</span>
+                    <span>{fullProfile.email}</span>
+                  </div>
+                )}
+                {fullProfile.unit && (
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <span className="font-semibold">Apartamento</span>
+                    <span className="text-blue-600 font-bold">{fullProfile.unit.number} - {fullProfile.unit.block}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-b border-slate-50 pb-2">
+                  <span className="font-semibold">Telefone</span>
+                  <span>{fullProfile.ddd ? `(${fullProfile.ddd}) ` : ''}{fullProfile.phone || '—'}</span>
+                </div>
+                <button onClick={() => setIsProfileModalOpen(false)} className="w-full bg-slate-100 hover:bg-slate-200 py-2.5 rounded-xl transition font-bold text-slate-700 mt-2">Fechar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Alterar Senha */}
+        {isPasswordModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-200">
+              <div className="bg-slate-800 p-6 text-white flex justify-between items-center">
+                <h2 className="text-lg font-bold flex items-center gap-2"><Lock size={18} /> Alterar Senha</h2>
+                <button onClick={() => setIsPasswordModalOpen(false)} className="hover:bg-white/10 p-1 rounded-full"><X size={20} /></button>
+              </div>
+              <form onSubmit={handlePasswordChange} className="p-6 space-y-4">
+                <p className="text-xs text-slate-500">Escolha uma nova senha segura para seus próximos acessos.</p>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Nova Senha</label>
+                  <input 
+                    required 
+                    type="password" 
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none"
+                    placeholder="Mínimo 4 caracteres"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-bold text-sm">Cancelar</button>
+                  <button type="submit" disabled={passwordLoading} className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition disabled:opacity-50">
+                    {passwordLoading ? 'Gravando...' : 'Salvar Senha'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </body>
     </html>
   );
