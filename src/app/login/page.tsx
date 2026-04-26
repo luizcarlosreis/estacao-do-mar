@@ -118,6 +118,7 @@ export default function LoginPage() {
               <input 
                 type="text" 
                 required
+                autoFocus
                 className="w-full pl-11 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700" 
                 placeholder="Digite seu CPF ou login"
                 value={cpf}
