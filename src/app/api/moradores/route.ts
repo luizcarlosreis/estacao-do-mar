@@ -29,6 +29,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { cpf, name, email, password, unitId, ddd, phone } = await request.json();
+
+    if (!cpf || cpf.trim() === '') {
+      return NextResponse.json(
+        { message: 'O CPF é obrigatório para o cadastro do morador' },
+        { status: 400 }
+      );
+    }
+
     const prisma = getPrisma();
 
     // Verificar se CPF já existe

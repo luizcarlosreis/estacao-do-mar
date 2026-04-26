@@ -225,7 +225,7 @@ export default function MoradoresPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input type="text" placeholder="CPF" disabled={isEditMode} className="w-full p-2 border rounded" value={formData.cpf} onChange={(e) => setFormData({...formData, cpf: e.target.value})} />
+              <input type="text" placeholder="CPF" required disabled={isEditMode} className="w-full p-2 border rounded" value={formData.cpf} onChange={(e) => setFormData({...formData, cpf: e.target.value})} />
               <input type="text" placeholder="Nome" className="w-full p-2 border rounded" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
               <input type="email" placeholder="E-mail" className="w-full p-2 border rounded" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
               <input type="password" placeholder="Senha" className="w-full p-2 border rounded" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
