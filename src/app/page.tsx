@@ -15,6 +15,7 @@ import {
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState({ units: 0, residents: 0 });
 
   useEffect(() => {
     fetch('/api/me')
@@ -22,6 +23,18 @@ export default function Home() {
       .then(data => {
         if (data && data.user) {
           setUser(data.user);
+          // Só busca estatísticas se for admin para o "Monitoramento em Tempo Real"
+          if (data.user.role === 'SUPER_ADMIN') {
+            Promise.all([
+              fetch('/api/unidades').then(res => res.ok ? res.json() : []),
+              fetch('/api/moradores').then(res => res.ok ? res.json() : [])
+            ]).then(([unidades, moradores]) => {
+              setStats({
+                units: Array.isArray(unidades) ? unidades.length : 0,
+                residents: Array.isArray(moradores) ? moradores.length : 0
+              });
+            }).catch(e => console.error('Erro ao buscar stats:', e));
+          }
         }
       });
   }, []);
@@ -75,11 +88,11 @@ export default function Home() {
           </div>
           <div className="flex gap-4 relative z-10">
              <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl text-center min-w-[100px]">
-                <p className="text-2xl font-bold">128</p>
+                <p className="text-2xl font-bold">{stats.units}</p>
                 <p className="text-[10px] uppercase font-bold text-blue-200">Unidades</p>
              </div>
              <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl text-center min-w-[100px]">
-                <p className="text-2xl font-bold">452</p>
+                <p className="text-2xl font-bold">{stats.residents}</p>
                 <p className="text-[10px] uppercase font-bold text-blue-200">Moradores</p>
              </div>
           </div>
