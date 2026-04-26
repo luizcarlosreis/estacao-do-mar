@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
   
   const [showResetModal, setShowResetModal] = useState(false);
@@ -53,6 +54,8 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetLoading(true);
