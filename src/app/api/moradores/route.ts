@@ -51,7 +51,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password || cpf, 10);
+    const defaultPassword = cpf.substring(0, 5);
+    const hashedPassword = await bcrypt.hash(password || defaultPassword, 10);
     const user = await prisma.user.create({
       data: {
         cpf,

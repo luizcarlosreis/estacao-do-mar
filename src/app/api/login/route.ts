@@ -24,17 +24,9 @@ export async function POST(req: NextRequest) {
     // Mas a instrução diz: "o login do usuário será o seu cpf e a senha as 5 primeiras posições do cpf"
     
     if (user) {
-      const isMorador = user.role === 'MORADOR';
-      const validMoradorPassword = isMorador && password === cpf.substring(0, 5);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
       
-      const isPasswordValid = validMoradorPassword || (await bcrypt.compare(password, user.password));
-      
-      // Casos hardcoded se não quiser usar bcrypt para senhas hardcoded:
-      const isAdminHardcoded = user.cpf === 'Admin' && password === 'Admin';
-      const isPortariaHardcoded = user.cpf === 'Portaria' && password === 'Portaria';
-      const isZeladoriaHardcoded = user.cpf === 'Zeladoria' && password === 'Zeladoria';
-
-      if (!isPasswordValid && !isAdminHardcoded && !isPortariaHardcoded && !isZeladoriaHardcoded) {
+      if (!isPasswordValid) {
         return NextResponse.json({ message: 'Credenciais inválidas' }, { status: 401 });
       }
 
