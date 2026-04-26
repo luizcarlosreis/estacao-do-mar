@@ -96,9 +96,9 @@ export default function RootLayout({
               <div className="flex items-center gap-8">
                 <div className="flex-shrink-0 flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">EM</div>
-                  <span className="font-bold text-slate-900 text-xl hidden md:block">Estação do Mar</span>
+                  <span className="font-bold text-slate-900 text-xl hidden lg:block">Estação do Mar</span>
                 </div>
-                <div className="hidden md:flex space-x-1">
+                <div className="hidden lg:flex space-x-1">
                   {menuItems.map((item) => (
                     <Link
                       key={item.path}
@@ -120,7 +120,7 @@ export default function RootLayout({
                     <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-[10px] font-bold">
                       {user?.name?.substring(0,2).toUpperCase()}
                     </div>
-                    <span className="text-xs font-bold text-slate-700">{user?.name}</span>
+                    <span className="text-xs font-bold text-slate-700 hidden sm:block">{user?.name}</span>
                   </div>
                   <button onClick={handleLogout} className="text-slate-400 hover:text-red-500 transition-colors" title="Sair">
                     <LogOut size={20} />
@@ -131,7 +131,7 @@ export default function RootLayout({
           </div>
         </nav>
 
-        <div className="md:hidden bg-white border-b border-slate-200 overflow-x-auto whitespace-nowrap px-4 py-2 scrollbar-hide">
+        <div className="lg:hidden bg-white border-b border-slate-200 overflow-x-auto whitespace-nowrap px-4 py-2 scrollbar-hide">
           {menuItems.map((item) => (
             <Link
               key={item.path}
@@ -146,7 +146,7 @@ export default function RootLayout({
           ))}
         </div>
 
-        <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container">
+        <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container lg:mt-0">
           {children}
         </main>
 

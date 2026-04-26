@@ -13,6 +13,13 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
+const roleLabels: Record<string, string> = {
+  SUPER_ADMIN: 'Administrador',
+  SINDICO: 'Zeladoria',
+  PORTEIRO: 'Portaria',
+  MORADOR: 'Morador'
+};
+
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({ units: 0, residents: 0 });
@@ -56,7 +63,7 @@ export default function Home() {
     <div>
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-slate-800">
-          Seja bem-vindo, {user ? user.name : 'Carregando...'}
+          Seja bem-vindo, {user ? `${user.name} (${roleLabels[user.role] || user.role})` : 'Carregando...'}
         </h2>
         <p className="text-slate-500">Selecione um módulo abaixo para gerenciar o condomínio.</p>
       </div>
