@@ -92,15 +92,7 @@ export default function LoginPage() {
           <p className="text-slate-500 font-medium">Acesse o portal do condomínio</p>
         </div>
 
-        <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 flex items-start gap-3 shadow-sm shadow-blue-50">
-          <Info className="text-blue-600 shrink-0 mt-0.5" size={18} />
-          <div>
-            <p className="text-[10px] uppercase font-bold text-blue-600 mb-1">Acesso Padrão</p>
-            <p className="text-xs text-blue-700 leading-relaxed">
-              O login é o seu <strong>CPF</strong> e a senha inicial são os <strong>5 primeiros dígitos</strong> do CPF.
-            </p>
-          </div>
-        </div>
+
 
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-bold border border-red-100 animate-in shake duration-300">
