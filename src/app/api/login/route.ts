@@ -24,7 +24,17 @@ export async function POST(req: NextRequest) {
     // Mas a instrução diz: "o login do usuário será o seu cpf e a senha as 5 primeiras posições do cpf"
     
     if (user) {
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      let isPasswordValid = await bcrypt.compare(password, user.password);
+      
+      // Fallback para moradores que ainda não trocaram a senha
+      if (!isPasswordValid && user.role === 'MORADOR') {
+        const defaultPassword = user.cpf.substring(0, 5);
+        if (password === defaultPassword) {
+          // Verifica se a senha no banco é o CPF completo (padrão antigo)
+          const isOldDefault = await bcrypt.compare(user.cpf, user.password);
+          if (isOldDefault) isPasswordValid = true;
+        }
+      }
       
       if (!isPasswordValid) {
         return NextResponse.json({ message: 'Credenciais inválidas' }, { status: 401 });
