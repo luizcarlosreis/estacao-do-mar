@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search } from 'lucide-react';
 
 type Unit = { id: string; number: string; block: string };
 type Companion = { id?: string; name: string; rg: string; cpf: string };
@@ -250,18 +250,17 @@ export default function AutorizacoesPage() {
                                 {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                               </button>
                             )}
+
+                            {/* Lupa para visualizar (Todos os perfis) */}
+                            <button onClick={() => openReport(a)} title="Visualizar Detalhes" className="text-emerald-600 hover:scale-110 transition">
+                              <Search size={18} />
+                            </button>
                             
                             {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'MORADOR') && (
                               <>
                                 <button onClick={() => openEdit(a)} title="Editar" className="text-blue-500 hover:scale-110 transition"><Edit2 size={16} /></button>
                                 <button onClick={() => handleDelete(a.id, a.name)} title="Excluir" className="text-red-500 hover:scale-110 transition"><Trash2 size={16} /></button>
                               </>
-                            )}
-                            
-                            {(currentUser?.role === 'SINDICO' || currentUser?.role === 'PORTEIRO') && (
-                              <button onClick={() => openReport(a)} className="text-emerald-500 hover:scale-110 transition flex items-center gap-1 text-[10px] font-bold uppercase border border-emerald-100 px-2 py-1 rounded-lg bg-emerald-50">
-                                <FileText size={14} /> Relatório
-                              </button>
                             )}
                           </div>
                       </td>
