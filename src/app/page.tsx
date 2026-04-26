@@ -21,7 +21,7 @@ const roleLabels: Record<string, string> = {
   MORADOR: 'Morador'
 };
 
-const APP_VERSION = 'v1.0.17';
+const APP_VERSION = 'v1.0.18';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -58,7 +58,7 @@ export default function Home() {
     { title: 'Colaboradores', icon: <UserCog className="text-purple-600" />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN'] },
     { title: 'Manutenções', icon: <Wrench className="text-red-600" />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Tarefas Pendentes', icon: <ListTodo className="text-indigo-600" />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'] },
-    { title: 'Mural', icon: <Megaphone className="text-pink-600" />, path: '/mural', desc: 'Avisos, pensamentos e classificados.', roles: ['SUPER_ADMIN'] },
+    { title: 'Mural', icon: <Megaphone className="text-pink-600" />, path: '/mural', desc: 'Avisos, pensamentos e classificados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'] },
   ];
 
   const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
