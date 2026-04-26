@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, User as UserIcon, Loader2 } from 'lucide-react';
+import { Lock, User as UserIcon, Loader2, Info, X, RefreshCw } from 'lucide-react';
 
 export default function LoginPage() {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
+  
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetCpf, setResetCpf] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +53,32 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetMessage('');
+    try {
+      const res = await fetch('/api/login/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: resetCpf })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResetMessage('Sucesso! Senha resetada para o padrão (5 primeiros dígitos do CPF).');
+        setTimeout(() => {
+          setShowResetModal(false);
+          setResetMessage('');
+          setResetCpf('');
+        }, 3000);
+      } else {
+        setResetMessage(`Erro: ${data.message}`);
+      }
+    } catch (err) {
+      setResetMessage('Erro de conexão ao tentar resetar.');
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -59,8 +89,18 @@ export default function LoginPage() {
           <p className="text-slate-500 font-medium">Acesse o portal do condomínio</p>
         </div>
 
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 flex items-start gap-3 shadow-sm shadow-blue-50">
+          <Info className="text-blue-600 shrink-0 mt-0.5" size={18} />
+          <div>
+            <p className="text-[10px] uppercase font-bold text-blue-600 mb-1">Acesso Padrão</p>
+            <p className="text-xs text-blue-700 leading-relaxed">
+              O login é o seu <strong>CPF</strong> e a senha inicial são os <strong>5 primeiros dígitos</strong> do CPF.
+            </p>
+          </div>
+        </div>
+
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-bold border border-red-100">
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm font-bold border border-red-100 animate-in shake duration-300">
             {error}
           </div>
         )}
@@ -108,7 +148,68 @@ export default function LoginPage() {
             {loading ? <Loader2 className="animate-spin" size={20} /> : 'Entrar'}
           </button>
         </form>
+
+        <div className="mt-8 text-center">
+          <button 
+            onClick={() => setShowResetModal(true)}
+            className="text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors"
+          >
+            Esqueceu sua senha? Resetar padrão
+          </button>
+        </div>
       </div>
+
+      {/* Modal de Reset */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
+              <h2 className="text-lg font-bold flex items-center gap-2"><RefreshCw size={18} /> Resetar Senha</h2>
+              <button onClick={() => setShowResetModal(false)} className="hover:bg-white/10 p-1 rounded-full"><X size={24} /></button>
+            </div>
+            <form onSubmit={handleResetPassword} className="p-6 space-y-4">
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Informe seu CPF abaixo. Se cadastrado, sua senha voltará a ser os <strong>5 primeiros dígitos</strong> do CPF.
+              </p>
+              
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">CPF</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Apenas números ou login"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none"
+                  value={resetCpf}
+                  onChange={e => setResetCpf(e.target.value)}
+                />
+              </div>
+
+              {resetMessage && (
+                <div className={`p-3 rounded-xl text-xs font-bold ${resetMessage.startsWith('Erro') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                  {resetMessage}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowResetModal(false)}
+                  className="flex-1 py-3 border border-slate-200 rounded-xl font-bold text-slate-600 text-sm"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={resetLoading}
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {resetLoading ? 'Processando...' : 'Confirmar Reset'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
