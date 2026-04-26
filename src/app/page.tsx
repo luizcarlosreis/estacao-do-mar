@@ -20,6 +20,8 @@ const roleLabels: Record<string, string> = {
   MORADOR: 'Morador'
 };
 
+const APP_VERSION = 'v1.0.12';
+
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({ units: 0, residents: 0 });
@@ -90,8 +92,13 @@ export default function Home() {
       {['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(user?.role) && (
         <div className="mt-12 p-8 bg-blue-600 rounded-2xl text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
           <div className="relative z-10">
-            <h3 className="text-xl font-bold">Monitoramento em Tempo Real</h3>
-            <p className="text-blue-100 opacity-80 mt-1">Todas as operações do Estação do Mar estão sincronizadas com o banco de dados.</p>
+            <div className="flex items-center gap-3">
+              <h3 className="text-xl font-bold">Monitoramento em Tempo Real</h3>
+              <span className="px-2 py-0.5 bg-white/20 rounded text-[10px] font-mono border border-white/20">
+                {APP_VERSION}
+              </span>
+            </div>
+            <p className="text-blue-100 opacity-80 mt-1 text-sm">Todas as operações estão sincronizadas com o banco de dados.</p>
           </div>
           <div className="flex gap-4 relative z-10">
              <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl text-center min-w-[100px]">
