@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 type Unit = { id: string; number: string; block: string };
 type Companion = { id?: string; name: string; rg: string; cpf: string };
@@ -161,6 +163,74 @@ export default function AutorizacoesPage() {
   const updateCompanion = (i: number, field: keyof Companion, val: string) =>
     setCompanions(companions.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
+  const generatePDF = (a: Authorization) => {
+    const doc = new jsPDF();
+    
+    // Configurações do Cabeçalho
+    doc.setFontSize(20);
+    doc.setTextColor(37, 99, 235); // Blue-600
+    doc.text('ESTAÇÃO DO MAR', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setTextColor(100);
+    doc.text('AUTORIZAÇÃO DE USO', 105, 30, { align: 'center' });
+    
+    doc.setDrawColor(200);
+    doc.line(20, 35, 190, 35);
+    
+    // Dados Principais
+    doc.setFontSize(10);
+    doc.setTextColor(50);
+    
+    const body = [
+      ['Apartamento:', `${a.unit?.number} - ${a.unit?.block}`],
+      ['Pessoa Autorizada:', a.name],
+      ['CPF:', a.cpf],
+      ['RG:', a.rg || '—'],
+      ['Telefone:', a.ddd ? `(${a.ddd}) ${a.phone}` : (a.phone || '—')],
+      ['Período:', `${formatDate(a.entryDate)} até ${formatDate(a.exitDate)}`],
+      ['Acesso Garagem:', a.hasGarageAccess ? `Sim (Placa: ${a.vehiclePlate || '—'} / Mod: ${a.vehicleModel || '—'})` : 'Não'],
+      ['Observações:', a.notes || '—']
+    ];
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['Campo', 'Informação']],
+      body: body,
+      theme: 'striped',
+      headStyles: { fillStyle: 'fill', fillColor: [37, 99, 235], textColor: [255, 255, 255] },
+      styles: { fontSize: 9, cellPadding: 4 },
+      columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
+    });
+
+    // Acompanhantes
+    if (a.companions.length > 0) {
+      doc.setFontSize(12);
+      doc.setTextColor(37, 99, 235);
+      doc.text('Acompanhantes', 14, (doc as any).lastAutoTable.finalY + 15);
+      
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 20,
+        head: [['Nome', 'CPF', 'RG']],
+        body: a.companions.map(c => [c.name, c.cpf || '—', c.rg || '—']),
+        theme: 'grid',
+        headStyles: { fillColor: [71, 85, 105] }, // slate-600
+        styles: { fontSize: 8 }
+      });
+    }
+
+    // Rodapé
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} - Página ${i} de ${pageCount}`, 105, 285, { align: 'center' });
+    }
+
+    doc.save(`Autorizacao_${a.name.replace(/\s+/g, '_')}.pdf`);
+  };
+
   const filtered = filterUnit ? list.filter(a => a.unitId === filterUnit) : list;
 
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
@@ -254,6 +324,10 @@ export default function AutorizacoesPage() {
                             {/* Lupa para visualizar (Todos os perfis) */}
                             <button onClick={() => openReport(a)} title="Visualizar Detalhes" className="text-emerald-600 hover:scale-110 transition">
                               <Search size={18} />
+                            </button>
+
+                            <button onClick={() => generatePDF(a)} title="Gerar PDF" className="text-red-500 hover:scale-110 transition">
+                              <FileText size={18} />
                             </button>
                             
                             {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'MORADOR') && (
