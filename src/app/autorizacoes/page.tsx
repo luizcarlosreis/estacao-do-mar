@@ -234,7 +234,6 @@ export default function AutorizacoesPage() {
       ['CPF:', a.cpf || '—'],
       ['RG:', a.rg || '—'],
       ['Telefone:', a.ddd ? `(${a.ddd}) ${a.phone}` : (a.phone || '—')],
-      ['Período:', `${formatDate(a.entryDate)} até ${formatDate(a.exitDate)}`],
       ['Acesso Garagem:', a.hasGarageAccess ? `Sim (Placa: ${a.vehiclePlate || '—'} / Mod: ${a.vehicleModel || '—'})` : 'Não'],
       ['Observações:', a.notes || '—']
     ];
@@ -248,6 +247,14 @@ export default function AutorizacoesPage() {
       styles: { fontSize: 9, cellPadding: 4 },
       columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
     });
+
+    // Período em destaque
+    const periodY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59); // slate-800
+    doc.text(`PERÍODO DE VALIDADE: ${formatDate(a.entryDate)} À ${formatDate(a.exitDate)}`, 105, periodY, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); // Volta ao normal para as próximas seções
 
     // Acompanhantes
     if (a.companions && a.companions.length > 0) {
