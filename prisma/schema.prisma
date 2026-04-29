@@ -182,7 +182,7 @@ model Authorization {
   unit             Unit      @relation(fields: [unitId], references: [id])
   name             String
   rg               String?
-  cpf              String
+  cpf              String?
   ddd              String?
   phone            String?
   hasGarageAccess  Boolean   @default(false)

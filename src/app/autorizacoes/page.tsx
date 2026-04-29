@@ -424,8 +424,8 @@ export default function AutorizacoesPage() {
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                   </div>
                   <div>
-                    <label className={lbl}>CPF *</label>
-                    <input required type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="000.000.000-00"
+                    <label className={lbl}>CPF</label>
+                    <input type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="000.000.000-00"
                       value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} />
                   </div>
                   <div>

@@ -41,9 +41,9 @@ export async function POST(request: Request) {
     const { companions = [], ...authData } = body;
 
     // Validação dos campos obrigatórios
-    if (!authData.unitId || !authData.name || !authData.cpf) {
+    if (!authData.unitId || !authData.name) {
       return NextResponse.json(
-        { message: 'Apartamento, Nome e CPF são obrigatórios' },
+        { message: 'Apartamento e Nome são obrigatórios' },
         { status: 400 }
       );
     }
