@@ -9,6 +9,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'PDF não fornecido' }, { status: 400 });
     }
 
+    console.log('Iniciando envio de e-mail...');
+    console.log('SMTP Config:', {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: process.env.SMTP_PORT || '587',
+      user: process.env.SMTP_USER,
+      secure: process.env.SMTP_SECURE === 'true'
+    });
+
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -17,7 +25,19 @@ export async function POST(req: NextRequest) {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      tls: {
+        rejectUnauthorized: false // Ajuda com problemas de certificado em alguns servidores
+      }
     });
+
+    // Verificar conexão antes de tentar enviar
+    try {
+      await transporter.verify();
+      console.log('Conexão SMTP verificada com sucesso');
+    } catch (verifyError) {
+      console.error('Falha na verificação SMTP:', verifyError);
+      throw new Error(`Falha na conexão SMTP: ${verifyError.message}`);
+    }
 
     const mailOptions = {
       from: `"Estação do Mar" <${process.env.SMTP_USER}>`,
@@ -33,11 +53,16 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('E-mail enviado! MessageId:', info.messageId);
 
-    return NextResponse.json({ message: 'Email enviado com sucesso' });
+    return NextResponse.json({ message: 'Email enviado com sucesso', messageId: info.messageId });
   } catch (error: any) {
-    console.error('Erro ao enviar email:', error);
-    return NextResponse.json({ message: 'Erro ao enviar email', error: error.message }, { status: 500 });
+    console.error('ERRO NO ENDPOINT DE EMAIL:', error);
+    return NextResponse.json({ 
+      message: 'Erro ao enviar email', 
+      error: error.message,
+      details: error.code // Pode ajudar a identificar erros tipo EAUTH, ETIMEDOUT
+    }, { status: 500 });
   }
 }
