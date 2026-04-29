@@ -102,8 +102,29 @@ export default function AutorizacoesPage() {
         body: JSON.stringify({ ...data, companions }),
       });
       if (res.ok) {
+        const savedData = await res.json();
         setIsModalOpen(false);
         fetchList();
+
+        // Gerar e enviar PDF por e-mail
+        try {
+          const unit = unidades.find(u => u.id === savedData.unitId);
+          const doc = createAuthorizationPDF({ ...savedData, unit });
+          const pdfBase64 = doc.output('datauristring').split(',')[1];
+          
+          await fetch('/api/send-authorization-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pdfBase64,
+              authorizationName: savedData.name,
+              unitInfo: `${unit?.number} - ${unit?.block}`
+            })
+          });
+        } catch (emailErr) {
+          console.error('Erro ao enviar e-mail automático:', emailErr);
+        }
+
       } else {
         const err = await res.json();
         alert(`Erro: ${err.message}`);
@@ -163,7 +184,7 @@ export default function AutorizacoesPage() {
   const updateCompanion = (i: number, field: keyof Companion, val: string) =>
     setCompanions(companions.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
-  const generatePDF = (a: Authorization) => {
+  const createAuthorizationPDF = (a: Authorization) => {
     const doc = new jsPDF();
     
     // Configurações do Cabeçalho
@@ -183,7 +204,7 @@ export default function AutorizacoesPage() {
     doc.setTextColor(50);
     
     const body = [
-      ['Apartamento:', `${a.unit?.number} - ${a.unit?.block}`],
+      ['Apartamento:', `${a.unit?.number || ''} - ${a.unit?.block || ''}`],
       ['Pessoa Autorizada:', a.name],
       ['CPF:', a.cpf],
       ['RG:', a.rg || '—'],
@@ -204,7 +225,7 @@ export default function AutorizacoesPage() {
     });
 
     // Acompanhantes
-    if (a.companions.length > 0) {
+    if (a.companions && a.companions.length > 0) {
       doc.setFontSize(12);
       doc.setTextColor(37, 99, 235);
       doc.text('Acompanhantes', 14, (doc as any).lastAutoTable.finalY + 15);
@@ -227,7 +248,12 @@ export default function AutorizacoesPage() {
       doc.setTextColor(150);
       doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} - Página ${i} de ${pageCount}`, 105, 285, { align: 'center' });
     }
+    
+    return doc;
+  };
 
+  const generatePDF = (a: Authorization) => {
+    const doc = createAuthorizationPDF(a);
     doc.save(`Autorizacao_${a.name.replace(/\s+/g, '_')}.pdf`);
   };
 
