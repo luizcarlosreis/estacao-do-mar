@@ -66,12 +66,14 @@ export default function AutorizacoesPage() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [fullProfile, setFullProfile] = useState<any>(null);
   const [isReportMode, setIsReportMode] = useState(false);
 
   useEffect(() => { 
     fetchList(); 
     fetchUnidades(); 
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
+    fetch('/api/me/profile').then(res => res.ok ? res.json() : null).then(data => setFullProfile(data));
   }, []);
 
   const fetchList = async () => {
@@ -223,6 +225,28 @@ export default function AutorizacoesPage() {
       styles: { fontSize: 9, cellPadding: 4 },
       columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
     });
+
+    // Dados do Solicitante/Proprietário
+    if (fullProfile) {
+      doc.setFontSize(12);
+      doc.setTextColor(37, 99, 235);
+      doc.text('Dados do Solicitante (Proprietário/Residente)', 14, (doc as any).lastAutoTable.finalY + 15);
+      
+      const ownerBody = [
+        ['Nome:', fullProfile.name],
+        ['Unidade:', fullProfile.unit ? `${fullProfile.unit.number} - ${fullProfile.unit.block}` : '—'],
+        ['Telefone:', fullProfile.ddd ? `(${fullProfile.ddd}) ${fullProfile.phone}` : (fullProfile.phone || '—')],
+        ['E-mail:', fullProfile.email || '—']
+      ];
+
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 20,
+        body: ownerBody,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2 },
+        columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
+      });
+    }
 
     // Acompanhantes
     if (a.companions && a.companions.length > 0) {
