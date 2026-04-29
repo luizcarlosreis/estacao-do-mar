@@ -234,6 +234,7 @@ export default function AutorizacoesPage() {
       ['CPF:', a.cpf || '—'],
       ['RG:', a.rg || '—'],
       ['Telefone:', a.ddd ? `(${a.ddd}) ${a.phone}` : (a.phone || '—')],
+      ['Período de Validade:', `${formatDate(a.entryDate)} À ${formatDate(a.exitDate)}`],
       ['Acesso Garagem:', a.hasGarageAccess ? `Sim (Placa: ${a.vehiclePlate || '—'} / Mod: ${a.vehicleModel || '—'})` : 'Não'],
       ['Observações:', a.notes || '—']
     ];
@@ -245,16 +246,15 @@ export default function AutorizacoesPage() {
       theme: 'striped',
       headStyles: { fillStyle: 'fill', fillColor: [37, 99, 235], textColor: [255, 255, 255] },
       styles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
+      columnStyles: { 0: { fontStyle: 'bold', width: 40 } },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.row.raw[0] === 'Período de Validade:' && data.column.index === 1) {
+          data.cell.styles.fontSize = 12;
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.textColor = [30, 41, 59]; // slate-800
+        }
+      }
     });
-
-    // Período em destaque
-    const periodY = (doc as any).lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(30, 41, 59); // slate-800
-    doc.text(`PERÍODO DE VALIDADE: ${formatDate(a.entryDate)} À ${formatDate(a.exitDate)}`, 105, periodY, { align: 'center' });
-    doc.setFont('helvetica', 'normal'); // Volta ao normal para as próximas seções
 
     // Acompanhantes
     if (a.companions && a.companions.length > 0) {
