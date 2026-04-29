@@ -201,36 +201,11 @@ export default function AutorizacoesPage() {
     doc.setDrawColor(200);
     doc.line(20, 35, 190, 35);
     
-    // Dados Principais
-    doc.setFontSize(10);
-    doc.setTextColor(50);
-    
-    const body = [
-      ['Apartamento:', `${a.unit?.number || ''} - ${a.unit?.block || ''}`],
-      ['Pessoa Autorizada:', a.name],
-      ['CPF:', a.cpf],
-      ['RG:', a.rg || '—'],
-      ['Telefone:', a.ddd ? `(${a.ddd}) ${a.phone}` : (a.phone || '—')],
-      ['Período:', `${formatDate(a.entryDate)} até ${formatDate(a.exitDate)}`],
-      ['Acesso Garagem:', a.hasGarageAccess ? `Sim (Placa: ${a.vehiclePlate || '—'} / Mod: ${a.vehicleModel || '—'})` : 'Não'],
-      ['Observações:', a.notes || '—']
-    ];
-
-    autoTable(doc, {
-      startY: 40,
-      head: [['Campo', 'Informação']],
-      body: body,
-      theme: 'striped',
-      headStyles: { fillStyle: 'fill', fillColor: [37, 99, 235], textColor: [255, 255, 255] },
-      styles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
-    });
-
     // Dados do Solicitante/Proprietário
     if (fullProfile) {
       doc.setFontSize(12);
       doc.setTextColor(37, 99, 235);
-      doc.text('Dados do Solicitante (Proprietário/Residente)', 14, (doc as any).lastAutoTable.finalY + 15);
+      doc.text('Dados do Solicitante (Proprietário/Residente)', 14, 45);
       
       const ownerBody = [
         ['Nome:', fullProfile.name],
@@ -240,13 +215,39 @@ export default function AutorizacoesPage() {
       ];
 
       autoTable(doc, {
-        startY: (doc as any).lastAutoTable.finalY + 20,
+        startY: 50,
         body: ownerBody,
         theme: 'plain',
         styles: { fontSize: 9, cellPadding: 2 },
         columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
       });
     }
+
+    // Dados Principais da Autorização
+    doc.setFontSize(12);
+    doc.setTextColor(37, 99, 235);
+    doc.text('Dados da Autorização de Uso', 14, (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 15 : 45);
+    
+    const body = [
+      ['Apartamento:', `${a.unit?.number || ''} - ${a.unit?.block || ''}`],
+      ['Pessoa Autorizada:', a.name],
+      ['CPF:', a.cpf || '—'],
+      ['RG:', a.rg || '—'],
+      ['Telefone:', a.ddd ? `(${a.ddd}) ${a.phone}` : (a.phone || '—')],
+      ['Período:', `${formatDate(a.entryDate)} até ${formatDate(a.exitDate)}`],
+      ['Acesso Garagem:', a.hasGarageAccess ? `Sim (Placa: ${a.vehiclePlate || '—'} / Mod: ${a.vehicleModel || '—'})` : 'Não'],
+      ['Observações:', a.notes || '—']
+    ];
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : 50,
+      head: [['Campo', 'Informação']],
+      body: body,
+      theme: 'striped',
+      headStyles: { fillStyle: 'fill', fillColor: [37, 99, 235], textColor: [255, 255, 255] },
+      styles: { fontSize: 9, cellPadding: 4 },
+      columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
+    });
 
     // Acompanhantes
     if (a.companions && a.companions.length > 0) {
@@ -445,7 +446,7 @@ export default function AutorizacoesPage() {
                   <div className="sm:col-span-2">
                     <label className={lbl}>Nome completo *</label>
                     <input required type="text" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode} placeholder="Nome da pessoa autorizada"
-                      value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                      value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value.toUpperCase() })} />
                   </div>
                   <div>
                     <label className={lbl}>CPF</label>
@@ -521,7 +522,7 @@ export default function AutorizacoesPage() {
                       <div className="col-span-3">
                         <label className={lbl}>Nome *</label>
                         <input required type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Nome completo"
-                          value={c.name} onChange={e => updateCompanion(i, 'name', e.target.value)} />
+                          value={c.name} onChange={e => updateCompanion(i, 'name', e.target.value.toUpperCase())} />
                       </div>
                       <div className="col-span-2">
                         <label className={lbl}>CPF</label>
