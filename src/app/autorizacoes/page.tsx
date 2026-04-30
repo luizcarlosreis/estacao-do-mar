@@ -374,10 +374,12 @@ export default function AutorizacoesPage() {
           </h1>
           <p className="text-slate-500 text-sm mt-1">Controle de acesso por apartamento</p>
         </div>
-        <button onClick={openCreate}
-          className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
-          <Plus size={18} /> Nova Autorização
-        </button>
+        {currentUser?.role !== 'PORTARIA' && (
+          <button onClick={openCreate}
+            className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
+            <Plus size={18} /> Nova Autorização
+          </button>
+        )}
       </div>
       
       {/* Regras e Check-in */}
