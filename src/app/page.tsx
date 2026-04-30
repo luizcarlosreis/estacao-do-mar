@@ -21,7 +21,7 @@ const roleLabels: Record<string, string> = {
   MORADOR: 'Morador'
 };
 
-const APP_VERSION = 'v1.0.28';
+const APP_VERSION = 'v1.0.29';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);

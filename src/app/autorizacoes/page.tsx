@@ -272,7 +272,42 @@ export default function AutorizacoesPage() {
       });
     }
 
-    // Rodapé
+    // Adicionar Regras ao PDF em uma nova página
+    doc.addPage();
+    doc.setFontSize(16);
+    doc.setTextColor(37, 99, 235);
+    doc.text('REGRAS E ORIENTAÇÕES GERAIS', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(11);
+    doc.setTextColor(30, 41, 59);
+    doc.text('Seja bem-vindo ao Estação do Mar!', 14, 35);
+    doc.setFontSize(10);
+    doc.text('Para que sua estadia ocorra sem imprevistos, atente-se às nossas normas:', 14, 42);
+
+    autoTable(doc, {
+      startY: 48,
+      head: [['🕒 PRAZO PARA AUTORIZAÇÃO']],
+      body: [['Envie os dados dos hóspedes através deste portal com 48h de antecedência. A portaria não está autorizada a liberar acessos sem o prévio registro operacional.']],
+      theme: 'plain',
+      headStyles: { fontSize: 10, fontStyle: 'bold', textColor: [37, 99, 235] },
+      styles: { fontSize: 9, cellPadding: 2 }
+    });
+
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 10,
+      head: [['📌 LEMBRETES DE OURO']],
+      body: [
+        ['• ÁREAS DE LAZER: O uso da Piscina, Academia e Salões é restrito a proprietários.'],
+        ['• VISUAL EXTERNO: Toalhas e roupas não devem ser estendidas nas sacadas.'],
+        ['• PÓS-PRAIA: Use o Elevador de Serviço. Lembre-se de usar o chuveiro externo para retirar a areia e secar-se antes de subir.'],
+        ['• GARAGEM: Local exclusivo para veículos. Objetos de praia devem ser guardados dentro do apartamento.']
+      ],
+      theme: 'plain',
+      headStyles: { fontSize: 10, fontStyle: 'bold', textColor: [180, 83, 9] }, // amber-700
+      styles: { fontSize: 9, cellPadding: 2 }
+    });
+
+    // Rodapé em todas as páginas
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -317,7 +352,6 @@ export default function AutorizacoesPage() {
         
         <div className="space-y-4 text-slate-600">
           <p className="text-sm font-medium">
-            Seja bem-vindo ao Estação do Mar! <br />
             Para que sua estadia (ou de seus hóspedes) ocorra sem imprevistos, atente-se às nossas normas:
           </p>
 
