@@ -8,12 +8,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const prisma = getPrisma();
+    const params = await context.params;
+    const { id } = params;
+    
     const message = await prisma.syndicMessage.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         unit: true,
         user: { select: { name: true, email: true } }
@@ -28,15 +31,18 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const prisma = getPrisma();
+    const params = await context.params;
+    const { id } = params;
+    
     const body = await request.json();
     const { status } = body;
 
     const message = await prisma.syndicMessage.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
       include: {
         unit: true,
@@ -51,10 +57,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const prisma = getPrisma();
+    const params = await context.params;
+    const { id } = params;
 
     // Segurança JWT
     const token = request.cookies.get('auth-token')?.value;
@@ -68,10 +76,12 @@ export async function DELETE(
     }
 
     await prisma.syndicMessage.delete({
-      where: { id: params.id }
+      where: { id }
     });
+    
     return NextResponse.json({ message: 'Excluído com sucesso' });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error('Erro na API DELETE:', error);
+    return NextResponse.json({ message: `Erro no servidor: ${error.message}` }, { status: 500 });
   }
 }
