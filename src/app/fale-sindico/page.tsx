@@ -43,7 +43,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.51';
+const APP_VERSION = 'v1.0.52';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -248,9 +248,40 @@ export default function FaleSindicoPage() {
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
           🏢 Comunicação com a Gestão do Condomínio
         </h2>
+
+        {/* Card do usuário logado */}
+        {currentUser && (
+          <div className="bg-purple-600/5 border border-purple-100 rounded-xl p-4 mb-4 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-600 text-white font-bold text-lg shrink-0">
+              {currentUser.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+              <div>
+                <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">Apartamento</p>
+                <p className="font-bold text-slate-800">
+                  {unidades.find(u => u.id === currentUser.unitId)
+                    ? `${unidades.find(u => u.id === currentUser.unitId)?.number} - ${unidades.find(u => u.id === currentUser.unitId)?.block}`
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">Solicitante</p>
+                <p className="font-bold text-slate-800">{currentUser.name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-purple-500 uppercase tracking-wider">E-mail</p>
+                <p className="font-bold text-slate-800 break-all">{currentUser.email}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
           <p>
             A finalidade do formulário <strong>"Fale com o Síndico"</strong> é facilitar e organizar a comunicação entre os moradores e o síndico do condomínio. Ele permite que os condôminos registrem suas dúvidas, sugestões, solicitações e reclamações de forma estruturada, garantindo que todas as demandas sejam recebidas e analisadas de maneira eficiente.
+          </p>
+          <p className="text-xs text-purple-700 font-semibold bg-purple-50 border border-purple-100 rounded-lg px-3 py-2">
+            📧 A resposta da sua solicitação será encaminhada ao e-mail cadastrado: <strong>{currentUser?.email}</strong>
           </p>
 
           <div className="bg-purple-600/5 p-4 rounded-xl border border-purple-100">
