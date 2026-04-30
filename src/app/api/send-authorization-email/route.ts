@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
+export const maxDuration = 60; // Aumenta o timeout para 60s no Vercel (plano Pro) ou mantém 10s no Free
+
 export async function POST(req: NextRequest) {
   try {
     const { pdfBase64, authorizationName, unitInfo } = await req.json();
@@ -9,34 +11,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'PDF não fornecido' }, { status: 400 });
     }
 
-    console.log('Iniciando envio de e-mail...');
-    console.log('SMTP Config:', {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || '587',
-      user: process.env.SMTP_USER,
-      secure: process.env.SMTP_SECURE === 'true'
-    });
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpPort = Number(process.env.SMTP_PORT) || 587;
+    const smtpSecure = process.env.SMTP_SECURE === 'true';
+
+    console.log('API E-mail: Configuração SMTP:', { smtpHost, smtpPort, smtpSecure, smtpUser });
+
+    if (!smtpUser || !smtpPass) {
+      console.error('API E-mail: SMTP_USER ou SMTP_PASS não configurados no ambiente!');
+      return NextResponse.json({ 
+        message: 'Configuração SMTP ausente. Verifique as variáveis SMTP_USER e SMTP_PASS no Vercel.' 
+      }, { status: 500 });
+    }
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: smtpUser,
+        pass: smtpPass,
       },
       tls: {
         rejectUnauthorized: false
       }
     });
 
-    console.log('API de E-mail: Verificando conexão com o servidor SMTP...');
-    await transporter.verify();
-    console.log('API de E-mail: Conexão SMTP estabelecida com sucesso');
-
     const mailOptions = {
-      from: `"Portal Estação do Mar" <${process.env.SMTP_USER}>`,
+      from: `"Portal Estação do Mar" <${smtpUser}>`,
       to: 'luiz.carlos.reis@gmail.com',
       subject: `Nova Autorização: ${authorizationName} - Unidade ${unitInfo}`,
       text: `Olá,\n\nUma nova autorização de uso foi gerada para a unidade ${unitInfo}.\nSeguem os detalhes em anexo.`,
@@ -49,16 +53,18 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    console.log('API de E-mail: Tentando enviar mensagem...');
+    console.log('API E-mail: Enviando mensagem para luiz.carlos.reis@gmail.com...');
     const info = await transporter.sendMail(mailOptions);
-    console.log('API de E-mail: E-mail enviado com sucesso! ID:', info.messageId);
+    console.log('API E-mail: Enviado com sucesso! ID:', info.messageId);
 
     return NextResponse.json({ message: 'E-mail enviado com sucesso', messageId: info.messageId });
   } catch (error: any) {
-    console.error('API de E-mail: ERRO CRÍTICO:', error);
+    console.error('API E-mail: ERRO:', error.code, error.message);
     return NextResponse.json({ 
       message: 'Erro ao enviar e-mail', 
-      error: error.message 
+      error: error.message,
+      code: error.code,
+      details: `Código: ${error.code || 'N/A'} | ${error.responseCode ? 'Resposta SMTP: ' + error.responseCode : ''}`
     }, { status: 500 });
   }
 }
