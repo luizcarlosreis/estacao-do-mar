@@ -104,19 +104,31 @@ export default function FaleSindicoPage() {
       const { id, ...data } = formData;
       const url = '/api/fale-sindico';
       const method = 'POST';
+      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+
       if (res.ok) {
         setIsModalOpen(false);
+        alert('Solicitação enviada com sucesso!');
         fetchList();
       } else {
-        const err = await res.json();
-        alert(`Erro: ${err.message}`);
+        let errorMsg = 'Erro desconhecido no servidor';
+        try {
+          const err = await res.json();
+          errorMsg = err.message || errorMsg;
+        } catch (parseError) {
+          errorMsg = `Erro ${res.status}: O servidor não retornou uma resposta válida. Verifique se a tabela foi criada no banco de dados.`;
+        }
+        alert(`Erro ao Gravar: ${errorMsg}`);
       }
-    } catch (e) { console.error(e); }
+    } catch (e: any) { 
+      console.error(e); 
+      alert(`Erro de Conexão: Não foi possível alcançar o servidor. Detalhe: ${e.message}`);
+    }
     finally { setSaving(false); }
   };
 
