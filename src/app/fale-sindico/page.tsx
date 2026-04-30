@@ -43,7 +43,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.50';
+const APP_VERSION = 'v1.0.51';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -282,15 +282,13 @@ export default function FaleSindicoPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Carregando...</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-slate-400">Carregando...</td></tr>
               ) : list.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Nenhuma solicitação encontrada</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-slate-400">Nenhuma solicitação encontrada</td></tr>
               ) : list.map(m => (
                 <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition">
-                  <td className="p-4">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs">
-                      {m.number}
-                    </span>
+                  <td className="p-4 pl-5">
+                    <span className="font-bold text-purple-700 text-sm">#{m.number ?? '—'}</span>
                   </td>
                   <td className="p-4 font-medium text-blue-600">
                     {m.unit?.number} - {m.unit?.block}
