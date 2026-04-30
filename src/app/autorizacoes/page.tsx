@@ -552,6 +552,40 @@ export default function AutorizacoesPage() {
                 </select>
               </div>
 
+              {/* Dados do Solicitante (Apenas no modo consulta/relatório) */}
+              {isReportMode && (
+                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50">
+                  <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Dados do Solicitante (Responsável)</p>
+                  {(() => {
+                    const viewingAuth = list.find(a => a.id === formData.id);
+                    if (!viewingAuth) return null;
+                    const residents = (viewingAuth as any).unit?.residents || [];
+                    const req = residents.find((r: any) => r.cpf === viewingAuth.requesterCpf) || residents[0];
+                    if (!req) return <p className="text-xs text-slate-400 italic">Informações do proprietário não encontradas</p>;
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold">Nome</span>
+                          <span className="font-semibold text-slate-700">{req.name}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold">E-mail</span>
+                          <span className="text-slate-600">{req.email || '—'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold">Telefone</span>
+                          <span className="text-slate-600">{req.ddd ? `(${req.ddd}) ${req.phone}` : (req.phone || '—')}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold">Unidade</span>
+                          <span className="text-slate-600">{(viewingAuth as any).unit?.number} - {(viewingAuth as any).unit?.block}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
               {/* Dados pessoais */}
               <div className="border-t border-slate-100 pt-4">
                 <p className="text-sm font-semibold text-slate-600 mb-3">Pessoa Autorizada</p>
