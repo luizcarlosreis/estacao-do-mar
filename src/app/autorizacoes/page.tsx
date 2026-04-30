@@ -120,7 +120,8 @@ export default function AutorizacoesPage() {
           const doc = createAuthorizationPDF(savedData);
           const pdfBase64 = doc.output('datauristring').split(',')[1];
           
-          await fetch('/api/send-authorization-email', {
+          console.log('Frontend: Iniciando disparo de e-mail automático...');
+          const emailRes = await fetch('/api/send-authorization-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -129,8 +130,17 @@ export default function AutorizacoesPage() {
               unitInfo: `${unit?.number} - ${unit?.block}`
             })
           });
+          
+          if (emailRes.ok) {
+            console.log('Frontend: E-mail enviado com sucesso!');
+          } else {
+            const emailData = await emailRes.json();
+            console.error('Frontend: Erro retornado pela API de e-mail:', emailData);
+            alert(`Atenção: A autorização foi salva, mas houve um erro no envio do e-mail: ${emailData.message || 'Erro desconhecido'}`);
+          }
         } catch (emailErr) {
-          console.error('Erro ao enviar e-mail automático:', emailErr);
+          console.error('Frontend: Erro crítico ao processar e-mail:', emailErr);
+          alert('Erro ao processar o envio do e-mail. Verifique o console para detalhes.');
         }
 
       } else {

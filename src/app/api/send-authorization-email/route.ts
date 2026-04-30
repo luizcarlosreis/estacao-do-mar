@@ -20,30 +20,26 @@ export async function POST(req: NextRequest) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
+      port: Number(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
       tls: {
-        rejectUnauthorized: false // Ajuda com problemas de certificado em alguns servidores
+        rejectUnauthorized: false
       }
     });
 
-    // Verificar conexão antes de tentar enviar
-    try {
-      await transporter.verify();
-      console.log('Conexão SMTP verificada com sucesso');
-    } catch (verifyError) {
-      console.error('Falha na verificação SMTP:', verifyError);
-      throw new Error(`Falha na conexão SMTP: ${verifyError.message}`);
-    }
+    console.log('API de E-mail: Verificando conexão com o servidor SMTP...');
+    await transporter.verify();
+    console.log('API de E-mail: Conexão SMTP estabelecida com sucesso');
 
     const mailOptions = {
-      from: `"Estação do Mar" <${process.env.SMTP_USER}>`,
+      from: `"Portal Estação do Mar" <${process.env.SMTP_USER}>`,
       to: 'luiz.carlos.reis@gmail.com',
-      subject: `Nova Autorização: ${authorizationName} - Apt ${unitInfo}`,
-      text: `Segue em anexo a nova autorização de uso para ${authorizationName} do apartamento ${unitInfo}.`,
+      subject: `Nova Autorização: ${authorizationName} - Unidade ${unitInfo}`,
+      text: `Olá,\n\nUma nova autorização de uso foi gerada para a unidade ${unitInfo}.\nSeguem os detalhes em anexo.`,
       attachments: [
         {
           filename: `Autorizacao_${authorizationName.replace(/\s+/g, '_')}.pdf`,
@@ -53,16 +49,16 @@ export async function POST(req: NextRequest) {
       ],
     };
 
+    console.log('API de E-mail: Tentando enviar mensagem...');
     const info = await transporter.sendMail(mailOptions);
-    console.log('E-mail enviado! MessageId:', info.messageId);
+    console.log('API de E-mail: E-mail enviado com sucesso! ID:', info.messageId);
 
-    return NextResponse.json({ message: 'Email enviado com sucesso', messageId: info.messageId });
+    return NextResponse.json({ message: 'E-mail enviado com sucesso', messageId: info.messageId });
   } catch (error: any) {
-    console.error('ERRO NO ENDPOINT DE EMAIL:', error);
+    console.error('API de E-mail: ERRO CRÍTICO:', error);
     return NextResponse.json({ 
-      message: 'Erro ao enviar email', 
-      error: error.message,
-      details: error.code // Pode ajudar a identificar erros tipo EAUTH, ETIMEDOUT
+      message: 'Erro ao enviar e-mail', 
+      error: error.message 
     }, { status: 500 });
   }
 }
