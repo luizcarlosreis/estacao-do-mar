@@ -286,7 +286,7 @@ export default function AutorizacoesPage() {
 
     autoTable(doc, {
       startY: 48,
-      head: [['🕒 PRAZO PARA AUTORIZAÇÃO']],
+      head: [['PRAZO PARA AUTORIZAÇÃO']],
       body: [['Envie os dados dos hóspedes através deste portal com 48h de antecedência. A portaria não está autorizada a liberar acessos sem o prévio registro operacional.']],
       theme: 'plain',
       headStyles: { fontSize: 10, fontStyle: 'bold', textColor: [37, 99, 235] },
@@ -295,7 +295,7 @@ export default function AutorizacoesPage() {
 
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 10,
-      head: [['📌 LEMBRETES DE OURO']],
+      head: [['LEMBRETES DE OURO']],
       body: [
         ['• ÁREAS DE LAZER: O uso da Piscina, Academia e Salões é restrito a proprietários.'],
         ['• VISUAL EXTERNO: Toalhas e roupas não devem ser estendidas nas sacadas.'],
