@@ -109,8 +109,8 @@ export default function AutorizacoesPage() {
 
         // Gerar e enviar PDF por e-mail
         try {
-          const unit = unidades.find(u => u.id === savedData.unitId);
-          const doc = createAuthorizationPDF({ ...savedData, unit });
+          // O objeto savedData retornado pela API já contém o 'unit' com os 'residents'
+          const doc = createAuthorizationPDF(savedData);
           const pdfBase64 = doc.output('datauristring').split(',')[1];
           
           await fetch('/api/send-authorization-email', {
