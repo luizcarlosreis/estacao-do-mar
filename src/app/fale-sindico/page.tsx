@@ -18,6 +18,7 @@ import {
 
 type SyndicMessage = {
   id: string;
+  number: number;
   unitId: string;
   userId: string;
   type: string;
@@ -42,7 +43,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.49';
+const APP_VERSION = 'v1.0.50';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -270,6 +271,7 @@ export default function FaleSindicoPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-16">Nº</th>
                 <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Unidade</th>
                 <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Solicitante</th>
                 <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
@@ -285,6 +287,11 @@ export default function FaleSindicoPage() {
                 <tr><td colSpan={6} className="p-8 text-center text-slate-400">Nenhuma solicitação encontrada</td></tr>
               ) : list.map(m => (
                 <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition">
+                  <td className="p-4">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs">
+                      {m.number}
+                    </span>
+                  </td>
                   <td className="p-4 font-medium text-blue-600">
                     {m.unit?.number} - {m.unit?.block}
                   </td>
@@ -318,7 +325,10 @@ export default function FaleSindicoPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-6">
             <div className={`${isReportMode ? 'bg-slate-800' : 'bg-blue-600'} p-5 rounded-t-2xl text-white flex justify-between items-center`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <MessageSquare size={20} /> {isReportMode ? 'Detalhes da Solicitação' : 'Nova Solicitação ao Síndico'}
+                <MessageSquare size={20} />
+                {isReportMode
+                  ? `Solicitação #${list.find(l => l.id === formData.id)?.number ?? ''} — Detalhes`
+                  : 'Nova Solicitação ao Síndico'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="hover:rotate-90 transition-transform"><X size={22} /></button>
             </div>
