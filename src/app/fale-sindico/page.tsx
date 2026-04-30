@@ -42,7 +42,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.47';
+const APP_VERSION = 'v1.0.48';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -166,13 +166,15 @@ export default function FaleSindicoPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // Limite de 2MB para Base64
+      if (file.size > 2 * 1024 * 1024) {
         alert('O arquivo é muito grande. O limite é de 2MB.');
         return;
       }
       const reader = new FileReader();
+      // Usa o setState funcional para evitar bug de closure
       reader.onloadend = () => {
-        setFormData({ ...formData, attachmentUrl: reader.result as string });
+        const result = reader.result as string;
+        setFormData(prev => ({ ...prev, attachmentUrl: result }));
       };
       reader.readAsDataURL(file);
     }
