@@ -42,7 +42,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.42';
+const APP_VERSION = 'v1.0.47';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -161,6 +161,21 @@ export default function FaleSindicoPage() {
     setFormData({ id: '', unitId: '', type: '', otherType: '', description: '', attachmentUrl: '' });
     setIsReportMode(false);
     setIsModalOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // Limite de 2MB para Base64
+        alert('O arquivo é muito grande. O limite é de 2MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, attachmentUrl: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const openView = (m: SyndicMessage) => {
@@ -340,12 +355,35 @@ export default function FaleSindicoPage() {
               </div>
 
               <div>
-                <label className={lbl}>Anexar Arquivos (Opcional)</label>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 transition bg-slate-50">
-                    <Paperclip className="mx-auto text-slate-400 mb-1" size={20} />
-                    <span className="text-xs text-slate-500 font-medium italic">Clique para anexar (Simulação)</span>
-                  </div>
+                <label className={lbl}>Anexar Arquivo (Máx 2MB)</label>
+                <div className="flex flex-col gap-2">
+                  {!isReportMode ? (
+                    <div className="relative group">
+                      <input type="file" onChange={handleFileChange} className="hidden" id="file-upload" accept="image/*,application/pdf" />
+                      <label htmlFor="file-upload" className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition bg-slate-50">
+                        <Paperclip size={20} className={formData.attachmentUrl ? 'text-blue-600' : 'text-slate-400'} />
+                        <span className="text-xs text-slate-500 font-medium">
+                          {formData.attachmentUrl ? 'Arquivo selecionado! Clique para trocar' : 'Clique para selecionar imagem ou PDF'}
+                        </span>
+                      </label>
+                    </div>
+                  ) : (
+                    formData.attachmentUrl ? (
+                      <a href={formData.attachmentUrl} target="_blank" rel="noopener noreferrer" 
+                        className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 hover:bg-blue-100 transition text-sm font-semibold">
+                        <FileText size={18} /> Visualizar Anexo Enviado
+                      </a>
+                    ) : (
+                      <div className="p-3 bg-slate-50 text-slate-400 rounded-xl border border-slate-100 text-xs italic text-center">
+                        Nenhum anexo enviado para esta solicitação.
+                      </div>
+                    )
+                  )}
+                  {formData.attachmentUrl && !isReportMode && (
+                    <button type="button" onClick={() => setFormData({ ...formData, attachmentUrl: '' })} className="text-[10px] text-red-500 font-bold uppercase hover:underline text-right px-2">
+                      Remover Anexo
+                    </button>
+                  )}
                 </div>
               </div>
 
