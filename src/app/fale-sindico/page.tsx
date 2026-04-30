@@ -42,7 +42,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.41';
+const APP_VERSION = 'v1.0.42';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -191,6 +191,28 @@ export default function FaleSindicoPage() {
           className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
           <Plus size={18} /> Nova Solicitação
         </button>
+      </div>
+
+      {/* Cabeçalho Informativo */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8 bg-gradient-to-br from-white to-purple-50/30">
+        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+          🏢 Comunicação com a Gestão do Condomínio
+        </h2>
+        <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
+          <p>
+            A finalidade do formulário <strong>"Fale com o Síndico"</strong> é facilitar e organizar a comunicação entre os moradores e o síndico do condomínio. Ele permite que os condôminos registrem suas dúvidas, sugestões, solicitações e reclamações de forma estruturada, garantindo que todas as demandas sejam recebidas e analisadas de maneira eficiente.
+          </p>
+
+          <div className="bg-purple-600/5 p-4 rounded-xl border border-purple-100">
+            <h3 className="text-purple-700 font-bold text-sm mb-3">Principais benefícios do formulário:</h3>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <li className="flex items-start gap-2"><span>✅</span> <div><strong>Organização:</strong> Centraliza as solicitações, evitando informações perdidas ou repassadas informalmente.</div></li>
+              <li className="flex items-start gap-2"><span>✅</span> <div><strong>Registro formal:</strong> Garante que todas as demandas tenham um histórico documentado.</div></li>
+              <li className="flex items-start gap-2"><span>✅</span> <div><strong>Transparência:</strong> Demonstra comprometimento do síndico em ouvir e atender os moradores.</div></li>
+              <li className="flex items-start gap-2"><span>✅</span> <div><strong>Agilidade na resposta:</strong> Permite uma melhor gestão das prioridades e otimiza a tomada de decisões.</div></li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Lista de Solicitações */}
