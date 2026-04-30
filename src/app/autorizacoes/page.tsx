@@ -374,7 +374,7 @@ export default function AutorizacoesPage() {
           </h1>
           <p className="text-slate-500 text-sm mt-1">Controle de acesso por apartamento</p>
         </div>
-        {currentUser?.role !== 'PORTARIA' && (
+        {currentUser?.role !== 'PORTEIRO' && (
           <button onClick={openCreate}
             className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
             <Plus size={18} /> Nova Autorização
@@ -506,7 +506,7 @@ export default function AutorizacoesPage() {
                               <FileText size={18} />
                             </button>
                             
-                            {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'MORADOR') && (
+                            {currentUser?.role !== 'PORTEIRO' && (
                               <>
                                 <button onClick={() => openEdit(a)} title="Editar" className="text-blue-500 hover:scale-110 transition"><Edit2 size={16} /></button>
                                 <button onClick={() => handleDelete(a.id, a.name)} title="Excluir" className="text-red-500 hover:scale-110 transition"><Trash2 size={16} /></button>
