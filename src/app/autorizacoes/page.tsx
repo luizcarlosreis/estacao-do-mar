@@ -596,13 +596,13 @@ export default function AutorizacoesPage() {
                     </div>
                     <div>
                       <label className={lbl}>Marca/Modelo</label>
-                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Ex: Honda Civic"
-                        value={formData.vehicleModel} onChange={e => setFormData({ ...formData, vehicleModel: e.target.value })} />
+                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Ex: HONDA CIVIC"
+                        value={formData.vehicleModel} onChange={e => setFormData({ ...formData, vehicleModel: e.target.value.toUpperCase() })} />
                     </div>
                     <div>
                       <label className={lbl}>Cor</label>
-                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Ex: Prata"
-                        value={formData.vehicleColor} onChange={e => setFormData({ ...formData, vehicleColor: e.target.value })} />
+                      <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Ex: PRATA"
+                        value={formData.vehicleColor} onChange={e => setFormData({ ...formData, vehicleColor: e.target.value.toUpperCase() })} />
                     </div>
                   </div>
                 )}
