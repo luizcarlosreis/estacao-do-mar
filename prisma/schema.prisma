@@ -61,6 +61,7 @@ model User {
   posts        Post[]
   postLikes    PostLike[]
   postComments PostComment[]
+  syndicMessages SyndicMessage[]
 }
 
 model Employee {
@@ -104,6 +105,7 @@ model Unit {
   vehicles      Vehicle[]
   parkingSpaces ParkingSpace[]
   authorizations Authorization[]
+  syndicMessages SyndicMessage[]
 }
 
 model Vehicle {
@@ -196,6 +198,21 @@ model Authorization {
   requesterCpf     String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+}
+
+model SyndicMessage {
+  id              String   @id @default(uuid())
+  unitId          String
+  unit            Unit     @relation(fields: [unitId], references: [id])
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  type            String   
+  otherType       String?  
+  description     String   @db.Text
+  attachmentUrl   String?
+  status          String   @default("PENDENTE") 
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model AuthorizationCompanion {

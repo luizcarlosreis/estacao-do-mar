@@ -11,7 +11,8 @@ import {
   ListTodo,
   ChevronRight,
   ShieldCheck,
-  Megaphone
+  Megaphone,
+  MessageSquare
 } from 'lucide-react';
 
 const roleLabels: Record<string, string> = {
@@ -21,7 +22,7 @@ const roleLabels: Record<string, string> = {
   MORADOR: 'Morador'
 };
 
-const APP_VERSION = 'v1.0.40';
+const APP_VERSION = 'v1.0.41';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -59,6 +60,7 @@ export default function Home() {
     { title: 'Manutenções', icon: <Wrench className="text-red-600" />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Tarefas Pendentes', icon: <ListTodo className="text-indigo-600" />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Mural', icon: <Megaphone className="text-pink-600" />, path: '/mural', desc: 'Avisos, pensamentos e classificados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'] },
+    { title: 'Fale com o Síndico', icon: <MessageSquare className="text-purple-600" />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN'] },
   ];
 
   const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
