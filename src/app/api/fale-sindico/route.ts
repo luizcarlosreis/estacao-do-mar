@@ -9,10 +9,12 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const role = request.headers.get('x-user-role');
+    console.log(`API Fale Síndico: Listando para o perfil [${role}]`);
     const prisma = getPrisma();
     
     // Conforme pedido: disponibilizar somente no perfil Admin e Zeladoria
     if (!['SUPER_ADMIN', 'SINDICO'].includes(role || '')) {
+        console.warn(`API Fale Síndico: Acesso negado ou lista vazia para o perfil [${role}]`);
         return NextResponse.json([]); 
     }
 
@@ -23,6 +25,8 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { createdAt: 'desc' },
     });
+    
+    console.log(`API Fale Síndico: Encontradas ${messages.length} mensagens`);
     return NextResponse.json(messages);
   } catch (error: any) {
     console.error('API GET Fale Sindico Error:', error.message);

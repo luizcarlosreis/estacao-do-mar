@@ -79,13 +79,17 @@ export default function FaleSindicoPage() {
   const fetchList = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const res = await fetch('/api/fale-sindico', {
+      // Adiciona timestamp para evitar cache do navegador
+      const res = await fetch(`/api/fale-sindico?t=${Date.now()}`, {
         headers: {
           'x-user-role': user.role || '',
           'x-user-unit': user.unitId || ''
-        }
+        },
+        cache: 'no-store'
       });
-      setList(await res.json());
+      const data = await res.json();
+      console.log('Frontend: Lista de mensagens recebida:', data);
+      setList(data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
