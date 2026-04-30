@@ -288,24 +288,42 @@ export default function AutorizacoesPage() {
     autoTable(doc, {
       startY: 48,
       head: [['PRAZO PARA AUTORIZAÇÃO']],
-      body: [['Envie os dados dos hóspedes através deste portal com 48h de antecedência. A portaria não está autorizada a liberar acessos sem o prévio registro operacional.']],
+      body: [
+        ['Envie os dados dos hóspedes através deste portal com 48h de antecedência.'],
+        ['A PORTARIA NÃO ESTÁ AUTORIZADA A LIBERAR ACESSOS SEM O PRÉVIO REGISTRO OPERACIONAL.']
+      ],
       theme: 'plain',
       headStyles: { fontSize: 10, fontStyle: 'bold', textColor: [37, 99, 235] },
-      styles: { fontSize: 9, cellPadding: 2 }
+      styles: { fontSize: 9, cellPadding: 1 },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.row.index === 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.textColor = [0, 0, 0];
+        }
+      }
     });
 
     autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 10,
+      startY: (doc as any).lastAutoTable.finalY + 8,
       head: [['LEMBRETES DE OURO']],
       body: [
         ['• ÁREAS DE LAZER: O uso da Piscina, Academia e Salões é restrito a proprietários.'],
         ['• VISUAL EXTERNO: Toalhas e roupas não devem ser estendidas nas sacadas.'],
         ['• PÓS-PRAIA: Use o Elevador de Serviço. Lembre-se de usar o chuveiro externo para retirar a areia e secar-se antes de subir.'],
-        ['• GARAGEM: Local exclusivo para veículos. Objetos de praia devem ser guardados dentro do apartamento.']
+        ['• GARAGEM: Local exclusivo para veículos. Objetos de praia devem ser guardados dentro do apartamento.'],
+        [''],
+        ['Abaixo os telefones da Portaria e do Zelador do condomínio:'],
+        ['Portaria: (12) 2134-0416'],
+        ['Zelador: (12) 99156-9883']
       ],
       theme: 'plain',
       headStyles: { fontSize: 10, fontStyle: 'bold', textColor: [180, 83, 9] }, // amber-700
-      styles: { fontSize: 9, cellPadding: 2 }
+      styles: { fontSize: 9, cellPadding: 1 },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.row.index >= 5) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
     });
 
     // Rodapé em todas as páginas
@@ -362,7 +380,8 @@ export default function AutorizacoesPage() {
                 🕒 Prazo para Autorização
               </h3>
               <p className="text-xs leading-relaxed">
-                Envie os dados dos hóspedes através deste portal com 48h de antecedência. A portaria não está autorizada a liberar acessos sem o prévio registro operacional.
+                Envie os dados dos hóspedes através deste portal com 48h de antecedência. <br />
+                <strong className="text-slate-800">A portaria não está autorizada a liberar acessos sem o prévio registro operacional.</strong>
               </p>
             </div>
 
@@ -370,12 +389,20 @@ export default function AutorizacoesPage() {
               <h3 className="text-amber-700 font-bold text-sm flex items-center gap-2 mb-2">
                 📌 Lembretes de Ouro:
               </h3>
-              <ul className="text-[11px] leading-relaxed space-y-1.5 text-slate-700">
+              <ul className="text-[11px] leading-relaxed space-y-1.5 text-slate-700 mb-3">
                 <li className="flex gap-2"><span>•</span> <span><strong>Áreas de Lazer:</strong> O uso da Piscina, Academia e Salões é restrito a proprietários.</span></li>
                 <li className="flex gap-2"><span>•</span> <span><strong>Visual Externo:</strong> Toalhas e roupas não devem ser estendidas nas sacadas.</span></li>
                 <li className="flex gap-2"><span>•</span> <span><strong>Pós-Praia:</strong> Use o Elevador de Serviço. Lembre-se de usar o chuveiro externo para retirar a areia e secar-se antes de subir.</span></li>
                 <li className="flex gap-2"><span>•</span> <span><strong>Garagem:</strong> Local exclusivo para veículos. Objetos de praia devem ser guardados dentro do apartamento.</span></li>
               </ul>
+              
+              <div className="pt-2 border-t border-amber-200 mt-2 text-[10px] text-amber-900/80">
+                <p className="font-bold mb-1 underline">Telefones Úteis:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <p>Portaria: <strong>(12) 2134-0416</strong></p>
+                  <p>Zelador: <strong>(12) 99156-9883</strong></p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
