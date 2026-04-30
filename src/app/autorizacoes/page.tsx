@@ -308,6 +308,43 @@ export default function AutorizacoesPage() {
           <Plus size={18} /> Nova Autorização
         </button>
       </div>
+      
+      {/* Regras e Check-in */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8 bg-gradient-to-br from-white to-blue-50/30">
+        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+          🌊 Check-in e Regras para Locação Temporária e Empréstimos de Uso do Apartamento
+        </h2>
+        
+        <div className="space-y-4 text-slate-600">
+          <p className="text-sm font-medium">
+            Seja bem-vindo ao Estação do Mar! <br />
+            Para que sua estadia (ou de seus hóspedes) ocorra sem imprevistos, atente-se às nossas normas:
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-blue-600/5 p-4 rounded-xl border border-blue-100">
+              <h3 className="text-blue-700 font-bold text-sm flex items-center gap-2 mb-2">
+                🕒 Prazo para Autorização
+              </h3>
+              <p className="text-xs leading-relaxed">
+                Envie os dados dos hóspedes através deste portal com 48h de antecedência. A portaria não está autorizada a liberar acessos sem o prévio registro operacional.
+              </p>
+            </div>
+
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
+              <h3 className="text-amber-700 font-bold text-sm flex items-center gap-2 mb-2">
+                📌 Lembretes de Ouro:
+              </h3>
+              <ul className="text-[11px] leading-relaxed space-y-1.5 text-slate-700">
+                <li className="flex gap-2"><span>•</span> <span><strong>Áreas de Lazer:</strong> O uso da Piscina, Academia e Salões é restrito a proprietários.</span></li>
+                <li className="flex gap-2"><span>•</span> <span><strong>Visual Externo:</strong> Toalhas e roupas não devem ser estendidas nas sacadas.</span></li>
+                <li className="flex gap-2"><span>•</span> <span><strong>Pós-Praia:</strong> Use o Elevador de Serviço. Lembre-se de usar o chuveiro externo para retirar a areia e secar-se antes de subir.</span></li>
+                <li className="flex gap-2"><span>•</span> <span><strong>Garagem:</strong> Local exclusivo para veículos. Objetos de praia devem ser guardados dentro do apartamento.</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Filtro */}
       {currentUser?.role !== 'MORADOR' && (
