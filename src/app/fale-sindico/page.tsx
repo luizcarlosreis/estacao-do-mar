@@ -81,10 +81,6 @@ export default function FaleSindicoPage() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       // Adiciona timestamp para evitar cache do navegador
       const res = await fetch(`/api/fale-sindico?t=${Date.now()}`, {
-        headers: {
-          'x-user-role': user.role || '',
-          'x-user-unit': user.unitId || ''
-        },
         cache: 'no-store'
       });
       const data = await res.json();

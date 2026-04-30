@@ -8,13 +8,26 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const role = request.headers.get('x-user-role');
-    console.log(`API Fale Síndico: Listando para o perfil [${role}]`);
     const prisma = getPrisma();
+    
+    // Obter role do JWT para segurança máxima
+    const token = request.cookies.get('auth-token')?.value;
+    let role = null;
+    
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        role = payload.role as string;
+      } catch (e) {
+        console.error('Erro ao verificar token JWT:', e);
+      }
+    }
+
+    console.log(`API Fale Síndico: Listando para o perfil [${role}]`);
     
     // Conforme pedido: disponibilizar somente no perfil Admin e Zeladoria
     if (!['SUPER_ADMIN', 'SINDICO'].includes(role || '')) {
-        console.warn(`API Fale Síndico: Acesso negado ou lista vazia para o perfil [${role}]`);
+        console.warn(`API Fale Síndico: Acesso negado para o perfil [${role}]`);
         return NextResponse.json([]); 
     }
 
