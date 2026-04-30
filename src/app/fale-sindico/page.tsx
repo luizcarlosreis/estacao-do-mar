@@ -159,12 +159,20 @@ export default function FaleSindicoPage() {
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
   const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
 
-  if (currentUser?.role !== 'SUPER_ADMIN') {
+  if (loading && !currentUser) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (currentUser && !['SUPER_ADMIN', 'SINDICO'].includes(currentUser.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-white rounded-3xl border border-slate-100 shadow-sm">
         <AlertCircle size={48} className="text-amber-500 mb-4" />
         <h2 className="text-xl font-bold text-slate-800">Acesso Restrito</h2>
-        <p className="text-slate-500 mt-2">Esta funcionalidade está disponível apenas para administradores no momento.</p>
+        <p className="text-slate-500 mt-2">Esta funcionalidade está disponível apenas para a administração no momento.</p>
         <button onClick={() => window.location.href = '/'} className="mt-6 text-blue-600 font-semibold hover:underline">Voltar para o Início</button>
       </div>
     );

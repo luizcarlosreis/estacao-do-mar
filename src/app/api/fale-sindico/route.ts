@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     const role = request.headers.get('x-user-role');
     const prisma = getPrisma();
     
-    // Conforme pedido: disponibilizar somente no perfil Admin (SUPER_ADMIN)
-    if (role !== 'SUPER_ADMIN') {
+    // Conforme pedido: disponibilizar somente no perfil Admin e Zeladoria
+    if (!['SUPER_ADMIN', 'SINDICO'].includes(role || '')) {
         return NextResponse.json([]); 
     }
 
@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     const userId = payload.id as string;
     const role = payload.role as string;
 
-    // Conforme pedido: disponibilizar somente no perfil Admin (SUPER_ADMIN)
-    if (role !== 'SUPER_ADMIN') {
+    // Conforme pedido: disponibilizar somente no perfil Admin e Zeladoria
+    if (!['SUPER_ADMIN', 'SINDICO'].includes(role || '')) {
         return NextResponse.json({ message: 'Apenas administradores podem usar esta funcionalidade no momento' }, { status: 403 });
     }
 
