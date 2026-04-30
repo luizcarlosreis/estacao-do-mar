@@ -133,9 +133,19 @@ export default function FaleSindicoPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir esta solicitação?')) return;
-    await fetch(`/api/fale-sindico/${id}`, { method: 'DELETE' });
-    fetchList();
+    if (!confirm('Tem certeza que deseja excluir esta solicitação? Esta ação não pode ser desfeita.')) return;
+    try {
+      const res = await fetch(`/api/fale-sindico/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('Solicitação excluída com sucesso!');
+        fetchList();
+      } else {
+        const err = await res.json();
+        alert(`Erro ao excluir: ${err.message}`);
+      }
+    } catch (e: any) {
+      alert(`Erro de conexão ao excluir: ${e.message}`);
+    }
   };
 
   const updateStatus = async (id: string, newStatus: string) => {

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-estacao-do-mar');
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +55,18 @@ export async function DELETE(
 ) {
   try {
     const prisma = getPrisma();
+
+    // Segurança JWT
+    const token = request.cookies.get('auth-token')?.value;
+    if (!token) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
+
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const role = payload.role as string;
+
+    if (!['SUPER_ADMIN', 'SINDICO'].includes(role)) {
+      return NextResponse.json({ message: 'Acesso negado para exclusão' }, { status: 403 });
+    }
+
     await prisma.syndicMessage.delete({
       where: { id: params.id }
     });
