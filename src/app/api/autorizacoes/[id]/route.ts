@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -16,8 +16,7 @@ export async function GET(
         unit: { 
           include: { 
             residents: {
-              select: { name: true, phone: true, ddd: true, email: true },
-              take: 1
+              select: { name: true, phone: true, ddd: true, email: true, cpf: true }
             }
           }
         },
@@ -34,7 +33,7 @@ export async function GET(
 }
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -92,8 +91,7 @@ export async function PATCH(
         unit: { 
           include: { 
             residents: {
-              select: { name: true, phone: true, ddd: true, email: true },
-              take: 1
+              select: { name: true, phone: true, ddd: true, email: true, cpf: true }
             }
           }
         },
@@ -109,7 +107,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

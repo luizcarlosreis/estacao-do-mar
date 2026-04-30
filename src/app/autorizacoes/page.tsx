@@ -23,6 +23,7 @@ type Authorization = {
   entryDate: string;
   exitDate: string;
   notes: string;
+  requesterCpf: string;
   companions: Companion[];
 };
 
@@ -200,7 +201,8 @@ export default function AutorizacoesPage() {
     doc.line(20, 35, 190, 35);
     
     // Dados do Solicitante/Proprietário (Morador da Unidade)
-    const requester = (a as any).unit?.residents?.[0];
+    const residents = (a as any).unit?.residents || [];
+    const requester = residents.find((r: any) => r.cpf === a.requesterCpf) || residents[0];
     if (requester) {
       doc.setFontSize(12);
       doc.setTextColor(37, 99, 235);

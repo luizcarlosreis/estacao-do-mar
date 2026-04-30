@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-estacao-do-mar');
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const role = request.headers.get('x-user-role');
     const unitId = request.headers.get('x-user-unit');
@@ -24,8 +27,7 @@ export async function GET(request: Request) {
         unit: { 
           include: { 
             residents: {
-              select: { name: true, phone: true, ddd: true, email: true },
-              take: 1
+              select: { name: true, phone: true, ddd: true, email: true, cpf: true }
             }
           }
         },
@@ -40,12 +42,22 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const prisma = getPrisma();
     const body = await request.json();
 
     const { companions = [], ...authData } = body;
+
+    // Obter CPF do solicitante do JWT
+    const token = request.cookies.get('auth-token')?.value;
+    let requesterCpf = null;
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        requesterCpf = payload.cpf as string;
+      } catch (e) {}
+    }
 
     // Validação dos campos obrigatórios
     if (!authData.unitId || !authData.name) {
@@ -86,6 +98,7 @@ export async function POST(request: Request) {
     const authorization = await prisma.authorization.create({
       data: {
         ...authData,
+        requesterCpf,
         entryDate: authData.entryDate ? new Date(authData.entryDate) : null,
         exitDate: authData.exitDate ? new Date(authData.exitDate) : null,
         companions: {
@@ -96,16 +109,15 @@ export async function POST(request: Request) {
           })),
         },
       },
-      include: {
-        unit: { 
-          include: { 
+      include: { 
+        unit: {
+          include: {
             residents: {
-              select: { name: true, phone: true, ddd: true, email: true },
-              take: 1
+              select: { name: true, phone: true, ddd: true, email: true, cpf: true }
             }
           }
-        },
-        companions: true,
+        }, 
+        companions: true 
       },
     });
 

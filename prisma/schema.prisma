@@ -193,6 +193,7 @@ model Authorization {
   exitDate         DateTime?
   notes            String?
   companions       AuthorizationCompanion[]
+  requesterCpf     String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
