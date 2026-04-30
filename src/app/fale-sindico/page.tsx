@@ -42,7 +42,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.48';
+const APP_VERSION = 'v1.0.49';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -165,19 +165,29 @@ export default function FaleSindicoPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert('O arquivo é muito grande. O limite é de 2MB.');
-        return;
-      }
-      const reader = new FileReader();
-      // Usa o setState funcional para evitar bug de closure
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setFormData(prev => ({ ...prev, attachmentUrl: result }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg'];
+    const allowedExtensions = ['.pdf', '.jpg', '.jpeg'];
+    const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(ext)) {
+      alert('Tipo de arquivo não permitido.\nAceito apenas: PDF, JPG ou JPEG.');
+      e.target.value = '';
+      return;
     }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('O arquivo é muito grande. O limite é de 2MB.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setFormData(prev => ({ ...prev, attachmentUrl: result, attachmentName: file.name }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const openView = (m: SyndicMessage) => {
@@ -357,23 +367,27 @@ export default function FaleSindicoPage() {
               </div>
 
               <div>
-                <label className={lbl}>Anexar Arquivo (Máx 2MB)</label>
+                <label className={lbl}>Anexar Arquivo — Apenas PDF, JPG ou JPEG (Máx 2MB)</label>
                 <div className="flex flex-col gap-2">
                   {!isReportMode ? (
                     <div className="relative group">
-                      <input type="file" onChange={handleFileChange} className="hidden" id="file-upload" accept="image/*,application/pdf" />
+                      <input type="file" onChange={handleFileChange} className="hidden" id="file-upload" accept=".pdf,.jpg,.jpeg,image/jpeg,application/pdf" />
                       <label htmlFor="file-upload" className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition bg-slate-50">
                         <Paperclip size={20} className={formData.attachmentUrl ? 'text-blue-600' : 'text-slate-400'} />
                         <span className="text-xs text-slate-500 font-medium">
-                          {formData.attachmentUrl ? 'Arquivo selecionado! Clique para trocar' : 'Clique para selecionar imagem ou PDF'}
+                          {formData.attachmentUrl
+                            ? `✅ Arquivo selecionado — Clique para trocar`
+                            : 'Clique para selecionar PDF, JPG ou JPEG'}
                         </span>
                       </label>
                     </div>
                   ) : (
                     formData.attachmentUrl ? (
-                      <a href={formData.attachmentUrl} target="_blank" rel="noopener noreferrer" 
+                      <a
+                        href={formData.attachmentUrl}
+                        download="anexo-solicitacao"
                         className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 hover:bg-blue-100 transition text-sm font-semibold">
-                        <FileText size={18} /> Visualizar Anexo Enviado
+                        <FileText size={18} /> ⬇️ Baixar Anexo Enviado
                       </a>
                     ) : (
                       <div className="p-3 bg-slate-50 text-slate-400 rounded-xl border border-slate-100 text-xs italic text-center">
@@ -382,7 +396,7 @@ export default function FaleSindicoPage() {
                     )
                   )}
                   {formData.attachmentUrl && !isReportMode && (
-                    <button type="button" onClick={() => setFormData({ ...formData, attachmentUrl: '' })} className="text-[10px] text-red-500 font-bold uppercase hover:underline text-right px-2">
+                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, attachmentUrl: '' }))} className="text-[10px] text-red-500 font-bold uppercase hover:underline text-right px-2">
                       Remover Anexo
                     </button>
                   )}
