@@ -12,7 +12,17 @@ export async function GET(
     const { id } = await params;
     const authorization = await prisma.authorization.findUnique({
       where: { id },
-      include: { unit: true, companions: true },
+      include: {
+        unit: { 
+          include: { 
+            residents: {
+              select: { name: true, phone: true, ddd: true, email: true },
+              take: 1
+            }
+          }
+        },
+        companions: true,
+      },
     });
     if (!authorization) {
       return NextResponse.json({ message: 'Autorização não encontrada' }, { status: 404 });
@@ -78,7 +88,17 @@ export async function PATCH(
           })),
         },
       },
-      include: { unit: true, companions: true },
+      include: {
+        unit: { 
+          include: { 
+            residents: {
+              select: { name: true, phone: true, ddd: true, email: true },
+              take: 1
+            }
+          }
+        },
+        companions: true,
+      },
     });
 
     return NextResponse.json(updated);

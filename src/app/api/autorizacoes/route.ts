@@ -21,7 +21,14 @@ export async function GET(request: Request) {
     const authorizations = await prisma.authorization.findMany({
       where: whereClause,
       include: {
-        unit: { select: { id: true, number: true, block: true } },
+        unit: { 
+          include: { 
+            residents: {
+              select: { name: true, phone: true, ddd: true, email: true },
+              take: 1
+            }
+          }
+        },
         companions: true,
       },
       orderBy: { entryDate: 'asc' },
@@ -89,7 +96,17 @@ export async function POST(request: Request) {
           })),
         },
       },
-      include: { unit: true, companions: true },
+      include: {
+        unit: { 
+          include: { 
+            residents: {
+              select: { name: true, phone: true, ddd: true, email: true },
+              take: 1
+            }
+          }
+        },
+        companions: true,
+      },
     });
 
     return NextResponse.json(authorization, { status: 201 });

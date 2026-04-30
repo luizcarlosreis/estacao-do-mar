@@ -66,14 +66,12 @@ export default function AutorizacoesPage() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [fullProfile, setFullProfile] = useState<any>(null);
   const [isReportMode, setIsReportMode] = useState(false);
 
   useEffect(() => { 
     fetchList(); 
     fetchUnidades(); 
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
-    fetch('/api/me/profile').then(res => res.ok ? res.json() : null).then(data => setFullProfile(data));
   }, []);
 
   const fetchList = async () => {
@@ -201,17 +199,18 @@ export default function AutorizacoesPage() {
     doc.setDrawColor(200);
     doc.line(20, 35, 190, 35);
     
-    // Dados do Solicitante/Proprietário
-    if (fullProfile) {
+    // Dados do Solicitante/Proprietário (Morador da Unidade)
+    const requester = (a as any).unit?.residents?.[0];
+    if (requester) {
       doc.setFontSize(12);
       doc.setTextColor(37, 99, 235);
       doc.text('Dados do Solicitante (Proprietário/Residente)', 14, 45);
       
       const ownerBody = [
-        ['Nome:', fullProfile.name],
-        ['Unidade:', fullProfile.unit ? `${fullProfile.unit.number} - ${fullProfile.unit.block}` : '—'],
-        ['Telefone:', fullProfile.ddd ? `(${fullProfile.ddd}) ${fullProfile.phone}` : (fullProfile.phone || '—')],
-        ['E-mail:', fullProfile.email || '—']
+        ['Nome:', requester.name],
+        ['Unidade:', a.unit ? `${a.unit.number} - ${a.unit.block}` : '—'],
+        ['Telefone:', requester.ddd ? `(${requester.ddd}) ${requester.phone}` : (requester.phone || '—')],
+        ['E-mail:', requester.email || '—']
       ];
 
       autoTable(doc, {
