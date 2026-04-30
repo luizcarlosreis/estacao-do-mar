@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validação dos campos obrigatórios
-    if (!authData.unitId || !authData.name) {
+    if (!authData.unitId || !authData.name || !authData.entryDate || !authData.exitDate) {
       return NextResponse.json(
-        { message: 'Apartamento e Nome são obrigatórios' },
+        { message: 'Apartamento, Nome, Data de Entrada e Data de Saída são obrigatórios' },
         { status: 400 }
       );
     }

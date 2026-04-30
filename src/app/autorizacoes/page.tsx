@@ -95,6 +95,13 @@ export default function AutorizacoesPage() {
     setSaving(true);
     try {
       const { id, ...data } = formData;
+      
+      if (!data.entryDate || !data.exitDate) {
+        alert('As datas de entrada e saída são obrigatórias');
+        setSaving(false);
+        return;
+      }
+
       const url = isEditMode ? `/api/autorizacoes/${id}` : '/api/autorizacoes';
       const method = isEditMode ? 'PATCH' : 'POST';
       const res = await fetch(url, {
@@ -658,13 +665,13 @@ export default function AutorizacoesPage() {
                 <p className="text-sm font-semibold text-slate-600 mb-3">Período de Permanência</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={lbl}>Data de Entrada</label>
-                    <input type="date" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode}
+                    <label className={lbl}>Data de Entrada *</label>
+                    <input required type="date" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode}
                       value={formData.entryDate} onChange={e => setFormData({ ...formData, entryDate: e.target.value })} />
                   </div>
                   <div>
-                    <label className={lbl}>Data de Saída</label>
-                    <input type="date" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode}
+                    <label className={lbl}>Data de Saída *</label>
+                    <input required type="date" className={`${inp} ${isReportMode ? 'bg-slate-50 cursor-default' : ''}`} readOnly={isReportMode}
                       value={formData.exitDate} onChange={e => setFormData({ ...formData, exitDate: e.target.value })} />
                   </div>
                 </div>

@@ -42,6 +42,14 @@ export async function PATCH(
     const body = await request.json();
     const { companions = [], ...authData } = body;
 
+    // Validação de campos obrigatórios
+    if (!authData.unitId || !authData.name || !authData.entryDate || !authData.exitDate) {
+      return NextResponse.json(
+        { message: 'Apartamento, Nome, Data de Entrada e Data de Saída são obrigatórios' },
+        { status: 400 }
+      );
+    }
+
     // Validação de período — excluindo o próprio registro do conflito
     if (authData.entryDate && authData.exitDate) {
       const entry = new Date(authData.entryDate);
