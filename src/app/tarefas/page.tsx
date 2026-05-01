@@ -31,6 +31,12 @@ export default function TarefasPage() {
     fetchTasks();
   }, []);
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   const fetchTasks = async () => {
     try {
       const res = await fetch(API_URL);
@@ -157,7 +163,7 @@ export default function TarefasPage() {
                       
                       {task.status === 'DONE' && task.performedAt && (
                         <div className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-1 rounded inline-block">
-                          Realizada em: {new Date(task.performedAt).toLocaleDateString('pt-BR')}
+                          Realizada em: {formatDate(task.performedAt)}
                         </div>
                       )}
                     </div>

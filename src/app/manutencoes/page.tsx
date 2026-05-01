@@ -33,6 +33,12 @@ export default function ManutencoesPage() {
     fetchMaintenances();
   }, []);
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   const fetchMaintenances = async () => {
     try {
       const res = await fetch(API_URL);
@@ -54,7 +60,8 @@ export default function ManutencoesPage() {
       const url = isEdit ? `${API_URL}/${formData.id}` : API_URL;
       const method = isEdit ? 'PUT' : 'POST';
 
-      console.log(`Enviando ${method} para: ${url}`, formData);
+      // Alerta temporário para depuração
+      console.log(`DEBUG: ID=${formData.id}, Modo=${isEdit ? 'ALTERAR' : 'CRIAR'}`);
 
       const res = await fetch(url, {
         method,
@@ -182,12 +189,12 @@ export default function ManutencoesPage() {
                     </td>
                     <td className="p-4 text-sm">
                       <div className="flex items-center gap-2 text-green-600 font-medium">
-                        <Calendar size={14} /> {new Date(m.performedAt).toLocaleDateString('pt-BR')}
+                        <Calendar size={14} /> {formatDate(m.performedAt)}
                       </div>
                     </td>
                     <td className="p-4 text-sm">
                       <div className={`flex items-center gap-2 font-medium ${isOverdue ? 'text-red-500' : 'text-primary'}`}>
-                        <Calendar size={14} /> {new Date(m.nextMaintenanceAt).toLocaleDateString('pt-BR')}
+                        <Calendar size={14} /> {formatDate(m.nextMaintenanceAt)}
                       </div>
                     </td>
                     <td className="p-4">
