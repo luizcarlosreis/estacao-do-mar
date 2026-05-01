@@ -49,9 +49,16 @@ export default function TarefasPage() {
     try {
       const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
       const method = isEditMode ? 'PATCH' : 'POST';
-      
+
       const payload: any = { ...formData };
       if (!payload.performedAt) delete payload.performedAt;
+
+      if (isEditMode && !formData.id) {
+        alert('Erro: ID da tarefa não encontrado. Tente recarregar a página.');
+        return;
+      }
+
+      console.log(`Enviando ${method} para: ${url}`, payload);
 
       const res = await fetch(url, {
         method,

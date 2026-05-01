@@ -53,7 +53,14 @@ export default function ManutencoesPage() {
     try {
       const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
       const method = isEditMode ? 'PATCH' : 'POST';
-      
+
+      if (isEditMode && !formData.id) {
+        alert('Erro: ID do registro não encontrado. Tente recarregar a página.');
+        return;
+      }
+
+      console.log(`Enviando ${method} para: ${url}`, formData);
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

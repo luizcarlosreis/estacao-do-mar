@@ -4,9 +4,11 @@ import { getPrisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  console.log('PATCH request received');
   try {
     const prisma = getPrisma();
     const { id } = await params;
+    console.log('ID from params:', id);
     const body = await request.json();
     const { id: _, ...updateData } = body;
 
@@ -23,8 +25,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     });
     return NextResponse.json(maintenance);
   } catch (error: any) {
+    console.error('PATCH error:', error);
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
+}
+
+export async function PUT(request: Request, context: any) {
+  return PATCH(request, context);
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
