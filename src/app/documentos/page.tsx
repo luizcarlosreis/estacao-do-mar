@@ -43,8 +43,12 @@ export default function DocumentosPage() {
   const fetchDocs = async () => {
     try {
       const res = await fetch(API_URL);
-      const data = await res.json();
-      setDocs(data);
+      if (res.ok) {
+        const data = await res.json();
+        setDocs(Array.isArray(data) ? data : []);
+      } else {
+        console.error('API retornou erro:', res.status);
+      }
     } catch (error) {
       console.error('Erro ao buscar documentos', error);
     } finally {
