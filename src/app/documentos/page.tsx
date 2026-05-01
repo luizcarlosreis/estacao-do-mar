@@ -14,6 +14,7 @@ type Document = {
 };
 
 export default function DocumentosPage() {
+  const [mounted, setMounted] = useState(false);
   const [docs, setDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,9 +33,12 @@ export default function DocumentosPage() {
   const API_URL = '/api/documentos';
 
   useEffect(() => {
+    setMounted(true);
     fetchDocs();
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, []);
+
+  if (!mounted) return null;
 
   const fetchDocs = async () => {
     try {
@@ -52,8 +56,9 @@ export default function DocumentosPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 20 * 1024 * 1024) {
-      alert('O arquivo é muito grande. O limite permitido é de 20MB.');
+    // Limite de 4.5MB devido a restrições do servidor (Vercel)
+    if (file.size > 4.5 * 1024 * 1024) {
+      alert('O arquivo é muito grande. Devido a limitações do servidor, o tamanho máximo permitido é de 4.5MB.');
       e.target.value = '';
       return;
     }
@@ -90,14 +95,22 @@ export default function DocumentosPage() {
         setFormData({ title: '', description: '', fileUrl: '', fileName: '', fileSize: 0 });
         fetchDocs();
       } else {
-        const err = await res.json();
-        alert(`Erro: ${err.message}`);
+        if (res.status === 413) {
+          alert('Erro 413: O arquivo é muito grande para ser processado pelo servidor (limite de 4.5MB excedido).');
+        } else {
+          const text = await res.text();
+          try {
+            const err = JSON.parse(text);
+            alert(`Erro: ${err.message}`);
+          } catch (e) {
+            alert(`Erro ${res.status}: ${text.substring(0, 100)}`);
+          }
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar documento', error);
-      alert('Erro de conexão ao salvar.');
+      alert(`Erro de conexão: ${error.message}`);
     } finally {
-      setSaving(true);
       setSaving(false);
     }
   };
@@ -262,7 +275,7 @@ export default function DocumentosPage() {
                     {formData.fileName || 'Clique ou arraste o arquivo aqui'}
                   </p>
                   <p className="text-[10px] text-gray-400 uppercase tracking-widest">
-                    PDF, JPG, PNG ou DOCX até 20MB
+                    PDF, JPG, PNG ou DOCX até 4.5MB
                   </p>
                 </div>
               </div>
