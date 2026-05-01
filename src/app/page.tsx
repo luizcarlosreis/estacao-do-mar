@@ -23,8 +23,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.56-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.56';
+  ? `v1.0.57-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.57';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -120,6 +120,9 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
         </div>
       )}
+      <div className="mt-12 text-center text-[10px] text-slate-400 uppercase tracking-widest font-bold pb-8">
+        Estação do Mar Management Portal • {APP_VERSION}
+      </div>
     </div>
   );
 }
