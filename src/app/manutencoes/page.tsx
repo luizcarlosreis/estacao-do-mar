@@ -66,8 +66,9 @@ export default function ManutencoesPage() {
         const errorData = await res.json();
         alert(`Erro: ${errorData.message || 'Falha ao salvar'}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar manutenção', error);
+      alert(`Erro de conexão: ${error.message || 'Não foi possível alcançar o servidor'}`);
     }
   };
 

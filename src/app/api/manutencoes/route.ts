@@ -13,9 +13,10 @@ export async function POST(request: Request) {
   
   try {
     const body = await request.json();
+    const { id: _, ...createData } = body;
     const data = await (getPrisma()).maintenance.create({
       data: {
-        ...body,
+        ...createData,
         performedAt: new Date(body.performedAt),
         nextMaintenanceAt: new Date(body.nextMaintenanceAt),
       }

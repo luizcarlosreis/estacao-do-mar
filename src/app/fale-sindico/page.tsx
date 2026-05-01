@@ -46,8 +46,8 @@ const statusLabel: any = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.63-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.63';
+  ? `v1.0.64-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.64';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
