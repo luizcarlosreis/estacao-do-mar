@@ -121,7 +121,7 @@ export default function MoradoresPage() {
     setFormData({ 
       cpf: morador.cpf, 
       name: morador.name, 
-      email: morador.email, 
+      email: morador.email || '', 
       password: '', 
       unitId: morador.unitId || '',
       ddd: morador.ddd || '',

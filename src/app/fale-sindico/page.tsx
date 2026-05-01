@@ -43,7 +43,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.52';
+const APP_VERSION = 'v1.0.54';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);

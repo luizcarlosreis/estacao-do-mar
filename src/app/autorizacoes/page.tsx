@@ -35,7 +35,9 @@ const emptyForm = {
 
 function formatDate(d: string) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('pt-BR');
+  const datePart = d.split('T')[0];
+  const [y, m, day] = datePart.split('-');
+  return `${day}/${m}/${y}`;
 }
 
 function getStatus(entry: string, exit: string) {
@@ -237,7 +239,7 @@ export default function AutorizacoesPage() {
         body: ownerBody,
         theme: 'plain',
         styles: { fontSize: 9, cellPadding: 2 },
-        columnStyles: { 0: { fontStyle: 'bold', width: 40 } }
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
       });
     }
 
@@ -262,11 +264,11 @@ export default function AutorizacoesPage() {
       head: [['Campo', 'Informação']],
       body: body,
       theme: 'striped',
-      headStyles: { fillStyle: 'fill', fillColor: [37, 99, 235], textColor: [255, 255, 255] },
+      headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255] },
       styles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: { 0: { fontStyle: 'bold', width: 40 } },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } },
       didParseCell: (data) => {
-        if (data.section === 'body' && data.row.raw[0] === 'Período de Validade:' && data.column.index === 1) {
+        if (data.section === 'body' && (data.row.raw as any)[0] === 'Período de Validade:' && data.column.index === 1) {
           data.cell.styles.fontSize = 12;
           data.cell.styles.fontStyle = 'bold';
           data.cell.styles.textColor = [30, 41, 59]; // slate-800
