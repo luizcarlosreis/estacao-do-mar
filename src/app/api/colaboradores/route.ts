@@ -14,10 +14,11 @@ export async function POST(request: Request) {
   
   try {
     const body = await request.json();
-    if (body.password) {
-      body.password = await bcrypt.hash(body.password, 10);
+    const { id: _, ...createData } = body;
+    if (createData.password) {
+      createData.password = await bcrypt.hash(createData.password, 10);
     }
-    const employee = await (getPrisma()).employee.create({ data: body });
+    const employee = await (getPrisma()).employee.create({ data: createData });
     return NextResponse.json(employee, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 400 });

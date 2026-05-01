@@ -18,7 +18,6 @@ export default function ColaboradoresPage() {
   const [loading, setLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({ 
     id: '', 
     name: '', 
@@ -51,12 +50,15 @@ export default function ColaboradoresPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
-      const method = isEditMode ? 'PATCH' : 'POST';
+      const isEdit = !!formData.id;
+      const url = isEdit ? `${API_URL}/${formData.id}` : API_URL;
+      const method = isEdit ? 'PUT' : 'POST';
       
       const payload: any = { ...formData };
-      if (isEditMode && !payload.password) delete payload.password;
+      if (isEdit && !payload.password) delete payload.password;
       if (!payload.email) delete payload.email;
+
+      console.log(`DEBUG: ID=${formData.id}, Modo=${isEdit ? 'ALTERAR' : 'CRIAR'}`);
 
       const res = await fetch(url, {
         method,
@@ -68,11 +70,19 @@ export default function ColaboradoresPage() {
         setIsModalOpen(false);
         fetchEmployees();
       } else {
-        const errorData = await res.json();
-        alert(`Erro: ${errorData.message || 'Falha ao salvar'}`);
+        const text = await res.text();
+        let errorMsg = 'Falha ao salvar';
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.message || errorMsg;
+        } catch (e) {
+          errorMsg = `Erro ${res.status}: ${text.substring(0, 100) || 'Resposta vazia'}`;
+        }
+        alert(`Erro: ${errorMsg}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar colaborador', error);
+      alert(`Erro de conexão: ${error.message || 'Não foi possível alcançar o servidor'}`);
     }
   };
 
@@ -97,7 +107,6 @@ export default function ColaboradoresPage() {
       role: emp.role, 
       shift: emp.shift || '' 
     });
-    setIsEditMode(true);
     setIsModalOpen(true);
   };
 
@@ -109,7 +118,7 @@ export default function ColaboradoresPage() {
             <Briefcase size={32} /> Gestão de Colaboradores
           </h1>
           <button 
-            onClick={() => { setFormData({id:'', name:'', cpf:'', email:'', password:'', phone:'', role:'PORTEIRO', shift:'Diurno'}); setIsEditMode(false); setIsModalOpen(true); }}
+            onClick={() => { setFormData({id:'', name:'', cpf:'', email:'', password:'', phone:'', role:'PORTEIRO', shift:'Diurno'}); setIsModalOpen(true); }}
             className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <Plus size={20} /> Novo Colaborador
@@ -150,7 +159,7 @@ export default function ColaboradoresPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh]">
-            <h2 className="text-xl font-bold text-primary mb-6">{isEditMode ? 'Editar Colaborador' : 'Novo Colaborador'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-6">{formData.id ? 'Editar Colaborador' : 'Novo Colaborador'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Nome Completo</label>
@@ -160,7 +169,7 @@ export default function ColaboradoresPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">CPF</label>
-                  <input type="text" required disabled={isEditMode} className="w-full p-2 border rounded" value={formData.cpf} onChange={(e) => setFormData({...formData, cpf: e.target.value})} />
+                  <input type="text" required disabled={!!formData.id} className="w-full p-2 border rounded" value={formData.cpf} onChange={(e) => setFormData({...formData, cpf: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Telefone</label>
@@ -187,7 +196,7 @@ export default function ColaboradoresPage() {
                 <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><Key size={14}/> Dados de Acesso (Login)</h3>
                 <div className="space-y-3">
                   <input type="email" placeholder="E-mail (Login)" className="w-full p-2 border rounded text-sm" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                  <input type="password" placeholder={isEditMode ? "Nova senha (opcional)" : "Senha de Acesso"} className="w-full p-2 border rounded text-sm" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+                  <input type="password" placeholder={formData.id ? "Nova senha (opcional)" : "Senha de Acesso"} className="w-full p-2 border rounded text-sm" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
                 </div>
               </div>
 
