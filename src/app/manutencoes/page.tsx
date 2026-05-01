@@ -13,7 +13,6 @@ type Maintenance = {
 };
 
 export default function ManutencoesPage() {
-  const [mounted, setMounted] = useState(false);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterYear, setFilterYear] = useState('');
@@ -31,11 +30,8 @@ export default function ManutencoesPage() {
   const API_URL = '/api/manutencoes';
 
   useEffect(() => {
-    setMounted(true);
     fetchMaintenances();
   }, []);
-
-  if (!mounted) return null;
 
   const fetchMaintenances = async () => {
     try {
@@ -110,7 +106,12 @@ export default function ManutencoesPage() {
 
   const filteredMaintenances = maintenances.filter(m => {
     if (filterYear === '') return true;
-    return new Date(m.nextMaintenanceAt).getFullYear().toString() === filterYear;
+    try {
+      const year = new Date(m.nextMaintenanceAt).getFullYear().toString();
+      return year === filterYear;
+    } catch {
+      return false;
+    }
   });
 
   return (
@@ -130,7 +131,16 @@ export default function ManutencoesPage() {
                 onChange={(e) => setFilterYear(e.target.value)}
               >
                 <option value="">Todos os Anos</option>
-                {Array.from(new Set(maintenances.map(m => new Date(m.nextMaintenanceAt).getFullYear().toString()))).sort((a, b) => b.localeCompare(a)).map(year => (
+                {Array.from(new Set(maintenances
+                  .map(m => {
+                    try {
+                      return new Date(m.nextMaintenanceAt).getFullYear().toString();
+                    } catch {
+                      return null;
+                    }
+                  })
+                  .filter((y): y is string => y !== null && y !== 'NaN')
+                )).sort((a, b) => b.localeCompare(a)).map(year => (
                   <option key={year} value={year}>{year}</option>
                 ))}
               </select>

@@ -13,7 +13,6 @@ type Task = {
 };
 
 export default function TarefasPage() {
-  const [mounted, setMounted] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -29,11 +28,8 @@ export default function TarefasPage() {
   const API_URL = '/api/tarefas';
 
   useEffect(() => {
-    setMounted(true);
     fetchTasks();
   }, []);
-
-  if (!mounted) return null;
 
   const fetchTasks = async () => {
     try {
