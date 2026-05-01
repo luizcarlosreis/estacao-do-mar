@@ -46,8 +46,8 @@ const statusLabel: any = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.58-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.58';
+  ? `v1.0.59-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.59';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -68,15 +68,13 @@ export default function FaleSindicoPage() {
   });
 
   useEffect(() => {
-    const userJson = localStorage.getItem('user');
-    if (userJson) {
-      const u = JSON.parse(userJson);
-      setCurrentUser(u);
-      // Se não for admin, redirecionar ou mostrar erro (conforme solicitado: disponível somente Admin)
-      if (u.role !== 'SUPER_ADMIN') {
-          // window.location.href = '/'; 
-      }
-    }
+    fetch('/api/me')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.user) {
+          setCurrentUser(data.user);
+        }
+      });
     fetchList();
     fetchUnidades();
   }, []);
@@ -257,7 +255,7 @@ export default function FaleSindicoPage() {
   };
 
   const openCreate = () => {
-    const isMorador = currentUser?.role?.toUpperCase() === 'MORADOR';
+    const isMorador = currentUser?.role === 'MORADOR';
     setFormData({ 
       id: '', 
       unitId: isMorador ? (currentUser.unitId || '') : '', 
@@ -473,7 +471,7 @@ export default function FaleSindicoPage() {
                 <div>
                   <label className={lbl}>Apartamento *</label>
                   <select required className={inp} value={formData.unitId} 
-                    disabled={isReportMode || currentUser?.role?.toUpperCase() === 'MORADOR'}
+                    disabled={isReportMode || currentUser?.role === 'MORADOR'}
                     onChange={e => setFormData({ ...formData, unitId: e.target.value })}>
                     <option value="">Selecione</option>
                     {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
@@ -579,8 +577,10 @@ export default function FaleSindicoPage() {
         </div>
       )}
 
-      <div className={`mt-8 text-center text-[10px] uppercase tracking-widest font-bold ${currentUser?.role?.toUpperCase() === 'MORADOR' ? 'text-red-500' : 'text-slate-400'}`}>
-        Estação do Mar Management Portal • {APP_VERSION}
+      <div className="mt-8 text-center">
+        <span className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full ${currentUser?.role === 'MORADOR' ? 'text-red-600 bg-white shadow-sm border border-red-100' : 'text-slate-400'}`}>
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
       </div>
     </div>
   );

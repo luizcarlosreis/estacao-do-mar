@@ -23,8 +23,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.58-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.58';
+  ? `v1.0.59-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.59';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -120,8 +120,10 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
         </div>
       )}
-      <div className={`mt-12 text-center text-[10px] uppercase tracking-widest font-bold pb-8 ${user?.role?.toUpperCase() === 'MORADOR' ? 'text-red-500' : 'text-slate-400'}`}>
-        Estação do Mar Management Portal • {APP_VERSION}
+      <div className="mt-12 text-center pb-8">
+        <span className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full ${user?.role === 'MORADOR' ? 'text-red-600 bg-white shadow-sm border border-red-100' : 'text-slate-400'}`}>
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
       </div>
     </div>
   );
