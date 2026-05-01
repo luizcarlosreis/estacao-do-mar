@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FileText, Plus, Trash2, Download, Search, X, FileUp, ShieldAlert } from 'lucide-react';
+import { FileText, Plus, Trash2, Download, Search, X } from 'lucide-react';
 
 type Document = {
   id: string;
@@ -234,7 +234,7 @@ export default function DocumentosPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="bg-primary p-5 text-white flex justify-between items-center">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <FileUp size={22} /> Novo Documento
+                <Plus size={22} /> Novo Documento
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="hover:rotate-90 transition-transform">
                 <X size={24} />
@@ -273,7 +273,7 @@ export default function DocumentosPage() {
                 />
                 <div className="space-y-2">
                   <div className="mx-auto w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
-                    <FileUp size={24} />
+                    <Plus size={24} />
                   </div>
                   <p className="text-sm font-bold text-gray-600">
                     {formData.fileName || 'Clique ou arraste o arquivo aqui'}
