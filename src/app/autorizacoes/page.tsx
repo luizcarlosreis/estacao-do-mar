@@ -679,7 +679,7 @@ export default function AutorizacoesPage() {
                 )}
                 <div className="space-y-3">
                   {companions.map((c, i) => (
-                    <div key={i} className="grid grid-cols-7 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 items-end">
+                    <div key={i} className="grid grid-cols-8 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 items-end">
                       <div className="col-span-3">
                         <label className={lbl}>Nome *</label>
                         <input required type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="Nome completo"
@@ -690,7 +690,7 @@ export default function AutorizacoesPage() {
                         <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="CPF"
                           value={c.cpf} onChange={e => updateCompanion(i, 'cpf', e.target.value)} />
                       </div>
-                      <div className="col-span-1">
+                      <div className="col-span-2">
                         <label className={lbl}>RG</label>
                         <input type="text" className={`${inp} ${isReportMode ? 'bg-white cursor-default' : ''}`} readOnly={isReportMode} placeholder="RG"
                           value={c.rg} onChange={e => updateCompanion(i, 'rg', e.target.value)} />
