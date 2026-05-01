@@ -46,8 +46,8 @@ const statusLabel: any = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.57-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.57';
+  ? `v1.0.58-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.58';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -257,9 +257,10 @@ export default function FaleSindicoPage() {
   };
 
   const openCreate = () => {
+    const isMorador = currentUser?.role?.toUpperCase() === 'MORADOR';
     setFormData({ 
       id: '', 
-      unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', 
+      unitId: isMorador ? (currentUser.unitId || '') : '', 
       type: '', 
       otherType: '', 
       description: '', 
@@ -311,7 +312,7 @@ export default function FaleSindicoPage() {
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR');
 
-  const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
+  const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed';
   const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
 
   if (loading && !currentUser) {
@@ -472,7 +473,7 @@ export default function FaleSindicoPage() {
                 <div>
                   <label className={lbl}>Apartamento *</label>
                   <select required className={inp} value={formData.unitId} 
-                    disabled={isReportMode || currentUser?.role === 'MORADOR'}
+                    disabled={isReportMode || currentUser?.role?.toUpperCase() === 'MORADOR'}
                     onChange={e => setFormData({ ...formData, unitId: e.target.value })}>
                     <option value="">Selecione</option>
                     {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
@@ -578,7 +579,7 @@ export default function FaleSindicoPage() {
         </div>
       )}
 
-      <div className="mt-8 text-center text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+      <div className={`mt-8 text-center text-[10px] uppercase tracking-widest font-bold ${currentUser?.role?.toUpperCase() === 'MORADOR' ? 'text-red-500' : 'text-slate-400'}`}>
         Estação do Mar Management Portal • {APP_VERSION}
       </div>
     </div>
