@@ -23,6 +23,7 @@ export default function DocumentosPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const [formData, setFormData] = useState({
+    id: '',
     title: '',
     description: '',
     fileUrl: '',
@@ -80,17 +81,18 @@ export default function DocumentosPage() {
     e.preventDefault();
     if (!formData.fileUrl) return alert('Selecione um arquivo.');
 
+    const isEdit = !!formData.id;
     setSaving(true);
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
+      const res = await fetch(isEdit ? `${API_URL}/${formData.id}` : API_URL, {
+        method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       if (res.ok) {
         setIsModalOpen(false);
-        setFormData({ title: '', description: '', fileUrl: '', fileName: '', fileSize: 0 });
+        setFormData({ id: '', title: '', description: '', fileUrl: '', fileName: '', fileSize: 0 });
         fetchDocs();
       } else {
         const text = await res.text();
@@ -101,6 +103,18 @@ export default function DocumentosPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const openEdit = (doc: Document) => {
+    setFormData({
+      id: doc.id,
+      title: doc.title,
+      description: doc.description || '',
+      fileUrl: doc.fileUrl, // Mantém o arquivo atual
+      fileName: doc.fileName,
+      fileSize: doc.fileSize
+    });
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id: string, title: string) => {
@@ -144,7 +158,7 @@ export default function DocumentosPage() {
           
           {isAdmin && (
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => { setFormData({ id: '', title: '', description: '', fileUrl: '', fileName: '', fileSize: 0 }); setIsModalOpen(true); }}
               className="bg-blue-600 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-100 w-full md:w-auto justify-center"
             >
               <Plus size={20} /> Novo Documento
@@ -176,14 +190,24 @@ export default function DocumentosPage() {
                     <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
                       <FileText size={24} />
                     </div>
-                    {isAdmin && (
-                      <button 
-                        onClick={() => handleDelete(doc.id, doc.title)}
-                        className="text-slate-300 hover:text-red-500 transition"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
+                    <div className="flex gap-2">
+                      {isAdmin && (
+                        <button 
+                          onClick={() => openEdit(doc)}
+                          className="text-slate-300 hover:text-blue-500 transition"
+                        >
+                          <Plus size={18} className="rotate-45" /> {/* Usei Plus girado como ícone de edição simples se Edit2 não estiver disponível */}
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button 
+                          onClick={() => handleDelete(doc.id, doc.title)}
+                          className="text-slate-300 hover:text-red-500 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
                   <h3 className="text-lg font-bold text-slate-800 line-clamp-1 mb-1" title={doc.title}>{doc.title}</h3>
@@ -212,7 +236,7 @@ export default function DocumentosPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="bg-blue-600 p-5 text-white flex justify-between items-center">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <Plus size={22} /> Novo Documento
+                <Plus size={22} /> {formData.id ? 'Alterar Documento' : 'Novo Documento'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="hover:rotate-90 transition-transform">
                 <X size={24} />
@@ -242,10 +266,11 @@ export default function DocumentosPage() {
                 />
               </div>
 
-              <div className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 relative group hover:border-blue-400 transition-colors text-center">
+              <div className={`bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 relative group transition-colors text-center ${formData.id ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400'}`}>
                 <input 
-                  type="file" required
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  type="file" required={!formData.id}
+                  disabled={!!formData.id}
+                  className={`absolute inset-0 opacity-0 ${formData.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   onChange={handleFileChange}
                 />
                 <div className="space-y-2">
@@ -260,6 +285,9 @@ export default function DocumentosPage() {
                   </p>
                 </div>
               </div>
+              {formData.id && (
+                <p className="text-[10px] text-blue-500 font-bold text-center italic">Para trocar o arquivo, exclua o documento e cadastre-o novamente.</p>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-6 py-3 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition">Cancelar</button>
