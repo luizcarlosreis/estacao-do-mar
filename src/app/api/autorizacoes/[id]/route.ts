@@ -52,8 +52,8 @@ export async function PATCH(
 
     // Validação de período — excluindo o próprio registro do conflito
     if (authData.entryDate && authData.exitDate) {
-      const entry = new Date(authData.entryDate);
-      const exit = new Date(authData.exitDate);
+      const entry = new Date(`${authData.entryDate.substring(0, 10)}T12:00:00Z`);
+      const exit = new Date(`${authData.exitDate.substring(0, 10)}T12:00:00Z`);
 
       if (exit <= entry) {
         return NextResponse.json(
@@ -84,8 +84,8 @@ export async function PATCH(
       where: { id },
       data: {
         ...authData,
-        entryDate: authData.entryDate ? new Date(authData.entryDate) : null,
-        exitDate: authData.exitDate ? new Date(authData.exitDate) : null,
+        entryDate: authData.entryDate ? new Date(`${authData.entryDate.substring(0, 10)}T12:00:00Z`) : null,
+        exitDate: authData.exitDate ? new Date(`${authData.exitDate.substring(0, 10)}T12:00:00Z`) : null,
         companions: {
           deleteMany: {},
           create: companions.map((c: { name: string; rg?: string; cpf?: string }) => ({

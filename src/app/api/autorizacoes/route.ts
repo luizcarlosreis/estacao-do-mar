@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
 
     // Validação de período: não pode haver sobreposição de datas para o mesmo apartamento
     if (authData.entryDate && authData.exitDate) {
-      const entry = new Date(authData.entryDate);
-      const exit = new Date(authData.exitDate);
+      const entry = new Date(`${authData.entryDate.substring(0, 10)}T12:00:00Z`);
+      const exit = new Date(`${authData.exitDate.substring(0, 10)}T12:00:00Z`);
 
       if (exit <= entry) {
         return NextResponse.json(
@@ -99,8 +99,8 @@ export async function POST(request: NextRequest) {
       data: {
         ...authData,
         requesterCpf,
-        entryDate: authData.entryDate ? new Date(authData.entryDate) : null,
-        exitDate: authData.exitDate ? new Date(authData.exitDate) : null,
+        entryDate: authData.entryDate ? new Date(`${authData.entryDate.substring(0, 10)}T12:00:00Z`) : null,
+        exitDate: authData.exitDate ? new Date(`${authData.exitDate.substring(0, 10)}T12:00:00Z`) : null,
         companions: {
           create: companions.map((c: { name: string; rg?: string; cpf?: string }) => ({
             name: c.name,
