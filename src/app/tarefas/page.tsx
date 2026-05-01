@@ -13,11 +13,11 @@ type Task = {
 };
 
 export default function TarefasPage() {
+  const [mounted, setMounted] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({ 
     id: '', 
     title: '', 
@@ -29,8 +29,11 @@ export default function TarefasPage() {
   const API_URL = '/api/tarefas';
 
   useEffect(() => {
+    setMounted(true);
     fetchTasks();
   }, []);
+
+  if (!mounted) return null;
 
   const fetchTasks = async () => {
     try {
@@ -47,16 +50,12 @@ export default function TarefasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
-      const method = isEditMode ? 'PATCH' : 'POST';
+      const isEdit = !!formData.id;
+      const url = isEdit ? `${API_URL}/${formData.id}` : API_URL;
+      const method = isEdit ? 'PUT' : 'POST';
 
       const payload: any = { ...formData };
       if (!payload.performedAt) delete payload.performedAt;
-
-      if (isEditMode && !formData.id) {
-        alert('Erro: ID da tarefa não encontrado. Tente recarregar a página.');
-        return;
-      }
 
       console.log(`Enviando ${method} para: ${url}`, payload);
 
@@ -104,7 +103,6 @@ export default function TarefasPage() {
       status: t.status, 
       performedAt: t.performedAt ? t.performedAt.split('T')[0] : '' 
     });
-    setIsEditMode(true);
     setIsModalOpen(true);
   };
 
@@ -134,7 +132,7 @@ export default function TarefasPage() {
             <ListTodo size={32} /> Backlog de Atividades
           </h1>
           <button 
-            onClick={() => { setFormData({id:'', title:'', description:'', status:'BACKLOG', performedAt:''}); setIsEditMode(false); setIsModalOpen(true); }}
+            onClick={() => { setFormData({id:'', title:'', description:'', status:'BACKLOG', performedAt:''}); setIsModalOpen(true); }}
             className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <Plus size={20} /> Nova Tarefa
@@ -178,7 +176,7 @@ export default function TarefasPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-primary mb-6">{isEditMode ? 'Editar Tarefa' : 'Nova Tarefa'}</h2>
+            <h2 className="text-xl font-bold text-primary mb-6">{formData.id ? 'Editar Tarefa' : 'Nova Tarefa'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Título</label>

@@ -13,12 +13,12 @@ type Maintenance = {
 };
 
 export default function ManutencoesPage() {
+  const [mounted, setMounted] = useState(false);
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterYear, setFilterYear] = useState('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({ 
     id: '', 
     title: '', 
@@ -31,8 +31,11 @@ export default function ManutencoesPage() {
   const API_URL = '/api/manutencoes';
 
   useEffect(() => {
+    setMounted(true);
     fetchMaintenances();
   }, []);
+
+  if (!mounted) return null;
 
   const fetchMaintenances = async () => {
     try {
@@ -51,13 +54,9 @@ export default function ManutencoesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const url = isEditMode ? `${API_URL}/${formData.id}` : API_URL;
-      const method = isEditMode ? 'PATCH' : 'POST';
-
-      if (isEditMode && !formData.id) {
-        alert('Erro: ID do registro não encontrado. Tente recarregar a página.');
-        return;
-      }
+      const isEdit = !!formData.id;
+      const url = isEdit ? `${API_URL}/${formData.id}` : API_URL;
+      const method = isEdit ? 'PUT' : 'POST';
 
       console.log(`Enviando ${method} para: ${url}`, formData);
 
@@ -106,7 +105,6 @@ export default function ManutencoesPage() {
       performedAt: m.performedAt.split('T')[0], 
       nextMaintenanceAt: m.nextMaintenanceAt.split('T')[0] 
     });
-    setIsEditMode(true);
     setIsModalOpen(true);
   };
 
@@ -139,7 +137,7 @@ export default function ManutencoesPage() {
             </div>
 
             <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', observation:'', performedAt:'', nextMaintenanceAt:''}); setIsEditMode(false); setIsModalOpen(true); }}
+              onClick={() => { setFormData({id:'', title:'', description:'', observation:'', performedAt:'', nextMaintenanceAt:''}); setIsModalOpen(true); }}
               className="w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
             >
               <Plus size={20} /> Registrar Manutenção
@@ -210,7 +208,7 @@ export default function ManutencoesPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 overflow-hidden">
             <div className="flex justify-between items-center mb-6 border-b pb-4">
               <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-                <Wrench size={20}/> {isEditMode ? 'Editar Registro' : 'Novo Registro'}
+                <Wrench size={20}/> {formData.id ? 'Editar Registro' : 'Novo Registro'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition"><X size={24} /></button>
             </div>
