@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-export const maxDuration = 60; // Aumenta o timeout para 60s no Vercel (plano Pro) ou mantém 10s no Free
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,60 +11,48 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'PDF não fornecido' }, { status: 400 });
     }
 
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const smtpPort = Number(process.env.SMTP_PORT) || 587;
-    const smtpSecure = process.env.SMTP_SECURE === 'true';
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    console.log('API E-mail: Configuração SMTP:', { smtpHost, smtpPort, smtpSecure, smtpUser });
-
-    if (!smtpUser || !smtpPass) {
-      console.error('API E-mail: SMTP_USER ou SMTP_PASS não configurados no ambiente!');
+    if (!resendApiKey) {
+      console.error('API E-mail: RESEND_API_KEY não configurada no ambiente!');
       return NextResponse.json({ 
-        message: 'Configuração SMTP ausente. Verifique as variáveis SMTP_USER e SMTP_PASS no Vercel.' 
+        message: 'Configuração Resend ausente. Verifique a variável RESEND_API_KEY no ambiente.' 
       }, { status: 500 });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
+    const resend = new Resend(resendApiKey);
 
-    const mailOptions = {
-      from: `"Portal Estação do Mar" <${smtpUser}>`,
-      to: 'luiz.carlos.reis@gmail.com',
+    console.log('API E-mail: Enviando mensagem via Resend para luiz.carlos.reis@gmail.com...');
+    
+    const { data, error } = await resend.emails.send({
+      from: 'Portal Estação do Mar <onboarding@resend.dev>', // onboarding@resend.dev restringe envio para apenas e-mail verificado no tier gratuito
+      to: ['luiz.carlos.reis@gmail.com'],
       subject: `Nova Autorização: ${authorizationName} - Unidade ${unitInfo}`,
       text: `Olá,\n\nUma nova autorização de uso foi gerada para a unidade ${unitInfo}.\nSeguem os detalhes em anexo.`,
       attachments: [
         {
           filename: `Autorizacao_${authorizationName.replace(/\s+/g, '_')}.pdf`,
-          content: pdfBase64,
-          encoding: 'base64',
+          content: Buffer.from(pdfBase64, 'base64'),
         },
       ],
-    };
+    });
 
-    console.log('API E-mail: Enviando mensagem para luiz.carlos.reis@gmail.com...');
-    const info = await transporter.sendMail(mailOptions);
-    console.log('API E-mail: Enviado com sucesso! ID:', info.messageId);
+    if (error) {
+      console.error('API E-mail: ERRO RESEND:', error);
+      return NextResponse.json({ 
+        message: 'Erro ao enviar e-mail pelo Resend', 
+        error: error.message,
+      }, { status: 500 });
+    }
 
-    return NextResponse.json({ message: 'E-mail enviado com sucesso', messageId: info.messageId });
+    console.log('API E-mail: Enviado com sucesso via Resend! ID:', data?.id);
+
+    return NextResponse.json({ message: 'E-mail enviado com sucesso', messageId: data?.id });
   } catch (error: any) {
-    console.error('API E-mail: ERRO:', error.code, error.message);
+    console.error('API E-mail: ERRO:', error.message);
     return NextResponse.json({ 
       message: 'Erro ao enviar e-mail', 
       error: error.message,
-      code: error.code,
-      details: `Código: ${error.code || 'N/A'} | ${error.responseCode ? 'Resposta SMTP: ' + error.responseCode : ''}`
     }, { status: 500 });
   }
 }

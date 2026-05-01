@@ -127,7 +127,7 @@ export default function AutorizacoesPage() {
             body: JSON.stringify({
               pdfBase64,
               authorizationName: savedData.name,
-              unitInfo: `${unit?.number} - ${unit?.block}`
+              unitInfo: `${savedData.unit?.number} - ${savedData.unit?.block}`
             })
           });
           
