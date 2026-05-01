@@ -46,13 +46,14 @@ export async function POST(req: NextRequest) {
         role: user.role, 
         cpf: user.cpf, 
         unitId: user.unitId,
-        name: user.name
+        name: user.name,
+        email: user.email
       })
         .setProtectedHeader({ alg: 'HS256' })
         .setExpirationTime('24h')
         .sign(JWT_SECRET);
 
-      const response = NextResponse.json({ message: 'Login realizado com sucesso', user: { id: user.id, name: user.name, role: user.role, unitId: user.unitId } });
+      const response = NextResponse.json({ message: 'Login realizado com sucesso', user: { id: user.id, name: user.name, role: user.role, unitId: user.unitId, email: user.email } });
       response.cookies.set('auth-token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
