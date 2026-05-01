@@ -15,6 +15,8 @@ import {
   AlertCircle,
   Paperclip
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 type SyndicMessage = {
   id: string;
@@ -113,9 +115,38 @@ export default function FaleSindicoPage() {
       });
 
       if (res.ok) {
+        const savedData = await res.json();
         setIsModalOpen(false);
-        alert('Solicitação enviada com sucesso!');
         fetchList();
+
+        try {
+          const doc = createFaleSindicoPDF(savedData);
+          const pdfBase64 = doc.output('datauristring').split(',')[1];
+          
+          console.log('Frontend: Iniciando disparo de e-mail automático...');
+          const emailRes = await fetch('/api/send-fale-sindico-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pdfBase64,
+              ticketNumber: savedData.number,
+              type: savedData.type,
+              unitInfo: `${savedData.unit?.number} - ${savedData.unit?.block}`
+            })
+          });
+          
+          if (emailRes.ok) {
+            console.log('Frontend: E-mail enviado com sucesso!');
+            alert('Solicitação enviada e PDF encaminhado por e-mail com sucesso!');
+          } else {
+            const emailData = await emailRes.json();
+            console.error('Frontend: Erro retornado pela API de e-mail:', emailData);
+            alert(`Atenção: A solicitação foi salva, mas houve um erro no envio do e-mail: ${emailData.message || 'Erro desconhecido'}`);
+          }
+        } catch (emailErr) {
+          console.error('Frontend: Erro crítico ao processar e-mail:', emailErr);
+          alert('A solicitação foi salva, mas houve um erro ao processar o envio do e-mail. Verifique o console para detalhes.');
+        }
       } else {
         let errorMsg = 'Erro desconhecido no servidor';
         try {
@@ -156,6 +187,71 @@ export default function FaleSindicoPage() {
       body: JSON.stringify({ status: newStatus }),
     });
     fetchList();
+  };
+
+  const createFaleSindicoPDF = (m: SyndicMessage) => {
+    const doc = new jsPDF();
+    
+    // Configurações do Cabeçalho
+    doc.setFontSize(20);
+    doc.setTextColor(147, 51, 234); // purple-600
+    doc.text('ESTAÇÃO DO MAR', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.setTextColor(100);
+    doc.text('SOLICITAÇÃO AO SÍNDICO', 105, 30, { align: 'center' });
+    
+    doc.setDrawColor(200);
+    doc.line(20, 35, 190, 35);
+
+    // Dados da Solicitação
+    doc.setFontSize(12);
+    doc.setTextColor(147, 51, 234);
+    doc.text('Detalhes da Solicitação', 14, 45);
+    
+    const body = [
+      ['Nº Ticket:', `#${m.number || '—'}`],
+      ['Apartamento:', `${m.unit?.number || ''} - ${m.unit?.block || ''}`],
+      ['Solicitante:', m.user?.name || '—'],
+      ['Tipo:', m.type === 'Outro' ? `Outro (${m.otherType})` : m.type],
+      ['Status:', statusLabel[m.status] || m.status],
+      ['Data de Registro:', formatDate(m.createdAt)]
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Campo', 'Informação']],
+      body: body,
+      theme: 'striped',
+      headStyles: { fillColor: [147, 51, 234], textColor: [255, 255, 255] },
+      styles: { fontSize: 9, cellPadding: 4 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }
+    });
+
+    // Descrição
+    doc.setFontSize(12);
+    doc.setTextColor(147, 51, 234);
+    doc.text('Descrição', 14, (doc as any).lastAutoTable.finalY + 15);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(30, 41, 59);
+    
+    const splitDescription = doc.splitTextToSize(m.description || 'Sem descrição.', 180);
+    doc.text(splitDescription, 14, (doc as any).lastAutoTable.finalY + 22);
+
+    // Anexo info
+    if (m.attachmentUrl) {
+      doc.setFontSize(10);
+      doc.setTextColor(147, 51, 234);
+      doc.text('* Esta solicitação contém um arquivo anexo no sistema.', 14, (doc as any).lastAutoTable.finalY + 25 + (splitDescription.length * 5) + 10);
+    }
+
+    // Rodapé
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 105, 285, { align: 'center' });
+    
+    return doc;
   };
 
   const openCreate = () => {
