@@ -23,8 +23,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.72-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.72';
+  ? `v1.0.73-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.73';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -58,7 +58,7 @@ export default function Home() {
     { title: 'Vagas de Garagem', icon: <Car className="text-orange-600" />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN'] },
     { title: 'Veículos', icon: <Car className="text-blue-500" />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
     { title: 'Autorizações', icon: <ShieldCheck className="text-teal-600" />, path: '/autorizacoes', desc: 'Controle de acesso e uso por apartamento.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Colaboradores', icon: <UserCog className="text-purple-600" />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN'] },
+    { title: 'Colaboradores', icon: <UserCog className="text-purple-600" />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Manutenções', icon: <Wrench className="text-red-600" />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Tarefas Pendentes', icon: <ListTodo className="text-indigo-600" />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Mural', icon: <Megaphone className="text-pink-600" />, path: '/mural', desc: 'Avisos, pensamentos e classificados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'] },
