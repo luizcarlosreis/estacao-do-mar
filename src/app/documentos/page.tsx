@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FileText, Plus, Trash2, Download, Search, X } from 'lucide-react';
+import { FileText, Plus, Trash2, Download, Search, X, Pencil } from 'lucide-react';
 
 type Document = {
   id: string;
@@ -196,7 +196,7 @@ export default function DocumentosPage() {
                           onClick={() => openEdit(doc)}
                           className="text-slate-300 hover:text-blue-500 transition"
                         >
-                          <Plus size={18} className="rotate-45" /> {/* Usei Plus girado como ícone de edição simples se Edit2 não estiver disponível */}
+                          <Pencil size={18} />
                         </button>
                       )}
                       {isAdmin && (
