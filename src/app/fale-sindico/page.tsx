@@ -45,7 +45,9 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = 'v1.0.55';
+const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
+  ? `v1.0.55-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.55';
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);
@@ -255,7 +257,14 @@ export default function FaleSindicoPage() {
   };
 
   const openCreate = () => {
-    setFormData({ id: '', unitId: '', type: '', otherType: '', description: '', attachmentUrl: '' });
+    setFormData({ 
+      id: '', 
+      unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', 
+      type: '', 
+      otherType: '', 
+      description: '', 
+      attachmentUrl: '' 
+    });
     setIsReportMode(false);
     setIsModalOpen(true);
   };
@@ -313,12 +322,12 @@ export default function FaleSindicoPage() {
     );
   }
 
-  if (currentUser && !['SUPER_ADMIN', 'SINDICO'].includes(currentUser.role)) {
+  if (currentUser && !['SUPER_ADMIN', 'SINDICO', 'MORADOR'].includes(currentUser.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-white rounded-3xl border border-slate-100 shadow-sm">
         <AlertCircle size={48} className="text-amber-500 mb-4" />
         <h2 className="text-xl font-bold text-slate-800">Acesso Restrito</h2>
-        <p className="text-slate-500 mt-2">Esta funcionalidade está disponível apenas para a administração no momento.</p>
+        <p className="text-slate-500 mt-2">Você não tem permissão para acessar esta área.</p>
         <button onClick={() => window.location.href = '/'} className="mt-6 text-blue-600 font-semibold hover:underline">Voltar para o Início</button>
       </div>
     );
@@ -463,7 +472,7 @@ export default function FaleSindicoPage() {
                 <div>
                   <label className={lbl}>Apartamento *</label>
                   <select required className={inp} value={formData.unitId} 
-                    disabled={isReportMode}
+                    disabled={isReportMode || currentUser?.role === 'MORADOR'}
                     onChange={e => setFormData({ ...formData, unitId: e.target.value })}>
                     <option value="">Selecione</option>
                     {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
@@ -538,7 +547,7 @@ export default function FaleSindicoPage() {
                 </div>
               </div>
 
-              {isReportMode && (
+              {isReportMode && ['SUPER_ADMIN', 'SINDICO'].includes(currentUser?.role) && (
                 <div className="border-t border-slate-100 pt-4">
                   <label className={lbl}>Alterar Status</label>
                   <div className="flex gap-2">

@@ -22,7 +22,9 @@ const roleLabels: Record<string, string> = {
   MORADOR: 'Morador'
 };
 
-const APP_VERSION = 'v1.0.55';
+const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
+  ? `v1.0.55-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.55';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
