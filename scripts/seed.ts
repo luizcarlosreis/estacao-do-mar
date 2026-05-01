@@ -43,7 +43,7 @@ async function main() {
       name: 'Zeladoria',
       email: 'zeladoria@estacaodomar.com',
       password: passwordZeladoria,
-      role: 'ZELADOR', // Assuming ZELADOR was added to Role in schema.prisma
+      role: 'SINDICO',
     },
   });
 
