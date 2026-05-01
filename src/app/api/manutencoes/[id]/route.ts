@@ -10,10 +10,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json();
     const { id: _, ...updateData } = body;
 
-    if (updateData.performedAt) updateData.performedAt = new Date(updateData.performedAt);
-    if (updateData.nextMaintenanceAt) updateData.nextMaintenanceAt = new Date(updateData.nextMaintenanceAt);
+    const dataToUpdate: any = {};
+    if (updateData.title) dataToUpdate.title = updateData.title;
+    if (updateData.description !== undefined) dataToUpdate.description = updateData.description;
+    if (updateData.observation !== undefined) dataToUpdate.observation = updateData.observation;
+    if (updateData.performedAt) dataToUpdate.performedAt = new Date(updateData.performedAt);
+    if (updateData.nextMaintenanceAt) dataToUpdate.nextMaintenanceAt = new Date(updateData.nextMaintenanceAt);
 
-    const maintenance = await prisma.maintenance.update({ where: { id }, data: updateData });
+    const maintenance = await prisma.maintenance.update({ 
+      where: { id }, 
+      data: dataToUpdate 
+    });
     return NextResponse.json(maintenance);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 400 });

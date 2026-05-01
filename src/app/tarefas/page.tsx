@@ -63,8 +63,15 @@ export default function TarefasPage() {
         setIsModalOpen(false);
         fetchTasks();
       } else {
-        const errorData = await res.json();
-        alert(`Erro: ${errorData.message || 'Falha ao salvar'}`);
+        const text = await res.text();
+        let errorMsg = 'Falha ao salvar';
+        try {
+          const errorData = JSON.parse(text);
+          errorMsg = errorData.message || errorMsg;
+        } catch (e) {
+          errorMsg = `Erro ${res.status}: ${text.substring(0, 100) || 'Resposta vazia'}`;
+        }
+        alert(`Erro: ${errorMsg}`);
       }
     } catch (error: any) {
       console.error('Erro ao salvar tarefa', error);
