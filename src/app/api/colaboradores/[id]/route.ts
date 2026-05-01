@@ -18,6 +18,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (updateData.phone !== undefined) dataToUpdate.phone = updateData.phone;
     if (updateData.role) dataToUpdate.role = updateData.role;
     if (updateData.shift !== undefined) dataToUpdate.shift = updateData.shift;
+    if (updateData.birthDate) dataToUpdate.birthDate = new Date(updateData.birthDate);
     
     if (updateData.password) {
       dataToUpdate.password = await bcrypt.hash(updateData.password, 10);

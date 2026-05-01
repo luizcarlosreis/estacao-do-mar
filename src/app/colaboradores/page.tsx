@@ -11,6 +11,7 @@ type Employee = {
   phone?: string;
   role: string;
   shift?: string;
+  birthDate?: string;
 };
 
 export default function ColaboradoresPage() {
@@ -26,7 +27,8 @@ export default function ColaboradoresPage() {
     password: '', 
     phone: '', 
     role: 'PORTEIRO', 
-    shift: 'Diurno' 
+    shift: 'Diurno',
+    birthDate: '' 
   });
 
   const API_URL = '/api/colaboradores';
@@ -34,6 +36,12 @@ export default function ColaboradoresPage() {
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('T')[0].split('-');
+    return `${day}/${month}/${year}`;
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -105,7 +113,8 @@ export default function ColaboradoresPage() {
       password: '', 
       phone: emp.phone || '', 
       role: emp.role, 
-      shift: emp.shift || '' 
+      shift: emp.shift || '',
+      birthDate: emp.birthDate ? emp.birthDate.split('T')[0] : '' 
     });
     setIsModalOpen(true);
   };
@@ -118,7 +127,7 @@ export default function ColaboradoresPage() {
             <Briefcase size={32} /> Gestão de Colaboradores
           </h1>
           <button 
-            onClick={() => { setFormData({id:'', name:'', cpf:'', email:'', password:'', phone:'', role:'PORTEIRO', shift:'Diurno'}); setIsModalOpen(true); }}
+            onClick={() => { setFormData({id:'', name:'', cpf:'', email:'', password:'', phone:'', role:'PORTEIRO', shift:'Diurno', birthDate:''}); setIsModalOpen(true); }}
             className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             <Plus size={20} /> Novo Colaborador
@@ -142,7 +151,10 @@ export default function ColaboradoresPage() {
                     {emp.role}
                   </span>
                   <h3 className="text-xl font-bold text-gray-800 mt-2">{emp.name}</h3>
-                  <p className="text-sm text-gray-500">CPF: {emp.cpf}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                    <p>CPF: {emp.cpf}</p>
+                    {emp.birthDate && <p>Nasc: {formatDate(emp.birthDate)}</p>}
+                  </div>
                 </div>
 
                 <div className="space-y-2 text-sm text-gray-600">
@@ -174,6 +186,10 @@ export default function ColaboradoresPage() {
                 <div>
                   <label className="block text-sm font-medium mb-1">Telefone</label>
                   <input type="text" className="w-full p-2 border rounded" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Data de Nascimento</label>
+                  <input type="date" className="w-full p-2 border rounded" value={formData.birthDate} onChange={(e) => setFormData({...formData, birthDate: e.target.value})} />
                 </div>
               </div>
 

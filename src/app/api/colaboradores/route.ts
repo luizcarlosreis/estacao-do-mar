@@ -18,11 +18,12 @@ export async function POST(request: Request) {
     if (createData.password) {
       createData.password = await bcrypt.hash(createData.password, 10);
     }
+    if (createData.birthDate) {
+      createData.birthDate = new Date(createData.birthDate);
+    }
     const employee = await (getPrisma()).employee.create({ data: createData });
     return NextResponse.json(employee, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
-}
-
 
