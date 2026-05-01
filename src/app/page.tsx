@@ -12,7 +12,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Megaphone,
-  MessageSquare
+  MessageSquare,
+  FileText
 } from 'lucide-react';
 
 const roleLabels: Record<string, string> = {
@@ -23,8 +24,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.76-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.76';
+  ? `v1.0.77-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.77';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
