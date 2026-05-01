@@ -160,7 +160,7 @@ export default function UnidadesPage() {
                       <Car size={16} />
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vagas</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Número da(s) Vaga(s)</p>
                       <p className="text-xs font-bold text-slate-700 break-words whitespace-normal leading-relaxed">
                         {u.parkingSpaces && u.parkingSpaces.length > 0 ? u.parkingSpaces.map(v => v.number).join(', ') : 'Nenhuma'}
                       </p>
