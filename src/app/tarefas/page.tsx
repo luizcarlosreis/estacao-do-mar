@@ -55,11 +55,16 @@ export default function TarefasPage() {
       const isEdit = !!formData.id;
       const url = isEdit ? `${API_URL}/${formData.id}` : API_URL;
       const method = isEdit ? 'PUT' : 'POST';
+      
+      const payload: any = { 
+        ...formData,
+        title: formData.title.toUpperCase(),
+        description: formData.description?.toUpperCase() || ''
+      };
 
-      const payload: any = { ...formData };
       if (!payload.performedAt) delete payload.performedAt;
 
-      console.log(`Enviando ${method} para: ${url}`, payload);
+      console.log(`DEBUG: ID=${formData.id}, Modo=${isEdit ? 'ALTERAR' : 'CRIAR'}`);
 
       const res = await fetch(url, {
         method,

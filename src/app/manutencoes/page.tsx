@@ -60,13 +60,20 @@ export default function ManutencoesPage() {
       const url = isEdit ? `${API_URL}/${formData.id}` : API_URL;
       const method = isEdit ? 'PUT' : 'POST';
 
+      const payload = { 
+        ...formData,
+        title: formData.title.toUpperCase(),
+        description: formData.description?.toUpperCase() || '',
+        observation: formData.observation?.toUpperCase() || ''
+      };
+
       // Alerta temporário para depuração
       console.log(`DEBUG: ID=${formData.id}, Modo=${isEdit ? 'ALTERAR' : 'CRIAR'}`);
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
