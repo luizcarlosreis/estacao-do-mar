@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -81,6 +82,7 @@ model Maintenance {
   id                String   @id @default(uuid())
   title             String
   description       String?
+  observation       String?
   performedAt       DateTime
   nextMaintenanceAt DateTime
   createdAt         DateTime @default(now())

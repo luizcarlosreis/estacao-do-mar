@@ -8,7 +8,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const prisma = getPrisma();
     const { id } = await params;
     const body = await request.json();
-    const maintenance = await prisma.maintenance.update({ where: { id }, data: body });
+    const { id: _, ...updateData } = body;
+
+    if (updateData.performedAt) updateData.performedAt = new Date(updateData.performedAt);
+    if (updateData.nextMaintenanceAt) updateData.nextMaintenanceAt = new Date(updateData.nextMaintenanceAt);
+
+    const maintenance = await prisma.maintenance.update({ where: { id }, data: updateData });
     return NextResponse.json(maintenance);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 400 });

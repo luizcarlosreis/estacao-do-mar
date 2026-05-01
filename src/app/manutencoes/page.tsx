@@ -7,6 +7,7 @@ type Maintenance = {
   id: string;
   title: string;
   description?: string;
+  observation?: string;
   performedAt: string;
   nextMaintenanceAt: string;
 };
@@ -22,6 +23,7 @@ export default function ManutencoesPage() {
     id: '', 
     title: '', 
     description: '', 
+    observation: '',
     performedAt: '', 
     nextMaintenanceAt: '' 
   });
@@ -84,6 +86,7 @@ export default function ManutencoesPage() {
       id: m.id, 
       title: m.title, 
       description: m.description || '', 
+      observation: m.observation || '',
       performedAt: m.performedAt.split('T')[0], 
       nextMaintenanceAt: m.nextMaintenanceAt.split('T')[0] 
     });
@@ -120,7 +123,7 @@ export default function ManutencoesPage() {
             </div>
 
             <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', performedAt:'', nextMaintenanceAt:''}); setIsEditMode(false); setIsModalOpen(true); }}
+              onClick={() => { setFormData({id:'', title:'', description:'', observation:'', performedAt:'', nextMaintenanceAt:''}); setIsEditMode(false); setIsModalOpen(true); }}
               className="w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
             >
               <Plus size={20} /> Registrar Manutenção
@@ -151,6 +154,7 @@ export default function ManutencoesPage() {
                     <td className="p-4">
                       <p className="font-bold text-gray-800">{m.title}</p>
                       <p className="text-xs text-gray-500 truncate max-w-xs">{m.description}</p>
+                      {m.observation && <p className="text-[10px] text-primary mt-1 italic">Obs: {m.observation}</p>}
                     </td>
                     <td className="p-4 text-sm">
                       <div className="flex items-center gap-2 text-green-600 font-medium">
@@ -202,8 +206,13 @@ export default function ManutencoesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Descrição / Observações</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Descrição do Serviço</label>
                 <textarea rows={2} className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Observações Internas</label>
+                <textarea rows={2} className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm" value={formData.observation} onChange={(e) => setFormData({...formData, observation: e.target.value})} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
