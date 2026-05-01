@@ -3,13 +3,17 @@ import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  console.log('PATCH Task received');
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { params } = context;
+  const { id } = await params;
+  console.log('--- ALTERAÇÃO DE TAREFA ---');
+  console.log('Task ID from params:', id);
+
   try {
     const prisma = getPrisma();
-    const { id } = await params;
-    console.log('Task ID:', id);
     const body = await request.json();
+    console.log('Task body:', body);
+
     const { id: _, ...updateData } = body;
 
     const dataToUpdate: any = {};
@@ -18,13 +22,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (updateData.status) dataToUpdate.status = updateData.status;
     if (updateData.performedAt) dataToUpdate.performedAt = new Date(updateData.performedAt);
 
+    console.log('Task update data:', dataToUpdate);
+
     const task = await prisma.task.update({ 
       where: { id }, 
       data: dataToUpdate 
     });
     return NextResponse.json(task);
   } catch (error: any) {
-    console.error('PATCH Task error:', error);
+    console.error('Erro no PATCH/PUT Tarefa:', error);
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }

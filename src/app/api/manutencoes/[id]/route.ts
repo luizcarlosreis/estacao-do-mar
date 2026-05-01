@@ -3,13 +3,17 @@ import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  console.log('PATCH request received');
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { params } = context;
+  const { id } = await params;
+  console.log('--- REQUISIÇÃO DE ALTERAÇÃO ---');
+  console.log('ID recebido nos params:', id);
+  
   try {
     const prisma = getPrisma();
-    const { id } = await params;
-    console.log('ID from params:', id);
     const body = await request.json();
+    console.log('Corpo da requisição:', body);
+    
     const { id: _, ...updateData } = body;
 
     const dataToUpdate: any = {};
@@ -19,13 +23,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (updateData.performedAt) dataToUpdate.performedAt = new Date(updateData.performedAt);
     if (updateData.nextMaintenanceAt) dataToUpdate.nextMaintenanceAt = new Date(updateData.nextMaintenanceAt);
 
+    console.log('Dados que serão enviados ao Prisma:', dataToUpdate);
+
     const maintenance = await prisma.maintenance.update({ 
       where: { id }, 
       data: dataToUpdate 
     });
     return NextResponse.json(maintenance);
   } catch (error: any) {
-    console.error('PATCH error:', error);
+    console.error('Erro no PATCH/PUT:', error);
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 }
