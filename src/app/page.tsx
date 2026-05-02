@@ -24,8 +24,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.83-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.83';
+  ? `v1.0.84-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.84';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);

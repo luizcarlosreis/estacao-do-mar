@@ -210,8 +210,8 @@ export default function DocumentosPage() {
                     </div>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-slate-800 line-clamp-1 mb-1" title={doc.title}>{doc.title}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8">{doc.description || 'Sem descrição.'}</p>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2 whitespace-normal break-words" title={doc.title}>{doc.title}</h3>
+                  <p className="text-xs text-slate-500 mb-4 whitespace-normal break-words">{doc.description || 'Sem descrição.'}</p>
                   
                   <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-2">
                     <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
