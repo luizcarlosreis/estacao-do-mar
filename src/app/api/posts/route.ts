@@ -86,6 +86,16 @@ export async function POST(req: NextRequest) {
     }
 
     const prisma = getPrisma();
+    
+    // Calcular data de expiração
+    let finalExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Padrão 30 dias
+    
+    if (expiresAt && payload.role === 'SUPER_ADMIN') {
+      finalExpiresAt = new Date(expiresAt);
+      // Garantir meio-dia para evitar problemas de fuso horário que jogam para o dia anterior
+      finalExpiresAt.setHours(12, 0, 0, 0);
+    }
+
     const post = await prisma.post.create({
       data: {
         title,
@@ -93,7 +103,7 @@ export async function POST(req: NextRequest) {
         category,
         price: price ? parseFloat(price) : null,
         images: images || [],
-        expiresAt: expiresAt ? new Date(expiresAt) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Padrão 30 dias
+        expiresAt: finalExpiresAt,
         userId
       }
     });

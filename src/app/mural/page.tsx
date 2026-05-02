@@ -38,10 +38,9 @@ export default function MuralPage() {
   // Modal de Criação
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newPost, setNewPost] = useState({
-    title: '',
-    description: '',
     category: 'AVISO',
-    price: ''
+    price: '',
+    expiresAt: ''
   });
   
   // Comentários
@@ -86,7 +85,7 @@ export default function MuralPage() {
       });
       if (res.ok) {
         setIsModalOpen(false);
-        setNewPost({ title: '', description: '', category: 'AVISO', price: '' });
+        setNewPost({ title: '', description: '', category: 'AVISO', price: '', expiresAt: '' });
         fetchPosts();
       }
     } catch (e) { console.error(e); }
@@ -382,6 +381,22 @@ export default function MuralPage() {
                         onChange={(e) => setNewPost({...newPost, price: e.target.value})}
                       />
                     </div>
+                  </div>
+                )}
+
+                {user?.role === 'SUPER_ADMIN' && (
+                  <div>
+                    <label className="block text-[10px] uppercase font-bold text-slate-400 mb-2">Data de Vencimento (Opcional)</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input 
+                        type="date" 
+                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none font-bold text-blue-600"
+                        value={newPost.expiresAt}
+                        onChange={(e) => setNewPost({...newPost, expiresAt: e.target.value})}
+                      />
+                    </div>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tight">Deixe vazio para o padrão de 30 dias.</p>
                   </div>
                 )}
               </div>
