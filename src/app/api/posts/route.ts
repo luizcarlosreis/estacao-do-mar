@@ -92,8 +92,8 @@ export async function POST(req: NextRequest) {
     
     if (expiresAt && payload.role === 'SUPER_ADMIN') {
       finalExpiresAt = new Date(expiresAt);
-      // Garantir meio-dia para evitar problemas de fuso horário que jogam para o dia anterior
-      finalExpiresAt.setHours(12, 0, 0, 0);
+      // Garantir que expire apenas no último segundo do dia escolhido (23:59:59)
+      finalExpiresAt.setHours(23, 59, 59, 999);
     }
 
     const post = await prisma.post.create({
