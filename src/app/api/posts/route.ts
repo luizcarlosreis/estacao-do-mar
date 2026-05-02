@@ -91,9 +91,10 @@ export async function POST(req: NextRequest) {
     let finalExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Padrão 30 dias
     
     if (expiresAt && payload.role === 'SUPER_ADMIN') {
-      finalExpiresAt = new Date(expiresAt);
-      // Garantir que expire apenas no último segundo do dia escolhido (23:59:59)
-      finalExpiresAt.setHours(23, 59, 59, 999);
+      const [year, month, day] = expiresAt.split('-').map(Number);
+      // Criamos em UTC no final do dia (23:59:59) e somamos 3 horas 
+      // para compensar o fuso de Brasília (UTC-3) em relação ao servidor UTC
+      finalExpiresAt = new Date(Date.UTC(year, month - 1, day, 23, 59, 59) + (3 * 60 * 60 * 1000));
     }
 
     const post = await prisma.post.create({
