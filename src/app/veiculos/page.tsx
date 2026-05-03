@@ -34,8 +34,8 @@ type Vehicle = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.0-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.0';
+  ? `v1.1.1-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.1';
 
 export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
@@ -216,41 +216,44 @@ export default function VeiculosPage() {
           </div>
         </div>
 
-        {/* Listagem Agrupada */}
-        <div className="space-y-6">
-          {loading ? (
-            <div className="py-20 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando dados...</div>
-          ) : sortedUnitIds.length === 0 ? (
-            <div className="py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum veículo encontrado</div>
-          ) : (
-            sortedUnitIds.map(unitId => {
+        {/* Listagem Agrupada - GRID DE APARTAMENTOS (4 COLUNAS) */}
+        {loading ? (
+          <div className="py-20 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando dados...</div>
+        ) : sortedUnitIds.length === 0 ? (
+          <div className="py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum veículo encontrado</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
+            {sortedUnitIds.map(unitId => {
               const group = groupedVeiculos[unitId];
               return (
-                <div key={unitId} className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
+                <div key={unitId} className="bg-white rounded-[2rem] border border-slate-200/60 overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-200 transition-all group/unit h-full flex flex-col">
                   {/* Header do Grupo (Apartamento) */}
-                  <div className="bg-slate-50 px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                  <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 bg-blue-100 text-blue-600 rounded-lg">
-                        <Building size={14} />
+                        <Building size={16} />
                       </div>
                       <div>
-                        <h2 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">
-                          AP {group.unit.number} - {group.unit.block}
+                        <h2 className="text-[12px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-blue-600 transition-colors">
+                          AP {group.unit.number}
                         </h2>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase">{group.vehicles.length} {group.vehicles.length === 1 ? 'veículo' : 'veículos'}</p>
+                        <p className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{group.unit.block}</p>
                       </div>
                     </div>
+                    <span className="bg-white px-2 py-0.5 rounded-full text-[9px] font-black text-slate-400 border border-slate-100">
+                      {group.vehicles.length}
+                    </span>
                   </div>
 
-                  {/* Lista de Veículos no Grupo - FORÇADO 4 COLUNAS EM TELAS GRANDES */}
-                  <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {/* Lista de Veículos no Grupo - VERTICAL DENTRO DO CARD ESTREITO */}
+                  <div className="p-5 space-y-4 flex-1">
                     {group.vehicles.map(v => (
-                      <div key={v.id} className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 group relative hover:border-blue-200 transition-all">
+                      <div key={v.id} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 group/veh relative hover:border-blue-200 transition-all">
                         <div className="flex justify-between items-start mb-3">
-                          <div className="p-2 bg-white text-slate-600 rounded-lg shadow-sm">
+                          <div className="p-1.5 bg-white text-slate-600 rounded-lg shadow-sm">
                             {getTypeIcon(v.type)}
                           </div>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                          <div className="flex gap-1 opacity-0 group-hover/veh:opacity-100 transition">
                             <button onClick={() => openEditModal(v)} className="p-1 text-slate-400 hover:text-blue-600"><Edit2 size={12} /></button>
                             <button onClick={() => handleDelete(v.id)} className="p-1 text-slate-400 hover:text-rose-500"><Trash2 size={12} /></button>
                           </div>
@@ -259,9 +262,9 @@ export default function VeiculosPage() {
                         <div>
                           <div className="flex items-center gap-1.5 mb-1">
                             <Hash size={10} className="text-slate-400" />
-                            <span className="text-[12px] font-black text-slate-800 tracking-tighter uppercase">{v.plate}</span>
+                            <span className="text-[11px] font-black text-slate-800 tracking-tighter uppercase">{v.plate}</span>
                           </div>
-                          <h3 className="text-[10px] font-bold text-slate-600 uppercase mb-0.5">{v.model}</h3>
+                          <h3 className="text-[10px] font-bold text-slate-600 uppercase mb-0.5 line-clamp-1">{v.model}</h3>
                           <p className="text-[9px] text-slate-400 font-bold uppercase">{v.color} • {v.type}</p>
                         </div>
                       </div>
@@ -269,9 +272,9 @@ export default function VeiculosPage() {
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
 
         {/* Version Badge */}
         <div className="mt-12 text-center pb-8">
