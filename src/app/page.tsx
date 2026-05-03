@@ -26,8 +26,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.97-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.97';
+  ? `v1.0.98-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.98';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -55,17 +55,17 @@ export default function Home() {
   }, []);
 
   const allModules = [
-    { title: 'Apartamentos', icon: <Building2 size={20} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'], color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Moradores', icon: <Users size={20} />, path: '/moradores', desc: 'Cadastro de residentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { title: 'Vagas de Garagem', icon: <Car size={20} />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN'], color: 'text-orange-600', bg: 'bg-orange-50' },
-    { title: 'Veículos', icon: <Car size={20} />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-sky-600', bg: 'bg-sky-50' },
-    { title: 'Autorizações', icon: <ShieldCheck size={20} />, path: '/autorizacoes', desc: 'Controle de acesso e uso.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-teal-600', bg: 'bg-teal-50' },
-    { title: 'Colaboradores', icon: <UserCog size={20} />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-purple-600', bg: 'bg-purple-50' },
-    { title: 'Manutenções', icon: <Wrench size={20} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-rose-600', bg: 'bg-rose-50' },
-    { title: 'Tarefas Pendentes', icon: <ListTodo size={20} />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { title: 'Mural', icon: <Megaphone size={20} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-pink-600', bg: 'bg-pink-50' },
-    { title: 'Fale com o Síndico', icon: <MessageSquare size={20} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'], color: 'text-amber-600', bg: 'bg-amber-50' },
-    { title: 'Documentos Importantes', icon: <FileText size={20} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
+    { title: 'Apartamentos', icon: <Building2 size={16} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'], color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Moradores', icon: <Users size={16} />, path: '/moradores', desc: 'Cadastro de residentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { title: 'Vagas de Garagem', icon: <Car size={16} />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN'], color: 'text-orange-600', bg: 'bg-orange-50' },
+    { title: 'Veículos', icon: <Car size={16} />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-sky-600', bg: 'bg-sky-50' },
+    { title: 'Autorizações', icon: <ShieldCheck size={16} />, path: '/autorizacoes', desc: 'Controle de acesso e uso.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-teal-600', bg: 'bg-teal-50' },
+    { title: 'Colaboradores', icon: <UserCog size={16} />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-purple-600', bg: 'bg-purple-50' },
+    { title: 'Manutenções', icon: <Wrench size={16} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-rose-600', bg: 'bg-rose-50' },
+    { title: 'Tarefas Pendentes', icon: <ListTodo size={16} />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { title: 'Mural', icon: <Megaphone size={16} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-pink-600', bg: 'bg-pink-50' },
+    { title: 'Fale com o Síndico', icon: <MessageSquare size={16} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'], color: 'text-amber-600', bg: 'bg-amber-50' },
+    { title: 'Documentos Importantes', icon: <FileText size={16} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
   ];
 
   const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
@@ -93,27 +93,21 @@ export default function Home() {
       </div>
 
       {/* Grid de Módulos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {modules.map((item, i) => (
           <Link key={i} href={item.path} className="group">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-400 hover:shadow-md transition-all h-full flex flex-col">
-              <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 ${item.bg} ${item.color} rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                  {item.icon}
-                </div>
-                <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-black text-slate-800 text-[11px] leading-tight mb-1.5 uppercase tracking-wide group-hover:text-blue-600 transition-colors">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-400 hover:shadow-md transition-all h-full flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-black text-slate-800 text-[10px] leading-tight mb-1 uppercase tracking-wide group-hover:text-blue-600 transition-colors truncate">
                   {item.title}
                 </h3>
-                <p className="text-[10px] text-slate-500 leading-snug lowercase first-letter:uppercase font-medium opacity-80">
+                <p className="text-[9px] text-slate-500 leading-snug lowercase first-letter:uppercase font-medium opacity-70 line-clamp-2">
                   {item.desc}
                 </p>
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-400 transition-colors">Acessar Módulo</span>
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-blue-500 transition-colors" />
+              
+              <div className={`p-2 ${item.bg} ${item.color} rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
+                {item.icon}
               </div>
             </div>
           </Link>
@@ -149,7 +143,6 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Decorativo Background */}
           <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl" />
           <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl" />
         </div>
