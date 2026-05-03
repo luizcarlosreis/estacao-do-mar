@@ -20,6 +20,9 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
+const categoryMap = {
+  AVISO: { label: 'Aviso', icon: <Megaphone size={16} />, color: 'bg-red-100 text-red-600' },
+  PENSAMENTO: { label: 'Pensamento', icon: <Lightbulb size={16} />, color: 'bg-amber-100 text-amber-600' },
   CLASSIFICADO: { label: 'Classificado', icon: <Tag size={16} />, color: 'bg-emerald-100 text-emerald-600' }
 };
 
