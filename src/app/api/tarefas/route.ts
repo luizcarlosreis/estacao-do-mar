@@ -18,10 +18,16 @@ export async function POST(request: Request) {
     const prisma = getPrisma();
     const body = await request.json();
     const { id: _, ...createData } = body;
+    let performedAtDate = null;
+    if (body.performedAt) {
+      const [year, month, day] = body.performedAt.split('-').map(Number);
+      performedAtDate = new Date(year, month - 1, day, 12, 0, 0);
+    }
+
     const data = await prisma.task.create({
       data: {
         ...createData,
-        performedAt: body.performedAt ? new Date(body.performedAt) : null,
+        performedAt: performedAtDate,
       }
     });
     return NextResponse.json(data, { status: 201 });

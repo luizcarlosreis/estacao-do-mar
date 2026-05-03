@@ -33,8 +33,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.88-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.88';
+  ? `v1.0.89-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.89';
 
 export default function TarefasPage() {
   const [mounted, setMounted] = useState(false);
@@ -192,7 +192,15 @@ export default function TarefasPage() {
                 ) : filteredTasks.filter(t => t.status === status).length === 0 ? (
                   <div className="py-10 text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Vazio</div>
                 ) : (
-                  filteredTasks.filter(t => t.status === status).map((task) => (
+                  filteredTasks
+                    .filter(t => t.status === status)
+                    .sort((a, b) => {
+                      if (status === 'DONE' && a.performedAt && b.performedAt) {
+                        return new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime();
+                      }
+                      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                    })
+                    .map((task) => (
                     <div 
                       key={task.id} 
                       className="bg-white p-3 rounded-xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all cursor-pointer relative"

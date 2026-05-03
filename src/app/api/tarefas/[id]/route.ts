@@ -20,7 +20,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     if (updateData.title) dataToUpdate.title = updateData.title;
     if (updateData.description !== undefined) dataToUpdate.description = updateData.description;
     if (updateData.status) dataToUpdate.status = updateData.status;
-    if (updateData.performedAt) dataToUpdate.performedAt = new Date(updateData.performedAt);
+    if (updateData.performedAt) {
+      const [year, month, day] = updateData.performedAt.split('-').map(Number);
+      dataToUpdate.performedAt = new Date(year, month - 1, day, 12, 0, 0);
+    }
 
     console.log('Task update data:', dataToUpdate);
 
