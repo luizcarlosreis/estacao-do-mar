@@ -128,7 +128,6 @@ export default function RootLayout({
     { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Documentos', icon: <FileText size={18} />, path: '/documentos', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
   ];
 
   const menuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];
