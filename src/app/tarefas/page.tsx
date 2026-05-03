@@ -33,8 +33,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.89-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.89';
+  ? `v1.0.90-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.90';
 
 export default function TarefasPage() {
   const [mounted, setMounted] = useState(false);
@@ -233,7 +233,7 @@ export default function TarefasPage() {
                         {task.status === 'DONE' && task.performedAt && (
                           <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
                             <CheckCircle2 size={10} />
-                            {new Date(task.performedAt).toLocaleDateString('pt-BR')}
+                            {task.performedAt.split('T')[0].split('-').reverse().join('/')}
                           </div>
                         )}
                       </div>
