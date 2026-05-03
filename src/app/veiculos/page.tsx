@@ -34,8 +34,8 @@ type Vehicle = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.1-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.1';
+  ? `v1.1.2-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.2';
 
 export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
@@ -147,10 +147,10 @@ export default function VeiculosPage() {
 
   const getTypeIcon = (type: string) => {
     switch(type) {
-      case 'BICICLETA': return <Bike size={16} />;
-      case 'UTILITARIO': return <Truck size={16} />;
-      case 'MOTO': return <Car size={16} />; 
-      default: return <Car size={16} />;
+      case 'BICICLETA': return <Bike size={14} />;
+      case 'UTILITARIO': return <Truck size={14} />;
+      case 'MOTO': return <Car size={14} />; 
+      default: return <Car size={14} />;
     }
   };
 
@@ -216,7 +216,7 @@ export default function VeiculosPage() {
           </div>
         </div>
 
-        {/* Listagem Agrupada - GRID DE APARTAMENTOS (4 COLUNAS) */}
+        {/* Listagem Agrupada */}
         {loading ? (
           <div className="py-20 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando dados...</div>
         ) : sortedUnitIds.length === 0 ? (
@@ -240,32 +240,31 @@ export default function VeiculosPage() {
                         <p className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{group.unit.block}</p>
                       </div>
                     </div>
-                    <span className="bg-white px-2 py-0.5 rounded-full text-[9px] font-black text-slate-400 border border-slate-100">
-                      {group.vehicles.length}
-                    </span>
                   </div>
 
-                  {/* Lista de Veículos no Grupo - VERTICAL DENTRO DO CARD ESTREITO */}
-                  <div className="p-5 space-y-4 flex-1">
+                  {/* Lista de Veículos - COMPACTA: TEXTO À ESQUERDA, ÍCONE À DIREITA */}
+                  <div className="p-4 space-y-2 flex-1">
                     {group.vehicles.map(v => (
-                      <div key={v.id} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 group/veh relative hover:border-blue-200 transition-all">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="p-1.5 bg-white text-slate-600 rounded-lg shadow-sm">
-                            {getTypeIcon(v.type)}
+                      <div key={v.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 group/veh relative hover:border-blue-200 transition-all flex items-center justify-between gap-3 overflow-hidden">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1 mb-0.5">
+                            <Hash size={9} className="text-slate-400" />
+                            <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase truncate">{v.plate}</span>
                           </div>
-                          <div className="flex gap-1 opacity-0 group-hover/veh:opacity-100 transition">
-                            <button onClick={() => openEditModal(v)} className="p-1 text-slate-400 hover:text-blue-600"><Edit2 size={12} /></button>
-                            <button onClick={() => handleDelete(v.id)} className="p-1 text-slate-400 hover:text-rose-500"><Trash2 size={12} /></button>
-                          </div>
+                          <h3 className="text-[9px] font-bold text-slate-600 uppercase truncate leading-tight">{v.model}</h3>
+                          <p className="text-[8px] text-slate-400 font-black uppercase truncate">{v.color}</p>
                         </div>
                         
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <Hash size={10} className="text-slate-400" />
-                            <span className="text-[11px] font-black text-slate-800 tracking-tighter uppercase">{v.plate}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="p-1.5 bg-white text-slate-600 rounded-lg shadow-sm border border-slate-100 group-hover/veh:scale-110 transition-transform">
+                            {getTypeIcon(v.type)}
                           </div>
-                          <h3 className="text-[10px] font-bold text-slate-600 uppercase mb-0.5 line-clamp-1">{v.model}</h3>
-                          <p className="text-[9px] text-slate-400 font-bold uppercase">{v.color} • {v.type}</p>
+                        </div>
+
+                        {/* Ações Absolutas ao pairar */}
+                        <div className="absolute inset-y-0 right-0 bg-white/90 backdrop-blur-sm px-2 flex items-center gap-1 translate-x-full group-hover/veh:translate-x-0 transition-transform border-l border-slate-100 shadow-[-4px_0_15px_rgba(0,0,0,0.05)]">
+                          <button onClick={() => openEditModal(v)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={12} /></button>
+                          <button onClick={() => handleDelete(v.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={12} /></button>
                         </div>
                       </div>
                     ))}
