@@ -29,8 +29,8 @@ type ParkingSpace = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.4-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.4';
+  ? `v1.1.5-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.5';
 
 export default function VagasPage() {
   const [vagas, setVagas] = useState<ParkingSpace[]>([]);
@@ -200,7 +200,7 @@ export default function VagasPage() {
         ) : sortedUnitIds.length === 0 ? (
           <div className="py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhuma vaga encontrada</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
             {sortedUnitIds.map(unitId => {
               const group = groupedVagas[unitId];
               return (
