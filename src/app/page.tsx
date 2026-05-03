@@ -25,19 +25,16 @@ type NavItem = {
   icon: any;
   href: string;
   color: string;
-  role?: string;
+  roles?: string[]; // Multiple roles supported
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.6-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.6';
+  ? `v1.1.7-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.7';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
-  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     fetch('/api/me')
@@ -53,34 +50,6 @@ export default function Home() {
     window.location.href = '/login';
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordForm.new !== passwordForm.confirm) {
-      alert('As novas senhas não coincidem');
-      return;
-    }
-    setChangingPassword(true);
-    try {
-      const res = await fetch('/api/perfil/senha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword: passwordForm.current, newPassword: passwordForm.new })
-      });
-      if (res.ok) {
-        alert('Senha alterada com sucesso!');
-        setIsPasswordModalOpen(false);
-        setPasswordForm({ current: '', new: '', confirm: '' });
-      } else {
-        const data = await res.json();
-        alert(data.message || 'Erro ao alterar senha');
-      }
-    } catch (error) {
-      alert('Erro de conexão');
-    } finally {
-      setChangingPassword(false);
-    }
-  };
-
   const navItems: NavItem[] = [
     { 
       title: "MORADORES", 
@@ -88,7 +57,7 @@ export default function Home() {
       icon: Users, 
       href: "/moradores", 
       color: "bg-emerald-50 text-emerald-600",
-      role: "ADMIN"
+      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO"]
     },
     { 
       title: "APARTAMENTOS", 
@@ -96,14 +65,15 @@ export default function Home() {
       icon: Building, 
       href: "/unidades", 
       color: "bg-blue-50 text-blue-600",
-      role: "ADMIN"
+      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO"]
     },
     { 
       title: "VEÍCULOS", 
       description: "FROTA DO CONDOMÍNIO", 
       icon: Car, 
       href: "/veiculos", 
-      color: "bg-indigo-50 text-indigo-600"
+      color: "bg-indigo-50 text-indigo-600",
+      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO", "MORADOR"]
     },
     { 
       title: "VAGAS", 
@@ -111,21 +81,23 @@ export default function Home() {
       icon: Settings, 
       href: "/vagas", 
       color: "bg-purple-50 text-purple-600",
-      role: "ADMIN"
+      roles: ["SUPER_ADMIN", "SINDICO"]
     },
     { 
       title: "TAREFAS", 
       description: "MANUTENÇÕES E ORDENS", 
       icon: ClipboardList, 
       href: "/tarefas", 
-      color: "bg-orange-50 text-orange-600"
+      color: "bg-orange-50 text-orange-600",
+      roles: ["SUPER_ADMIN", "SINDICO"]
     },
     { 
       title: "DOCUMENTOS", 
       description: "ARQUIVOS E NORMAS", 
       icon: FileText, 
       href: "/documentos", 
-      color: "bg-rose-50 text-rose-600"
+      color: "bg-rose-50 text-rose-600",
+      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO", "MORADOR"]
     }
   ];
 
@@ -152,12 +124,6 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setIsPasswordModalOpen(true)}
-              className="flex items-center gap-2 bg-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-600 border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
-            >
-              <Key size={14} className="text-blue-500" /> Alterar Senha
-            </button>
             <button 
               onClick={handleLogout}
               className="flex items-center gap-2 bg-slate-900 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
@@ -196,7 +162,7 @@ export default function Home() {
 
         {/* Action Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {navItems.filter(item => !item.role || item.role === user?.role).map((item, idx) => (
+          {navItems.filter(item => !item.roles || item.roles.includes(user?.role)).map((item, idx) => (
             <Link 
               key={idx} 
               href={item.href}
@@ -229,75 +195,6 @@ export default function Home() {
           </p>
         </div>
       </div>
-
-      {/* Change Password Modal */}
-      {isPasswordModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
-            <div className="p-8 bg-slate-900 text-white flex justify-between items-center">
-              <div>
-                <h2 className="text-lg font-black uppercase tracking-widest flex items-center gap-2">
-                  <Lock size={20} /> Alterar Senha
-                </h2>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">Segurança da sua conta</p>
-              </div>
-              <button onClick={() => setIsPasswordModalOpen(false)} className="hover:bg-white/10 p-2 rounded-full transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleChangePassword} className="p-8 space-y-6">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Senha Atual</label>
-                <input 
-                  type="password" required 
-                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[12px] font-bold text-slate-800"
-                  value={passwordForm.current} 
-                  onChange={(e) => setPasswordForm({...passwordForm, current: e.target.value})} 
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nova Senha</label>
-                  <input 
-                    type="password" required 
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[12px] font-bold text-slate-800"
-                    value={passwordForm.new} 
-                    onChange={(e) => setPasswordForm({...passwordForm, new: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Confirmar Nova Senha</label>
-                  <input 
-                    type="password" required 
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[12px] font-bold text-slate-800"
-                    value={passwordForm.confirm} 
-                    onChange={(e) => setPasswordForm({...passwordForm, confirm: e.target.value})} 
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-slate-100">
-                <button 
-                  type="button" 
-                  onClick={() => setIsPasswordModalOpen(false)} 
-                  className="flex-1 py-4 border border-slate-200 rounded-2xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-50 transition-all"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={changingPassword}
-                  className="flex-1 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                >
-                  {changingPassword ? 'Alterando...' : 'Atualizar Senha'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
