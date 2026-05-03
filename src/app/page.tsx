@@ -13,19 +13,21 @@ import {
   ShieldCheck,
   Megaphone,
   MessageSquare,
-  FileText
+  FileText,
+  LayoutDashboard,
+  Activity
 } from 'lucide-react';
 
 const roleLabels: Record<string, string> = {
-  SUPER_ADMIN: 'Administrador',
-  SINDICO: 'Zeladoria',
-  PORTEIRO: 'Portaria',
-  MORADOR: 'Morador'
+  SUPER_ADMIN: 'ADMINISTRADOR',
+  SINDICO: 'ZELADORIA',
+  PORTEIRO: 'PORTARIA',
+  MORADOR: 'MORADOR'
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.96-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.96';
+  ? `v1.0.97-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.97';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -37,7 +39,6 @@ export default function Home() {
       .then(data => {
         if (data && data.user) {
           setUser(data.user);
-          // Busca estatísticas para Admin, Portaria e Zeladoria (Sindico)
           if (['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(data.user.role)) {
             Promise.all([
               fetch('/api/unidades').then(res => res.ok ? res.json() : []),
@@ -54,77 +55,110 @@ export default function Home() {
   }, []);
 
   const allModules = [
-    { title: 'Apartamentos', icon: <Building2 className="text-blue-600" />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'] },
-    { title: 'Moradores', icon: <Users className="text-emerald-600" />, path: '/moradores', desc: 'Cadastro de residentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Vagas de Garagem', icon: <Car className="text-orange-600" />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN'] },
-    { title: 'Veículos', icon: <Car className="text-blue-500" />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Autorizações', icon: <ShieldCheck className="text-teal-600" />, path: '/autorizacoes', desc: 'Controle de acesso e uso por apartamento.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Colaboradores', icon: <UserCog className="text-purple-600" />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'] },
-    { title: 'Manutenções', icon: <Wrench className="text-red-600" />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'] },
-    { title: 'Tarefas Pendentes', icon: <ListTodo className="text-indigo-600" />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'] },
-    { title: 'Mural', icon: <Megaphone className="text-pink-600" />, path: '/mural', desc: 'Avisos, pensamentos e classificados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'] },
-    { title: 'Fale com o Síndico', icon: <MessageSquare className="text-purple-600" />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'] },
-    { title: 'Documentos Importantes', icon: <FileText className="text-blue-700" />, path: '/documentos', desc: 'Regimentos, atas e manuais.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
+    { title: 'Apartamentos', icon: <Building2 size={20} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'], color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Moradores', icon: <Users size={20} />, path: '/moradores', desc: 'Cadastro de residentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { title: 'Vagas de Garagem', icon: <Car size={20} />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN'], color: 'text-orange-600', bg: 'bg-orange-50' },
+    { title: 'Veículos', icon: <Car size={20} />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-sky-600', bg: 'bg-sky-50' },
+    { title: 'Autorizações', icon: <ShieldCheck size={20} />, path: '/autorizacoes', desc: 'Controle de acesso e uso.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-teal-600', bg: 'bg-teal-50' },
+    { title: 'Colaboradores', icon: <UserCog size={20} />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-purple-600', bg: 'bg-purple-50' },
+    { title: 'Manutenções', icon: <Wrench size={20} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-rose-600', bg: 'bg-rose-50' },
+    { title: 'Tarefas Pendentes', icon: <ListTodo size={20} />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { title: 'Mural', icon: <Megaphone size={20} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-pink-600', bg: 'bg-pink-50' },
+    { title: 'Fale com o Síndico', icon: <MessageSquare size={20} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'], color: 'text-amber-600', bg: 'bg-amber-50' },
+    { title: 'Documentos Importantes', icon: <FileText size={20} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
   ];
 
   const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-800">
-          Seja bem-vindo, {user ? `${user.name} (${roleLabels[user.role] || user.role})` : 'Carregando...'}
-        </h2>
-        <p className="text-slate-500">Selecione um módulo abaixo para gerenciar o condomínio.</p>
+    <div className="max-w-[1400px] mx-auto">
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 bg-slate-900 text-white rounded-xl shadow-lg">
+            <LayoutDashboard size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
+              {user ? `OLÁ, ${user.name.split(' ')[0]}` : 'CARREGANDO...'}
+            </h1>
+            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] opacity-80">
+              {user ? roleLabels[user.role] : 'PORTAL DE GESTÃO'}
+            </p>
+          </div>
+        </div>
+        <p className="text-slate-500 text-sm mt-3 font-medium">
+          Bem-vindo ao centro de comando. Selecione um módulo para operar o sistema.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Grid de Módulos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {modules.map((item, i) => (
           <Link key={i} href={item.path} className="group">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all h-full flex items-start space-x-4">
-              <div className="p-3 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">
-                {item.icon}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-400 hover:shadow-md transition-all h-full flex flex-col">
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 ${item.bg} ${item.color} rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                  {item.icon}
+                </div>
+                <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{item.title}</h3>
-                <p className="text-sm text-slate-500 mt-1">{item.desc}</p>
-                <div className="mt-3 flex items-center text-xs font-semibold text-blue-600 uppercase tracking-wider">
-                  Acessar <ChevronRight size={12} className="ml-1" />
-                </div>
+                <h3 className="font-black text-slate-800 text-[11px] leading-tight mb-1.5 uppercase tracking-wide group-hover:text-blue-600 transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-[10px] text-slate-500 leading-snug lowercase first-letter:uppercase font-medium opacity-80">
+                  {item.desc}
+                </p>
+              </div>
+              <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-400 transition-colors">Acessar Módulo</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-blue-500 transition-colors" />
               </div>
             </div>
           </Link>
         ))}
       </div>
 
+      {/* Estatísticas / Monitoramento */}
       {['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(user?.role) && (
-        <div className="mt-12 p-8 bg-blue-600 rounded-2xl text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-          <div className="relative z-10">
-            <div className="flex items-center gap-3">
-              <h3 className="text-xl font-bold">Monitoramento em Tempo Real</h3>
-              <span className="px-2 py-0.5 bg-white/20 rounded text-[10px] font-mono border border-white/20">
-                {APP_VERSION}
-              </span>
+        <div className="mt-12 p-1 bg-slate-900 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+          <div className="bg-white/5 absolute inset-0 pointer-events-none" />
+          <div className="p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-1.5 bg-blue-500 rounded-lg animate-pulse">
+                  <Activity size={18} className="text-white" />
+                </div>
+                <h3 className="text-white text-lg font-black uppercase tracking-tight">Monitoramento em Tempo Real</h3>
+              </div>
+              <p className="text-slate-400 text-xs font-medium max-w-md">
+                Estatísticas operacionais sincronizadas com a base de dados. Integridade total garantida.
+              </p>
             </div>
-            <p className="text-blue-100 opacity-80 mt-1 text-sm">Todas as operações estão sincronizadas com o banco de dados.</p>
+            
+            <div className="flex gap-4">
+               <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-center min-w-[120px] hover:bg-white/20 transition-colors group">
+                  <p className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform">{stats.units}</p>
+                  <p className="text-[9px] uppercase font-black text-blue-300 tracking-[0.2em]">Unidades</p>
+               </div>
+               <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-center min-w-[120px] hover:bg-white/20 transition-colors group">
+                  <p className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform">{stats.residents}</p>
+                  <p className="text-[9px] uppercase font-black text-blue-300 tracking-[0.2em]">Moradores</p>
+               </div>
+            </div>
           </div>
-          <div className="flex gap-4 relative z-10">
-             <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl text-center min-w-[100px]">
-                <p className="text-2xl font-bold">{stats.units}</p>
-                <p className="text-[10px] uppercase font-bold text-blue-200">Unidades</p>
-             </div>
-             <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl text-center min-w-[100px]">
-                <p className="text-2xl font-bold">{stats.residents}</p>
-                <p className="text-[10px] uppercase font-bold text-blue-200">Moradores</p>
-             </div>
-          </div>
-          {/* Decorativo */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          
+          {/* Decorativo Background */}
+          <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl" />
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl" />
         </div>
       )}
-      <div className="mt-12 text-center pb-8">
-        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
-          Estação do Mar Management Portal • {APP_VERSION}
+
+      {/* Footer Version */}
+      <div className="mt-16 text-center pb-12">
+        <span className="text-[10px] uppercase tracking-[0.3em] font-black px-4 py-2 rounded-full text-red-600 bg-white shadow-xl shadow-red-100/20 border border-red-50">
+          ESTAÇÃO DO MAR • {APP_VERSION}
         </span>
       </div>
     </div>
