@@ -34,8 +34,8 @@ type Vehicle = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.99-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.99';
+  ? `v1.1.0-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.0';
 
 export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
@@ -149,19 +149,17 @@ export default function VeiculosPage() {
     switch(type) {
       case 'BICICLETA': return <Bike size={16} />;
       case 'UTILITARIO': return <Truck size={16} />;
-      case 'MOTO': return <Car size={16} />; // Simulating moto with smaller car icon or specialized if available
+      case 'MOTO': return <Car size={16} />; 
       default: return <Car size={16} />;
     }
   };
 
-  // Filtragem e Agrupamento
   const filteredVeiculos = veiculos.filter(v => 
     v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (v.unit && (v.unit.number.includes(searchTerm) || v.unit.block.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
-  // Agrupar por Unidade
   const groupedVeiculos: Record<string, { unit: Unit, vehicles: Vehicle[] }> = {};
   
   filteredVeiculos.forEach(v => {
@@ -173,7 +171,6 @@ export default function VeiculosPage() {
     groupedVeiculos[key].vehicles.push(v);
   });
 
-  // Ordenar grupos por Apartamento (Bloco e Número)
   const sortedUnitIds = Object.keys(groupedVeiculos).sort((a, b) => {
     const unitA = groupedVeiculos[a].unit;
     const unitB = groupedVeiculos[b].unit;
@@ -245,8 +242,8 @@ export default function VeiculosPage() {
                     </div>
                   </div>
 
-                  {/* Lista de Veículos no Grupo */}
-                  <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {/* Lista de Veículos no Grupo - FORÇADO 4 COLUNAS EM TELAS GRANDES */}
+                  <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {group.vehicles.map(v => (
                       <div key={v.id} className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 group relative hover:border-blue-200 transition-all">
                         <div className="flex justify-between items-start mb-3">
