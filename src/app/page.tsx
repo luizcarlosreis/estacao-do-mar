@@ -1,199 +1,158 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { 
+  Building2, 
   Users, 
-  Building, 
   Car, 
-  ClipboardList, 
-  FileText, 
-  Settings, 
-  LogOut, 
+  UserCog, 
+  Wrench, 
+  ListTodo,
   ChevronRight,
   ShieldCheck,
-  Activity,
-  Bell,
-  Lock,
-  X,
-  Key
+  Megaphone,
+  MessageSquare,
+  FileText,
+  LayoutDashboard,
+  Activity
 } from 'lucide-react';
-import Link from 'next/link';
 
-type NavItem = {
-  title: string;
-  description: string;
-  icon: any;
-  href: string;
-  color: string;
-  roles?: string[]; // Multiple roles supported
+const roleLabels: Record<string, string> = {
+  SUPER_ADMIN: 'ADMINISTRADOR',
+  SINDICO: 'ZELADORIA',
+  PORTEIRO: 'PORTARIA',
+  MORADOR: 'MORADOR'
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.7-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.7';
+  ? `v1.1.8-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.8';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ units: 0, residents: 0 });
 
   useEffect(() => {
     fetch('/api/me')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (data) setUser(data.user);
-        setLoading(false);
+        if (data && data.user) {
+          setUser(data.user);
+          if (['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(data.user.role)) {
+            Promise.all([
+              fetch('/api/unidades').then(res => res.ok ? res.json() : []),
+              fetch('/api/moradores').then(res => res.ok ? res.json() : [])
+            ]).then(([unidades, moradores]) => {
+              setStats({
+                units: Array.isArray(unidades) ? unidades.length : 0,
+                residents: Array.isArray(moradores) ? moradores.length : 0
+              });
+            }).catch(e => console.error('Erro ao buscar stats:', e));
+          }
+        }
       });
   }, []);
 
-  const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
-    window.location.href = '/login';
-  };
-
-  const navItems: NavItem[] = [
-    { 
-      title: "MORADORES", 
-      description: "GESTÃO DE RESIDENTES", 
-      icon: Users, 
-      href: "/moradores", 
-      color: "bg-emerald-50 text-emerald-600",
-      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO"]
-    },
-    { 
-      title: "APARTAMENTOS", 
-      description: "UNIDADES E BLOCOS", 
-      icon: Building, 
-      href: "/unidades", 
-      color: "bg-blue-50 text-blue-600",
-      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO"]
-    },
-    { 
-      title: "VEÍCULOS", 
-      description: "FROTA DO CONDOMÍNIO", 
-      icon: Car, 
-      href: "/veiculos", 
-      color: "bg-indigo-50 text-indigo-600",
-      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO", "MORADOR"]
-    },
-    { 
-      title: "VAGAS", 
-      description: "CONTROLE DE GARAGEM", 
-      icon: Settings, 
-      href: "/vagas", 
-      color: "bg-purple-50 text-purple-600",
-      roles: ["SUPER_ADMIN", "SINDICO"]
-    },
-    { 
-      title: "TAREFAS", 
-      description: "MANUTENÇÕES E ORDENS", 
-      icon: ClipboardList, 
-      href: "/tarefas", 
-      color: "bg-orange-50 text-orange-600",
-      roles: ["SUPER_ADMIN", "SINDICO"]
-    },
-    { 
-      title: "DOCUMENTOS", 
-      description: "ARQUIVOS E NORMAS", 
-      icon: FileText, 
-      href: "/documentos", 
-      color: "bg-rose-50 text-rose-600",
-      roles: ["SUPER_ADMIN", "SINDICO", "PORTEIRO", "MORADOR"]
-    }
+  const allModules = [
+    { title: 'Apartamentos', icon: <Building2 size={16} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'], color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Moradores', icon: <Users size={16} />, path: '/moradores', desc: 'Cadastro de residentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { title: 'Vagas de Garagem', icon: <Car size={16} />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-orange-600', bg: 'bg-orange-50' },
+    { title: 'Veículos', icon: <Car size={16} />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-sky-600', bg: 'bg-sky-50' },
+    { title: 'Autorizações', icon: <ShieldCheck size={16} />, path: '/autorizacoes', desc: 'Controle de acesso e uso.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-teal-600', bg: 'bg-teal-50' },
+    { title: 'Colaboradores', icon: <UserCog size={16} />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-purple-600', bg: 'bg-purple-50' },
+    { title: 'Manutenções', icon: <Wrench size={16} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-rose-600', bg: 'bg-rose-50' },
+    { title: 'Tarefas Pendentes', icon: <ListTodo size={16} />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { title: 'Mural', icon: <Megaphone size={16} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-pink-600', bg: 'bg-pink-50' },
+    { title: 'Fale com o Síndico', icon: <MessageSquare size={16} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'], color: 'text-amber-600', bg: 'bg-amber-50' },
+    { title: 'Documentos Importantes', icon: <FileText size={16} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
   ];
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
-      <div className="animate-pulse flex flex-col items-center gap-4">
-        <div className="w-12 h-12 bg-slate-200 rounded-full"></div>
-        <div className="h-4 w-32 bg-slate-200 rounded"></div>
-      </div>
-    </div>
-  );
+  const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+    <div className="max-w-[1400px] mx-auto">
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 bg-slate-900 text-white rounded-xl shadow-lg">
+            <LayoutDashboard size={24} />
+          </div>
           <div>
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-              ESTAÇÃO DO MAR 
-              <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full tracking-widest uppercase">Portal</span>
+            <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
+              {user ? `OLÁ, ${user.name.split(' ')[0]}` : 'CARREGANDO...'}
             </h1>
-            <p className="text-slate-400 font-bold text-[11px] uppercase tracking-[0.2em] mt-1">Bem-vindo(a), {user?.name?.split(' ')[0] || 'Usuário'}</p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-slate-900 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
-            >
-              <LogOut size={14} /> Sair
-            </button>
+            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] opacity-80">
+              {user ? roleLabels[user.role] : 'PORTAL DE GESTÃO'}
+            </p>
           </div>
         </div>
+        <p className="text-slate-500 text-sm mt-3 font-medium">
+          Bem-vindo ao centro de comando. Selecione um módulo para operar o sistema.
+        </p>
+      </div>
 
-        {/* Stats Grid - Glassmorphism Style */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white/60 backdrop-blur-md border border-white/40 p-6 rounded-[2rem] shadow-sm relative overflow-hidden group">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status do Sistema</p>
-              <h3 className="text-2xl font-black text-slate-800 flex items-center gap-2">OPERACIONAL <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div></h3>
-            </div>
-            <Activity size={80} className="absolute -right-4 -bottom-4 text-emerald-500/5 group-hover:text-emerald-500/10 transition-colors" />
-          </div>
-
-          <div className="bg-white/60 backdrop-blur-md border border-white/40 p-6 rounded-[2rem] shadow-sm relative overflow-hidden group">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Perfil Ativo</p>
-              <h3 className="text-2xl font-black text-slate-800">{user?.role || 'Visitante'}</h3>
-            </div>
-            <ShieldCheck size={80} className="absolute -right-4 -bottom-4 text-blue-500/5 group-hover:text-blue-500/10 transition-colors" />
-          </div>
-
-          <div className="bg-white/60 backdrop-blur-md border border-white/40 p-6 rounded-[2rem] shadow-sm relative overflow-hidden group">
-            <div className="relative z-10">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notificações</p>
-              <h3 className="text-2xl font-black text-slate-800">NENHUMA</h3>
-            </div>
-            <Bell size={80} className="absolute -right-4 -bottom-4 text-orange-500/5 group-hover:text-orange-500/10 transition-colors" />
-          </div>
-        </div>
-
-        {/* Action Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {navItems.filter(item => !item.roles || item.roles.includes(user?.role)).map((item, idx) => (
-            <Link 
-              key={idx} 
-              href={item.href}
-              className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-start"
-            >
-              <div className="flex items-center justify-between w-full mb-6">
-                <div>
-                  <h3 className="text-lg font-black text-slate-800 group-hover:text-blue-600 transition-colors tracking-tighter leading-none">{item.title}</h3>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 opacity-70">{item.description}</p>
-                </div>
-                <div className={`p-3 rounded-2xl ${item.color} shadow-sm group-hover:scale-110 transition-transform`}>
-                  <item.icon size={20} />
-                </div>
+      {/* Grid de Módulos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {modules.map((item, i) => (
+          <Link key={i} href={item.path} className="group">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-400 hover:shadow-md transition-all h-full flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-black text-slate-800 text-[10px] leading-tight mb-1 uppercase tracking-wide group-hover:text-blue-600 transition-colors truncate">
+                  {item.title}
+                </h3>
+                <p className="text-[9px] text-slate-500 leading-snug lowercase first-letter:uppercase font-medium opacity-70 line-clamp-2">
+                  {item.desc}
+                </p>
               </div>
               
-              <div className="w-full flex items-center justify-between mt-auto">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">Acessar Painel</span>
-                <div className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                  <ChevronRight size={14} />
-                </div>
+              <div className={`p-2 ${item.bg} ${item.color} rounded-lg group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0`}>
+                {item.icon}
               </div>
-            </Link>
-          ))}
-        </div>
+            </div>
+          </Link>
+        ))}
+      </div>
 
-        {/* Footer */}
-        <div className="mt-16 text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-slate-300">
-            Estação do Mar • Condomínio Resort • {APP_VERSION}
-          </p>
+      {/* Estatísticas / Monitoramento */}
+      {['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(user?.role) && (
+        <div className="mt-12 p-1 bg-slate-900 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+          <div className="bg-white/5 absolute inset-0 pointer-events-none" />
+          <div className="p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-1.5 bg-blue-500 rounded-lg animate-pulse">
+                  <Activity size={18} className="text-white" />
+                </div>
+                <h3 className="text-white text-lg font-black uppercase tracking-tight">Monitoramento em Tempo Real</h3>
+              </div>
+              <p className="text-slate-400 text-xs font-medium max-w-md">
+                Estatísticas operacionais sincronizadas com a base de dados. Integridade total garantida.
+              </p>
+            </div>
+            
+            <div className="flex gap-4">
+               <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-center min-w-[120px] hover:bg-white/20 transition-colors group">
+                  <p className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform">{stats.units}</p>
+                  <p className="text-[9px] uppercase font-black text-blue-300 tracking-[0.2em]">Unidades</p>
+               </div>
+               <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-center min-w-[120px] hover:bg-white/20 transition-colors group">
+                  <p className="text-3xl font-black text-white mb-1 group-hover:scale-110 transition-transform">{stats.residents}</p>
+                  <p className="text-[9px] uppercase font-black text-blue-300 tracking-[0.2em]">Moradores</p>
+               </div>
+            </div>
+          </div>
+          
+          <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl" />
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl" />
         </div>
+      )}
+
+      {/* Footer Version */}
+      <div className="mt-16 text-center pb-12">
+        <span className="text-[10px] uppercase tracking-[0.3em] font-black px-4 py-2 rounded-full text-red-600 bg-white shadow-xl shadow-red-100/20 border border-red-50">
+          ESTAÇÃO DO MAR • {APP_VERSION}
+        </span>
       </div>
     </div>
   );
