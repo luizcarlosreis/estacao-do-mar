@@ -14,8 +14,10 @@ import {
   Calendar,
   Download,
   Paperclip,
-  Filter
+  Filter,
+  FileSpreadsheet
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 type Task = {
   id: string;
@@ -36,8 +38,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.95-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.95';
+  ? `v1.0.96-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.96';
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -173,28 +175,50 @@ export default function TarefasPage() {
   };
 
   const filteredTasks = tasks.filter(t => {
-    // Busca por texto
     const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
     if (!matchesSearch) return false;
-
-    // Filtros de Data de Realização
     if (filterYear !== 'ALL' || filterMonth !== 'ALL') {
-      if (!t.performedAt) return false; // Se filtrar por data, esconde quem não tem data
-      
+      if (!t.performedAt) return false;
       const perfDate = new Date(t.performedAt);
       const perfYear = perfDate.getUTCFullYear().toString();
       const perfMonth = (perfDate.getUTCMonth() + 1).toString();
-
       if (filterYear !== 'ALL' && perfYear !== filterYear) return false;
       if (filterMonth !== 'ALL' && perfMonth !== filterMonth) return false;
     }
-
     return true;
   });
 
-  // Gerar lista de anos disponíveis
+  const exportToExcel = () => {
+    if (filteredTasks.length === 0) return alert('Nenhuma tarefa para exportar.');
+
+    const data = filteredTasks.map(t => ({
+      'TÍTULO': t.title,
+      'DESCRIÇÃO': t.description || '—',
+      'STATUS': statusConfig[t.status].label.toUpperCase(),
+      'DATA REALIZAÇÃO': t.performedAt ? t.performedAt.split('T')[0].split('-').reverse().join('/') : '—',
+      'DATA CRIAÇÃO': new Date(t.createdAt).toLocaleDateString('pt-BR'),
+      'POSSUI ANEXO': t.attachmentUrl ? 'SIM' : 'NÃO'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tarefas');
+    
+    // Auto-ajuste de colunas
+    const colWidths = [
+      { wch: 40 }, // Título
+      { wch: 60 }, // Descrição
+      { wch: 15 }, // Status
+      { wch: 20 }, // Data Realização
+      { wch: 20 }, // Data Criação
+      { wch: 15 }  // Anexo
+    ];
+    worksheet['!cols'] = colWidths;
+
+    XLSX.writeFile(workbook, `relatorio_tarefas_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const availableYears = Array.from(new Set(tasks
     .filter(t => t.performedAt)
     .map(t => new Date(t.performedAt!).getUTCFullYear().toString())
@@ -246,17 +270,28 @@ export default function TarefasPage() {
               </select>
             </div>
 
-            {/* Busca e Botão */}
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-              <input 
-                type="text" 
-                placeholder="BUSCAR TAREFA..."
-                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            {/* Busca e Ações */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input 
+                  type="text" 
+                  placeholder="BUSCAR TAREFA..."
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <button 
+                onClick={exportToExcel}
+                className="bg-emerald-600 text-white p-2.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 flex items-center gap-2"
+                title="Exportar Excel"
+              >
+                <FileSpreadsheet size={18} />
+                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-wider">Exportar</span>
+              </button>
             </div>
+
             <button 
               onClick={() => { setFormData({id:'', title:'', description:'', status:'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
               className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap w-full sm:w-auto justify-center"
