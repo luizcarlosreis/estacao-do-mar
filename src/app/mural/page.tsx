@@ -20,11 +20,12 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-const categoryMap = {
-  AVISO: { label: 'Aviso', icon: <Megaphone size={16} />, color: 'bg-red-100 text-red-600' },
-  PENSAMENTO: { label: 'Pensamento', icon: <Lightbulb size={16} />, color: 'bg-amber-100 text-amber-600' },
   CLASSIFICADO: { label: 'Classificado', icon: <Tag size={16} />, color: 'bg-emerald-100 text-emerald-600' }
 };
+
+const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
+  ? `v1.0.88-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.88';
 
 export default function MuralPage() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -420,6 +421,12 @@ export default function MuralPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-12 text-center pb-8">
+        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
+      </div>
     </div>
   );
 }

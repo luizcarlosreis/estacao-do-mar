@@ -578,7 +578,7 @@ export default function FaleSindicoPage() {
       )}
 
       <div className="mt-8 text-center">
-        <span className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full ${currentUser?.role === 'MORADOR' ? 'text-red-600 bg-white shadow-sm border border-red-100' : 'text-slate-400'}`}>
+        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
           Estação do Mar Management Portal • {APP_VERSION}
         </span>
       </div>

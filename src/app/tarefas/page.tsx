@@ -32,6 +32,10 @@ const statusConfig = {
   CANCELED: { label: 'Cancelada', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-500', icon: <XCircle size={14} /> },
 };
 
+const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
+  ? `v1.0.88-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.88';
+
 export default function TarefasPage() {
   const [mounted, setMounted] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -316,6 +320,12 @@ export default function TarefasPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-12 text-center pb-8">
+        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
+      </div>
     </div>
   );
 }
