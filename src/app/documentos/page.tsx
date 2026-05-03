@@ -1,7 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FileText, Plus, Trash2, Download, Search, X, Pencil } from 'lucide-react';
+import { 
+  FileText, 
+  Plus, 
+  Trash2, 
+  Download, 
+  Search, 
+  X, 
+  Pencil,
+  Calendar,
+  HardDrive,
+  FileSearch,
+  ExternalLink
+} from 'lucide-react';
 
 type Document = {
   id: string;
@@ -14,8 +26,8 @@ type Document = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.88-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.88';
+  ? `v1.0.93-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.93';
 
 export default function DocumentosPage() {
   const [mounted, setMounted] = useState(false);
@@ -57,8 +69,6 @@ export default function DocumentosPage() {
     }
   };
 
-  if (!mounted) return <div className="p-8 text-gray-400">Carregando módulo...</div>;
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -88,10 +98,16 @@ export default function DocumentosPage() {
     const isEdit = !!formData.id;
     setSaving(true);
     try {
+      const payload = {
+        ...formData,
+        title: formData.title.toUpperCase(),
+        description: formData.description?.toUpperCase() || ''
+      };
+
       const res = await fetch(isEdit ? `${API_URL}/${formData.id}` : API_URL, {
         method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -100,7 +116,7 @@ export default function DocumentosPage() {
         fetchDocs();
       } else {
         const text = await res.text();
-        alert(`Erro ${res.status}: ${text.substring(0, 100)}`);
+        alert(`Erro: ${text}`);
       }
     } catch (error: any) {
       alert(`Erro de conexão: ${error.message}`);
@@ -114,7 +130,7 @@ export default function DocumentosPage() {
       id: doc.id,
       title: doc.title,
       description: doc.description || '',
-      fileUrl: doc.fileUrl, // Mantém o arquivo atual
+      fileUrl: doc.fileUrl,
       fileName: doc.fileName,
       fileSize: doc.fileSize
     });
@@ -149,167 +165,204 @@ export default function DocumentosPage() {
 
   const isAdmin = currentUser?.role === 'SUPER_ADMIN';
 
+  if (!mounted) return null;
+
   return (
-    <div className="min-h-screen bg-slate-50/30 p-4 md:p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans text-slate-900">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-3">
-              <FileText size={32} className="text-blue-600" /> Documentos Importantes
+            <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <FileText size={28} className="text-blue-600" />
+              DOCUMENTOS IMPORTANTES
             </h1>
-            <p className="text-slate-500 mt-1">Regimentos, atas e informativos oficiais.</p>
+            <p className="text-[11px] text-slate-500 uppercase font-bold tracking-widest mt-1 opacity-70">
+              Regimentos, atas e arquivos oficiais
+            </p>
           </div>
           
-          {isAdmin && (
-            <button 
-              onClick={() => { setFormData({ id: '', title: '', description: '', fileUrl: '', fileName: '', fileSize: 0 }); setIsModalOpen(true); }}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-100 w-full md:w-auto justify-center"
-            >
-              <Plus size={20} /> Novo Documento
-            </button>
-          )}
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              <input 
+                type="text" 
+                placeholder="BUSCAR DOCUMENTO..."
+                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            {isAdmin && (
+              <button 
+                onClick={() => { setFormData({id:'', title:'', description:'', fileUrl:'', fileName:'', fileSize:0}); setIsModalOpen(true); }}
+                className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
+              >
+                <Plus size={16} /> Novo Documento
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-8 flex items-center gap-3">
-          <Search className="text-slate-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Buscar documentos..." 
-            className="w-full focus:outline-none text-sm bg-transparent"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* List/Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {loading ? (
-            <div className="col-span-full py-20 text-center text-slate-400">Carregando...</div>
+            <div className="col-span-full py-20 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando...</div>
           ) : filteredDocs.length === 0 ? (
-            <div className="col-span-full py-20 text-center text-slate-400">Nenhum documento encontrado.</div>
+            <div className="col-span-full py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum documento encontrado</div>
           ) : (
             filteredDocs.map((doc) => (
-              <div key={doc.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden group">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
-                      <FileText size={24} />
+              <div 
+                key={doc.id} 
+                className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all relative flex flex-col h-full"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <FileText size={18} />
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                    {isAdmin && (
+                      <button 
+                        onClick={() => openEdit(doc)}
+                        className="p-1 text-slate-300 hover:text-blue-600 transition"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    )}
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleDelete(doc.id, doc.title)}
+                        className="p-1 text-slate-300 hover:text-rose-500 transition"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1.5 uppercase break-words">
+                    {doc.title}
+                  </h3>
+                  {doc.description && (
+                    <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-3 lowercase first-letter:uppercase">
+                      {doc.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-auto">
+                  <div className="flex items-center gap-3 text-[9px] text-slate-400 font-bold uppercase mb-3">
+                    <div className="flex items-center gap-1">
+                      <Calendar size={10} />
+                      {new Date(doc.createdAt).toLocaleDateString('pt-BR')}
                     </div>
-                    <div className="flex gap-2">
-                      {isAdmin && (
-                        <button 
-                          onClick={() => openEdit(doc)}
-                          className="text-slate-300 hover:text-blue-500 transition"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                      )}
-                      {isAdmin && (
-                        <button 
-                          onClick={() => handleDelete(doc.id, doc.title)}
-                          className="text-slate-300 hover:text-red-500 transition"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
+                    <div className="flex items-center gap-1">
+                      <HardDrive size={10} />
+                      {formatSize(doc.fileSize)}
                     </div>
                   </div>
-                  
-                  <h3 className="text-lg font-bold text-slate-800 mb-2 whitespace-normal break-words" title={doc.title}>{doc.title}</h3>
-                  <p className="text-xs text-slate-500 mb-4 whitespace-normal break-words">{doc.description || 'Sem descrição.'}</p>
-                  
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-2">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                      {formatSize(doc.fileSize)} • {new Date(doc.createdAt).toLocaleDateString('pt-BR')}
-                    </div>
-                    <button 
-                      onClick={() => downloadFile(doc.fileUrl, doc.fileName)}
-                      className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline"
-                    >
-                      <Download size={14} /> Download
-                    </button>
-                  </div>
+
+                  <button 
+                    onClick={() => downloadFile(doc.fileUrl, doc.fileName)}
+                    className="w-full py-2 bg-slate-50 text-slate-700 hover:bg-blue-600 hover:text-white transition-all rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                  >
+                    <Download size={14} /> Download
+                  </button>
                 </div>
               </div>
             ))
           )}
         </div>
+
+        {/* Version Badge */}
+        <div className="mt-12 text-center pb-8">
+          <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+            Estação do Mar Management Portal • {APP_VERSION}
+          </span>
+        </div>
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-blue-600 p-5 text-white flex justify-between items-center">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Plus size={22} /> {formData.id ? 'Alterar Documento' : 'Novo Documento'}
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
+              <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <FileSearch size={18} /> {formData.id ? 'Editar Documento' : 'Novo Documento'}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="hover:rotate-90 transition-transform">
+              <button onClick={() => setIsModalOpen(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
                 <X size={24} />
               </button>
             </div>
-
+            
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Título *</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Título do Documento</label>
                 <input 
                   type="text" required 
-                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none"
-                  placeholder="EX: REGIMENTO INTERNO"
-                  value={formData.title}
-                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="EX: REGIMENTO INTERNO V1"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[12px] font-bold text-slate-800 uppercase"
+                  value={formData.title} 
+                  onChange={(e) => setFormData({...formData, title: e.target.value})} 
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Descrição</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Breve Descrição</label>
                 <textarea 
-                  rows={2}
-                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
-                  placeholder="Descrição opcional..."
-                  value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  rows={2} 
+                  placeholder="DETALHAMENTO DO CONTEÚDO..."
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-medium text-slate-700 uppercase"
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})} 
                 />
               </div>
 
-              <div className={`bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 relative group transition-colors text-center ${formData.id ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-400'}`}>
+              <div className={`relative group ${formData.id ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Arquivo (PDF, JPG, PNG)</label>
                 <input 
-                  type="file" required={!formData.id}
+                  type="file" 
                   disabled={!!formData.id}
-                  className={`absolute inset-0 opacity-0 ${formData.id ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  className="hidden" 
+                  id="doc-upload" 
                   onChange={handleFileChange}
                 />
-                <div className="space-y-2">
-                  <div className="mx-auto w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors">
-                    <Plus size={20} />
-                  </div>
-                  <p className="text-sm font-bold text-slate-600">
+                <label 
+                  htmlFor={formData.id ? '' : 'doc-upload'} 
+                  className={`flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 bg-slate-50 transition ${!formData.id && 'cursor-pointer hover:border-blue-400 hover:bg-blue-50'}`}
+                >
+                  <Plus size={20} className="text-slate-400 mb-2" />
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">
                     {formData.fileName || 'Selecionar Arquivo'}
-                  </p>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">
-                    PDF, JPG ou PNG até 4.5MB
-                  </p>
-                </div>
+                  </span>
+                  <span className="text-[9px] text-slate-400 mt-1 uppercase">Máximo 4.5MB</span>
+                </label>
+                {formData.id && (
+                  <p className="text-[9px] text-blue-500 font-bold mt-2 text-center italic">Para alterar o arquivo, exclua e cadastre novamente.</p>
+                )}
               </div>
-              {formData.id && (
-                <p className="text-[10px] text-blue-500 font-bold text-center italic">Para trocar o arquivo, exclua o documento e cadastre-o novamente.</p>
-              )}
 
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-6 py-3 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 disabled:opacity-50">
-                  {saving ? 'Gravando...' : 'Salvar'}
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="flex-1 py-3 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-500 hover:bg-slate-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={saving}
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50 transition-all"
+                >
+                  {saving ? 'Gravando...' : 'Salvar Documento'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      <div className="mt-12 text-center pb-8">
-        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
-          Estação do Mar Management Portal • {APP_VERSION}
-        </span>
-      </div>
     </div>
   );
 }
-
