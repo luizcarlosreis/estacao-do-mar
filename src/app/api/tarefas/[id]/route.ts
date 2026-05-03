@@ -25,6 +25,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       dataToUpdate.performedAt = new Date(year, month - 1, day, 12, 0, 0);
     }
 
+    if (updateData.attachmentUrl !== undefined) dataToUpdate.attachmentUrl = updateData.attachmentUrl;
+    if (updateData.attachmentName !== undefined) dataToUpdate.attachmentName = updateData.attachmentName;
+
     console.log('Task update data:', dataToUpdate);
 
     const task = await prisma.task.update({ 

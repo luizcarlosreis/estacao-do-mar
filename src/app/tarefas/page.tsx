@@ -12,8 +12,9 @@ import {
   X,
   Search,
   Calendar,
-  MoreVertical,
-  ChevronRight
+  Download,
+  Paperclip,
+  FileText
 } from 'lucide-react';
 
 type Task = {
@@ -22,6 +23,8 @@ type Task = {
   description?: string;
   status: 'BACKLOG' | 'IN_PROGRESS' | 'CANCELED' | 'DONE';
   performedAt?: string;
+  attachmentUrl?: string;
+  attachmentName?: string;
   createdAt: string;
 };
 
@@ -33,8 +36,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.93-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.93';
+  ? `v1.0.94-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.0.94';
 
 export default function TarefasPage() {
   const [mounted, setMounted] = useState(false);
@@ -49,7 +52,9 @@ export default function TarefasPage() {
     title: '', 
     description: '', 
     status: 'BACKLOG' as Task['status'], 
-    performedAt: '' 
+    performedAt: '',
+    attachmentUrl: '',
+    attachmentName: ''
   });
 
   const API_URL = '/api/tarefas';
@@ -69,6 +74,34 @@ export default function TarefasPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Apenas arquivos PDF ou JPG são permitidos.');
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('O arquivo é muito grande. Tamanho máximo permitido: 2MB.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({
+        ...prev,
+        attachmentUrl: reader.result as string,
+        attachmentName: file.name
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,9 +156,18 @@ export default function TarefasPage() {
       title: t.title, 
       description: t.description || '', 
       status: t.status, 
-      performedAt: t.performedAt ? t.performedAt.split('T')[0] : '' 
+      performedAt: t.performedAt ? t.performedAt.split('T')[0] : '',
+      attachmentUrl: t.attachmentUrl || '',
+      attachmentName: t.attachmentName || ''
     });
     setIsModalOpen(true);
+  };
+
+  const downloadFile = (fileUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName;
+    link.click();
   };
 
   const filteredTasks = tasks.filter(t => 
@@ -162,7 +204,7 @@ export default function TarefasPage() {
               />
             </div>
             <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', status:'BACKLOG', performedAt:''}); setIsModalOpen(true); }}
+              onClick={() => { setFormData({id:'', title:'', description:'', status:'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
               className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
             >
               <Plus size={16} /> Nova Tarefa
@@ -211,6 +253,15 @@ export default function TarefasPage() {
                           {statusConfig[task.status].label}
                         </span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                          {task.attachmentUrl && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo'); }}
+                              className="p-1 text-blue-400 hover:text-blue-600 transition"
+                              title="Baixar Anexo"
+                            >
+                              <Download size={12} />
+                            </button>
+                          )}
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
                             className="p-1 text-slate-300 hover:text-rose-500 transition"
@@ -226,9 +277,17 @@ export default function TarefasPage() {
                       )}
                       
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
-                        <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
-                          <Calendar size={10} />
-                          {new Date(task.createdAt).toLocaleDateString('pt-BR')}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
+                            <Calendar size={10} />
+                            {new Date(task.createdAt).toLocaleDateString('pt-BR')}
+                          </div>
+                          {task.attachmentUrl && (
+                            <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
+                              <Paperclip size={10} />
+                              ANEXO
+                            </div>
+                          )}
                         </div>
                         {task.status === 'DONE' && task.performedAt && (
                           <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
@@ -259,7 +318,7 @@ export default function TarefasPage() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[80vh]">
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Título da Tarefa</label>
                 <input 
@@ -274,7 +333,7 @@ export default function TarefasPage() {
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Descrição / Detalhes</label>
                 <textarea 
-                  rows={3} 
+                  rows={2} 
                   placeholder="DETALHAMENTO DA ATIVIDADE..."
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-medium text-slate-700 uppercase"
                   value={formData.description} 
@@ -308,7 +367,42 @@ export default function TarefasPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Upload de Arquivo */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Anexo (Opcional - PDF ou JPG máx 2MB)</label>
+                <div className="flex flex-col gap-2">
+                  <input 
+                    type="file" 
+                    id="task-file"
+                    className="hidden" 
+                    accept=".pdf,.jpg,.jpeg"
+                    onChange={handleFileChange}
+                  />
+                  <label 
+                    htmlFor="task-file"
+                    className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition bg-slate-50"
+                  >
+                    <Paperclip size={16} className={formData.attachmentUrl ? 'text-blue-600' : 'text-slate-400'} />
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
+                      {formData.attachmentName || 'Selecionar Arquivo'}
+                    </span>
+                  </label>
+                  {formData.attachmentUrl && (
+                    <div className="flex justify-between items-center px-2">
+                      <span className="text-[9px] text-blue-600 font-bold italic truncate max-w-[200px]">Arquivo carregado</span>
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData(prev => ({ ...prev, attachmentUrl: '', attachmentName: '' }))}
+                        className="text-[9px] text-red-500 font-bold uppercase hover:underline"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)} 

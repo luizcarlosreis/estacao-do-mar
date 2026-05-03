@@ -28,6 +28,8 @@ export async function POST(request: Request) {
       data: {
         ...createData,
         performedAt: performedAtDate,
+        attachmentUrl: body.attachmentUrl || null,
+        attachmentName: body.attachmentName || null,
       }
     });
     return NextResponse.json(data, { status: 201 });
