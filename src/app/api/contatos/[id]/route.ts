@@ -14,12 +14,11 @@ export async function PATCH(
       where: { id },
       data: {
         name: data.name?.toUpperCase(),
-        description: data.description?.toUpperCase(),
-        ddd: data.ddd,
-        phone: data.phone,
-        email: data.email?.toLowerCase(),
-        specialty: data.specialty?.toUpperCase(),
-        document: data.document?.toUpperCase()
+        description: data.description?.toUpperCase() || null,
+        phones: data.phones !== undefined ? JSON.stringify(data.phones) : undefined,
+        email: data.email?.toLowerCase() || null,
+        specialty: data.specialty?.toUpperCase() || null,
+        document: data.document?.toUpperCase() || null
       }
     });
     

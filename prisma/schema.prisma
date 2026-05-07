@@ -284,8 +284,7 @@ model Contact {
   id            String   @id @default(uuid())
   name          String
   description   String?  @db.Text
-  ddd           String?
-  phone         String?
+  phones        String?  @db.Text  // JSON array: [{ddd:"11", phone:"99999-9999"}, ...]
   email         String?
   specialty     String?
   document      String?  // CPF or CNPJ

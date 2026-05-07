@@ -22,12 +22,11 @@ export async function POST(req: NextRequest) {
     const contact = await prisma.contact.create({
       data: {
         name: data.name.toUpperCase(),
-        description: data.description?.toUpperCase(),
-        ddd: data.ddd,
-        phone: data.phone,
-        email: data.email?.toLowerCase(),
-        specialty: data.specialty?.toUpperCase(),
-        document: data.document?.toUpperCase()
+        description: data.description?.toUpperCase() || null,
+        phones: data.phones ? JSON.stringify(data.phones) : null,
+        email: data.email?.toLowerCase() || null,
+        specialty: data.specialty?.toUpperCase() || null,
+        document: data.document?.toUpperCase() || null
       }
     });
     

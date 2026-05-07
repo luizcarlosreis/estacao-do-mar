@@ -34,8 +34,8 @@ type Vehicle = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.9-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.9';
+  ? `v1.2.1-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.2.1';
 
 export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
@@ -249,7 +249,7 @@ export default function VeiculosPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1 mb-0.5">
                             <Hash size={9} className="text-slate-400" />
-                            <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase truncate">{v.plate}</span>
+                            <span className="text-sm font-black text-slate-800 tracking-widest uppercase truncate">{v.plate}</span>
                           </div>
                           <h3 className="text-[9px] font-bold text-slate-600 uppercase truncate leading-tight">{v.model}</h3>
                           <p className="text-[8px] text-slate-400 font-black uppercase truncate">{v.color}</p>
@@ -302,7 +302,7 @@ export default function VeiculosPage() {
                 <input 
                   type="text" required 
                   placeholder="EX: ABC-1234"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[12px] font-bold text-slate-800 uppercase"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-xl font-black text-slate-800 uppercase tracking-[0.3em] text-center"
                   value={formData.plate} 
                   onChange={(e) => setFormData({...formData, plate: e.target.value.toUpperCase()})} 
                 />
