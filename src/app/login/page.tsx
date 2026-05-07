@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, User as UserIcon, Loader2, Info, X, RefreshCw } from 'lucide-react';
 
+const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
+  ? `v1.1.9-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.9';
+
 export default function LoginPage() {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
@@ -152,6 +156,12 @@ export default function LoginPage() {
           >
             Esqueceu sua senha? Resetar padrão
           </button>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+          <span className="text-[10px] uppercase tracking-widest font-bold text-slate-300">
+            Estação do Mar • {APP_VERSION}
+          </span>
         </div>
       </div>
 

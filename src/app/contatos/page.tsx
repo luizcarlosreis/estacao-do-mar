@@ -150,26 +150,24 @@ export default function ContatosPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans text-slate-900">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-[1400px] mx-auto">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
-                <PhoneCall size={24} />
-              </div>
-              <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Contatos Importantes</h1>
-            </div>
-            <p className="text-slate-500 text-sm font-medium">Gestão de prestadores de serviço e contatos de emergência.</p>
+            <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+              <PhoneCall size={28} className="text-blue-600" />
+              CONTATOS IMPORTANTES
+            </h1>
+            <p className="text-[11px] text-slate-500 uppercase font-bold tracking-widest mt-1 opacity-70">Prestadores de serviço e contatos de emergência.</p>
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
               <input 
                 type="text" 
                 placeholder="BUSCAR POR NOME OU ESPECIALIDADE..."
-                className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
+                className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -179,95 +177,90 @@ export default function ContatosPage() {
                 setFormData({ id: '', name: '', description: '', ddd: '', phone: '', email: '', specialty: '', document: '' });
                 setIsModalOpen(true);
               }}
-              className="bg-slate-900 text-white px-6 py-3.5 rounded-2xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-xs font-black uppercase tracking-wider"
+              className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
             >
-              <Plus size={18} /> Novo Contato
+              <Plus size={16} /> Novo Contato
             </button>
           </div>
         </div>
 
-        {/* Content Section */}
-        {loading ? (
-          <div className="py-20 text-center animate-pulse text-xs font-black text-slate-400 uppercase tracking-widest">Carregando contatos...</div>
-        ) : filteredContacts.length === 0 ? (
-          <div className="bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 p-20 text-center">
-            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-              <PhoneCall size={32} />
-            </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Nenhum contato encontrado</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredContacts.map((contact) => (
-              <div key={contact.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all group relative overflow-hidden">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-black text-slate-800 uppercase group-hover:text-blue-600 transition-colors">{contact.name}</h3>
-                      {contact.specialty && (
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-wider">
-                          {contact.specialty}
-                        </span>
-                      )}
-                    </div>
-                    {contact.description && (
-                      <p className="text-[10px] text-slate-500 uppercase font-bold leading-relaxed mb-4 opacity-70">
-                        {contact.description}
-                      </p>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {(contact.ddd || contact.phone) && (
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <div className="p-1.5 bg-slate-50 rounded-lg text-slate-400">
-                            <PhoneCall size={12} />
-                          </div>
-                          <span className="text-[10px] font-black">({contact.ddd || '--'}) {contact.phone || '---'}</span>
-                        </div>
-                      )}
-                      {contact.email && (
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <div className="p-1.5 bg-slate-50 rounded-lg text-slate-400">
-                            <Mail size={12} />
-                          </div>
-                          <span className="text-[10px] font-bold lowercase truncate max-w-[150px]">{contact.email}</span>
-                        </div>
-                      )}
-                      {contact.document && (
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <div className="p-1.5 bg-slate-50 rounded-lg text-slate-400">
-                            <CreditCard size={12} />
-                          </div>
-                          <span className="text-[10px] font-black uppercase tracking-tighter">{contact.document}</span>
-                        </div>
-                      )}
-                    </div>
+        {/* Content Grid — 4 colunas igual a Documentos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {loading ? (
+            <div className="col-span-full py-20 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando contatos...</div>
+          ) : filteredContacts.length === 0 ? (
+            <div className="col-span-full py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum contato encontrado</div>
+          ) : (
+            filteredContacts.map((contact) => (
+              <div
+                key={contact.id}
+                className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all relative flex flex-col h-full"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <PhoneCall size={18} />
                   </div>
-
-                  <div className="flex flex-col gap-2">
-                    <button 
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
                       onClick={() => openEditModal(contact)}
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                      className="p-1 text-slate-300 hover:text-blue-600 transition"
                     >
-                      <Pencil size={16} />
+                      <Pencil size={12} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(contact.id)}
-                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                      className="p-1 text-slate-300 hover:text-rose-500 transition"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>
+
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                    <h3 className="font-bold text-slate-800 text-[11px] leading-tight uppercase break-words">{contact.name}</h3>
+                    {contact.specialty && (
+                      <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-wider">
+                        {contact.specialty}
+                      </span>
+                    )}
+                  </div>
+                  {contact.description && (
+                    <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-3 lowercase first-letter:uppercase">
+                      {contact.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-auto space-y-1.5">
+                  {(contact.ddd || contact.phone) && (
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <PhoneCall size={10} className="text-slate-400 shrink-0" />
+                      <span className="text-[10px] font-black">({contact.ddd || '--'}) {contact.phone || '---'}</span>
+                    </div>
+                  )}
+                  {contact.email && (
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Mail size={10} className="text-slate-400 shrink-0" />
+                      <span className="text-[10px] font-bold lowercase truncate">{contact.email}</span>
+                    </div>
+                  )}
+                  {contact.document && (
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <CreditCard size={10} className="text-slate-400 shrink-0" />
+                      <span className="text-[10px] font-black uppercase tracking-tighter">{contact.document}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
 
         {/* Version Badge */}
-        <div className="mt-16 text-center pb-8">
-          <span className="text-[10px] uppercase tracking-[0.3em] font-black px-4 py-2 rounded-full text-red-600 bg-white shadow-xl shadow-red-100/20 border border-red-50">
-            ESTAÇÃO DO MAR • {APP_VERSION}
+        <div className="mt-12 text-center pb-8">
+          <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+            Estação do Mar Management Portal • {APP_VERSION}
           </span>
         </div>
       </div>
