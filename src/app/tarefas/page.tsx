@@ -234,7 +234,7 @@ export default function TarefasPage() {
           <div>
             <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
               <ListTodo size={28} className="text-blue-600" />
-              TAREFAS & MANUTENÇÕES
+              TAREFAS
             </h1>
             <p className="text-[11px] text-slate-500 uppercase font-bold tracking-widest mt-1 opacity-70">
               Gestão operacional do Estação do Mar

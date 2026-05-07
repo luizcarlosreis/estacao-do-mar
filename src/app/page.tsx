@@ -63,7 +63,7 @@ export default function Home() {
     { title: 'Autorizações', icon: <ShieldCheck size={16} />, path: '/autorizacoes', desc: 'Controle de acesso e uso.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-teal-600', bg: 'bg-teal-50' },
     { title: 'Colaboradores', icon: <UserCog size={16} />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-purple-600', bg: 'bg-purple-50' },
     { title: 'Manutenções', icon: <Wrench size={16} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-rose-600', bg: 'bg-rose-50' },
-    { title: 'Tarefas Pendentes', icon: <ListTodo size={16} />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { title: 'Tarefas', icon: <ListTodo size={16} />, path: '/tarefas', desc: 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { title: 'Mural', icon: <Megaphone size={16} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-pink-600', bg: 'bg-pink-50' },
     { title: 'Fale com o Síndico', icon: <MessageSquare size={16} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'], color: 'text-amber-600', bg: 'bg-amber-50' },
     { title: 'Documentos Importantes', icon: <FileText size={16} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
