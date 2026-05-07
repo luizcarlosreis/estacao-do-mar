@@ -274,9 +274,54 @@ export default function VeiculosPage() {
             })}
           </div>
         )}
+        {/* Rodapé com Totais */}
+        {!loading && veiculos.length > 0 && (
+          <div className="mt-8 bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                  <Car size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Cadastrado</p>
+                  <p className="text-2xl font-black text-slate-800 leading-tight">
+                    {veiculos.length}
+                    <span className="text-[11px] font-bold text-slate-400 ml-1.5 normal-case tracking-normal">
+                      {veiculos.length === 1 ? 'veículo' : 'veículos'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { type: 'CARRO',      label: 'Carros',      color: 'bg-blue-50 text-blue-700' },
+                  { type: 'MOTO',       label: 'Motos',       color: 'bg-purple-50 text-purple-700' },
+                  { type: 'UTILITARIO', label: 'Utilitários', color: 'bg-amber-50 text-amber-700' },
+                  { type: 'BICICLETA',  label: 'Bicicletas',  color: 'bg-green-50 text-green-700' },
+                ].map(({ type, label, color }) => {
+                  const count = veiculos.filter(v => v.type === type).length;
+                  if (count === 0) return null;
+                  return (
+                    <div key={type} className={`px-3 py-1.5 rounded-xl ${color} flex items-center gap-1.5`}>
+                      <span className="text-lg font-black leading-none">{count}</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {searchTerm && (
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-full border-t border-slate-100 pt-3 mt-1">
+                  Exibindo <span className="text-slate-700">{filteredVeiculos.length}</span> de {veiculos.length} veículos para &ldquo;{searchTerm}&rdquo;
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Version Badge */}
-        <div className="mt-12 text-center pb-8">
+        <div className="mt-8 text-center pb-8">
           <span className="text-[10px] uppercase tracking-widest font-black px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
             Estação do Mar Management Portal • {APP_VERSION}
           </span>
