@@ -279,3 +279,16 @@ model Document {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Contact {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?  @db.Text
+  ddd           String?
+  phone         String?
+  email         String?
+  specialty     String?
+  document      String?  // CPF or CNPJ
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

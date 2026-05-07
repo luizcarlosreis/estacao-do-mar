@@ -15,7 +15,8 @@ import {
   MessageSquare,
   FileText,
   LayoutDashboard,
-  Activity
+  Activity,
+  PhoneCall
 } from 'lucide-react';
 
 const roleLabels: Record<string, string> = {
@@ -26,8 +27,8 @@ const roleLabels: Record<string, string> = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.8-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.8';
+  ? `v1.1.9-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.9';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -66,6 +67,7 @@ export default function Home() {
     { title: 'Mural', icon: <Megaphone size={16} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-pink-600', bg: 'bg-pink-50' },
     { title: 'Fale com o Síndico', icon: <MessageSquare size={16} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR'], color: 'text-amber-600', bg: 'bg-amber-50' },
     { title: 'Documentos Importantes', icon: <FileText size={16} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
+    { title: 'Contatos Importantes', icon: <PhoneCall size={16} />, path: '/contatos', desc: 'Prestadores e emergência.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO'], color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
 
   const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
