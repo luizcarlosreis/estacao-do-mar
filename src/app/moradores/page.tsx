@@ -35,8 +35,8 @@ type Morador = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.8-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.8';
+  ? `v1.1.9-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.9';
 
 export default function MoradoresPage() {
   const [moradores, setMoradores] = useState<Morador[]>([]);
@@ -230,10 +230,10 @@ export default function MoradoresPage() {
                         <Building size={16} />
                       </div>
                       <div>
-                        <h2 className="text-[12px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-emerald-600 transition-colors">
+                        <h2 className="text-[16px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-emerald-600 transition-colors">
                           {group.unit ? `AP ${group.unit.number}` : 'NÃO VINCULADO'}
                         </h2>
-                        <p className="text-[9px] text-emerald-500 font-black uppercase tracking-widest">{group.unit?.block || 'SISTEMA'}</p>
+                        <p className="text-[11px] text-emerald-500 font-black uppercase tracking-widest">MORADORES: {group.moradores.length}</p>
                       </div>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export default function MoradoresPage() {
                           <h3 className="text-[10px] font-black text-slate-800 uppercase truncate leading-tight mb-0.5">{m.name}</h3>
                           <div className="flex items-center gap-2">
                              <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
-                             {m.phone && <span className="text-[8px] text-emerald-600 font-black uppercase flex items-center gap-0.5"><Phone size={8} /> {m.ddd ? `(${m.ddd})` : ''} {m.phone}</span>}
+                             {m.phone && <span className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1"><Phone size={12} /> {m.ddd ? `(${m.ddd}) ` : ''}{m.phone}</span>}
                           </div>
                         </div>
                         
