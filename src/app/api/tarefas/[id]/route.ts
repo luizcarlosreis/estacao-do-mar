@@ -27,6 +27,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     if (updateData.attachmentUrl !== undefined) dataToUpdate.attachmentUrl = updateData.attachmentUrl;
     if (updateData.attachmentName !== undefined) dataToUpdate.attachmentName = updateData.attachmentName;
+    if (updateData.userId !== undefined) dataToUpdate.userId = updateData.userId;
 
     console.log('Task update data:', dataToUpdate);
 

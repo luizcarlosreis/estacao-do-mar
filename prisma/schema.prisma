@@ -21,6 +21,7 @@ enum EmployeeRole {
 }
 
 enum TaskStatus {
+  SOLICITADA_MORADOR
   BACKLOG
   IN_PROGRESS
   CANCELED
@@ -62,6 +63,7 @@ model User {
   postLikes    PostLike[]
   postComments PostComment[]
   syndicMessages SyndicMessage[]
+  tasks        Task[]
 }
 
 model Employee {
@@ -97,6 +99,12 @@ model Task {
   performedAt    DateTime?
   attachmentUrl  String?    @db.Text
   attachmentName String?
+  
+  userId         String?
+  user           User?      @relation(fields: [userId], references: [id])
+  unitId         String?
+  unit           Unit?      @relation(fields: [unitId], references: [id])
+
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
@@ -110,6 +118,7 @@ model Unit {
   parkingSpaces ParkingSpace[]
   authorizations Authorization[]
   syndicMessages SyndicMessage[]
+  tasks         Task[]
 }
 
 model Vehicle {

@@ -15,7 +15,8 @@ import {
   Download,
   Paperclip,
   Filter,
-  FileSpreadsheet
+  FileSpreadsheet,
+  User
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -23,14 +24,17 @@ type Task = {
   id: string;
   title: string;
   description?: string;
-  status: 'BACKLOG' | 'IN_PROGRESS' | 'CANCELED' | 'DONE';
+  status: 'SOLICITADA_MORADOR' | 'BACKLOG' | 'IN_PROGRESS' | 'CANCELED' | 'DONE';
   performedAt?: string;
   attachmentUrl?: string;
   attachmentName?: string;
   createdAt: string;
+  user?: { id: string; name: string };
+  unit?: { block: string; number: string };
 };
 
 const statusConfig = {
+  SOLICITADA_MORADOR: { label: 'Solicitada pelo Morador', color: 'bg-purple-50 text-purple-600', dot: 'bg-purple-500', icon: <User size={14} /> },
   BACKLOG: { label: 'Backlog', color: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400', icon: <ListTodo size={14} /> },
   IN_PROGRESS: { label: 'Em Andamento', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-500', icon: <Clock size={14} /> },
   DONE: { label: 'Realizada', color: 'bg-emerald-50 text-emerald-600', dot: 'bg-emerald-500', icon: <CheckCircle2 size={14} /> },
@@ -38,8 +42,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.10-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.10';
+  ? `v1.1.11-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.11';
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -51,6 +55,7 @@ export default function TarefasPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   // Filtros de Data
   const [filterYear, setFilterYear] = useState<string>('ALL');
@@ -73,6 +78,7 @@ export default function TarefasPage() {
   useEffect(() => {
     setMounted(true);
     fetchTasks();
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, []);
 
   const fetchTasks = async () => {
@@ -121,6 +127,16 @@ export default function TarefasPage() {
         title: formData.title.toUpperCase(),
         description: formData.description?.toUpperCase() || ''
       };
+
+      if (!isEdit && currentUser) {
+        payload.userId = currentUser.id;
+        if (currentUser.unitId) payload.unitId = currentUser.unitId;
+      } else if (isEdit && currentUser && currentUser.role !== 'MORADOR') {
+        const taskObj = tasks.find(t => t.id === formData.id);
+        if (taskObj && !taskObj.user) {
+          payload.userId = currentUser.id;
+        }
+      }
 
       if (!payload.performedAt) delete payload.performedAt;
 
@@ -293,17 +309,17 @@ export default function TarefasPage() {
             </div>
 
             <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', status:'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
+              onClick={() => { setFormData({id:'', title:'', description:'', status: currentUser?.role === 'MORADOR' ? 'SOLICITADA_MORADOR' : 'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
               className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap w-full sm:w-auto justify-center"
             >
-              <Plus size={16} /> Nova Tarefa
+              <Plus size={16} /> {currentUser?.role === 'MORADOR' ? 'Solicitação de Reparos no Condomínio' : 'Nova Tarefa'}
             </button>
           </div>
         </div>
 
         {/* Board */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-          {(['BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start overflow-x-auto pb-4">
+          {(['SOLICITADA_MORADOR', 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
             <div key={status} className="flex flex-col min-w-0">
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
@@ -363,6 +379,19 @@ export default function TarefasPage() {
                       <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">{task.title}</h3>
                       {task.description && (
                         <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-2 lowercase first-letter:uppercase">{task.description}</p>
+                      )}
+                      
+                      {(task.user || task.unit) && (
+                        <div className="flex items-center gap-1.5 mt-2 mb-2 text-[9px] text-slate-500 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                          <User size={10} className="text-slate-400" />
+                          <span className="font-bold truncate uppercase">{task.user?.name || 'DESCONHECIDO'}</span>
+                          {task.unit && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <span className="font-black text-slate-600">AP {task.unit.number}</span>
+                            </>
+                          )}
+                        </div>
                       )}
                       
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
@@ -434,10 +463,12 @@ export default function TarefasPage() {
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status Atual</label>
                   <select 
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none disabled:opacity-50"
                     value={formData.status} 
                     onChange={(e) => setFormData({...formData, status: e.target.value as any})}
+                    disabled={(!formData.id) || (currentUser?.role === 'MORADOR')}
                   >
+                    <option value="SOLICITADA_MORADOR">SOLICITADA PELO MORADOR</option>
                     <option value="BACKLOG">BACKLOG</option>
                     <option value="IN_PROGRESS">EM ANDAMENTO</option>
                     <option value="DONE">REALIZADA</option>

@@ -6,7 +6,13 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const prisma = getPrisma();
-    const data = await prisma.task.findMany({ orderBy: { createdAt: 'desc' } });
+    const data = await prisma.task.findMany({ 
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, role: true } },
+        unit: { select: { id: true, block: true, number: true } }
+      }
+    });
     return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
@@ -27,6 +33,8 @@ export async function POST(request: Request) {
     const data = await prisma.task.create({
       data: {
         ...createData,
+        userId: body.userId || null,
+        unitId: body.unitId || null,
         performedAt: performedAtDate,
         attachmentUrl: body.attachmentUrl || null,
         attachmentName: body.attachmentName || null,
