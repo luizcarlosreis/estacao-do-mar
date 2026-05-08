@@ -29,8 +29,8 @@ type ParkingSpace = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.9-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.9';
+  ? `v1.1.10-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.10';
 
 export default function VagasPage() {
   const [vagas, setVagas] = useState<ParkingSpace[]>([]);

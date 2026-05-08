@@ -18,8 +18,8 @@ type Unit = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.9-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.9';
+  ? `v1.1.10-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.10';
 
 export default function UnidadesPage() {
   const [unidades, setUnidades] = useState<Unit[]>([]);
@@ -138,7 +138,7 @@ export default function UnidadesPage() {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">Apto {u.number}</h3>
-                    <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">{u.block}</p>
+                    <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">MORADORES: {u.residents?.length || 0}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <button onClick={() => { setFormData({id:u.id, number:u.number, block:u.block}); setIsEditMode(true); setIsModalOpen(true); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={18} /></button>

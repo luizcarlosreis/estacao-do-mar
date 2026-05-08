@@ -234,10 +234,10 @@ export default function VeiculosPage() {
                         <Building size={16} />
                       </div>
                       <div>
-                        <h2 className="text-[12px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-blue-600 transition-colors">
+                        <h2 className="text-[16px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-blue-600 transition-colors">
                           AP {group.unit.number}
                         </h2>
-                        <p className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{group.unit.block}</p>
+                        <p className="text-[11px] text-blue-500 font-black uppercase tracking-widest">VEÍCULOS CADASTRADOS: {group.vehicles.length}</p>
                       </div>
                     </div>
                   </div>
