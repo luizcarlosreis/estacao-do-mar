@@ -42,8 +42,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.12-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.12';
+  ? `v1.1.13-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.13';
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -191,6 +191,8 @@ export default function TarefasPage() {
   };
 
   const filteredTasks = tasks.filter(t => {
+    if (currentUser?.role === 'MORADOR' && t.userId !== currentUser.id) return false;
+
     const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.description?.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
@@ -318,8 +320,8 @@ export default function TarefasPage() {
         </div>
 
         {/* Board */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start overflow-x-auto pb-4">
-          {(['SOLICITADA_MORADOR', 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${currentUser?.role === 'MORADOR' ? 'lg:grid-cols-1 max-w-2xl mx-auto' : 'lg:grid-cols-5'} gap-4 items-start overflow-x-auto pb-4`}>
+          {(currentUser?.role === 'MORADOR' ? ['SOLICITADA_MORADOR'] as const : ['SOLICITADA_MORADOR', 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
             <div key={status} className="flex flex-col min-w-0">
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
