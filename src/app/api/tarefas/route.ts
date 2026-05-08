@@ -30,9 +30,16 @@ export async function POST(request: Request) {
       performedAtDate = new Date(year, month - 1, day, 12, 0, 0);
     }
 
+    const lastTask = await prisma.task.findFirst({
+      orderBy: { number: 'desc' },
+      where: { number: { not: null } }
+    });
+    const nextNumber = lastTask?.number ? lastTask.number + 1 : 50;
+
     const data = await prisma.task.create({
       data: {
         ...createData,
+        number: nextNumber,
         userId: body.userId || null,
         unitId: body.unitId || null,
         performedAt: performedAtDate,

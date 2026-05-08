@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 
 type Task = {
   id: string;
+  number?: number;
   title: string;
   description?: string;
   status: 'SOLICITADA_MORADOR' | 'BACKLOG' | 'IN_PROGRESS' | 'CANCELED' | 'DONE';
@@ -42,8 +43,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.13-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.13';
+  ? `v1.1.14-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.14';
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -211,6 +212,7 @@ export default function TarefasPage() {
     if (filteredTasks.length === 0) return alert('Nenhuma tarefa para exportar.');
 
     const data = filteredTasks.map(t => ({
+      'NÚMERO': t.number ? `#${t.number}` : '—',
       'TÍTULO': t.title,
       'DESCRIÇÃO': t.description || '—',
       'STATUS': statusConfig[t.status].label.toUpperCase(),
@@ -378,7 +380,10 @@ export default function TarefasPage() {
                         </div>
                       </div>
                       
-                      <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">{task.title}</h3>
+                      <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">
+                        {task.number ? <span className="text-blue-600 mr-1">#{task.number}</span> : null}
+                        {task.title}
+                      </h3>
                       {task.description && (
                         <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-2 lowercase first-letter:uppercase">{task.description}</p>
                       )}

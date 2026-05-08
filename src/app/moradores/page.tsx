@@ -35,8 +35,8 @@ type Morador = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.13-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.13';
+  ? `v1.1.14-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.14';
 
 export default function MoradoresPage() {
   const [moradores, setMoradores] = useState<Morador[]>([]);

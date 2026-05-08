@@ -93,6 +93,7 @@ model Maintenance {
 
 model Task {
   id             String     @id @default(uuid())
+  number         Int?
   title          String
   description    String?
   status         TaskStatus @default(BACKLOG)
