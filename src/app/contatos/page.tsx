@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type PhoneEntry = { ddd: string; phone: string };
+type PhoneEntry = { name?: string; ddd: string; phone: string };
 
 type Contact = {
   id: string;
@@ -31,8 +31,8 @@ type Contact = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.2.1-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.2.1';
+  ? `v1.1.16-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.16';
 
 function parsePhones(phonesJson?: string): PhoneEntry[] {
   if (!phonesJson) return [];
@@ -59,11 +59,11 @@ export default function ContatosPage() {
   });
 
   // Dynamic phone list
-  const [phoneList, setPhoneList] = useState<PhoneEntry[]>([{ ddd: '', phone: '' }]);
+  const [phoneList, setPhoneList] = useState<PhoneEntry[]>([{ name: '', ddd: '', phone: '' }]);
 
-  const addPhone = () => setPhoneList(prev => [...prev, { ddd: '', phone: '' }]);
+  const addPhone = () => setPhoneList(prev => [...prev, { name: '', ddd: '', phone: '' }]);
   const removePhone = (idx: number) => setPhoneList(prev => prev.filter((_, i) => i !== idx));
-  const updatePhone = (idx: number, field: 'ddd' | 'phone', value: string) => {
+  const updatePhone = (idx: number, field: 'name' | 'ddd' | 'phone', value: string) => {
     setPhoneList(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
   };
 
@@ -132,7 +132,7 @@ export default function ContatosPage() {
 
   const resetForm = () => {
     setFormData({ id: '', name: '', description: '', email: '', specialty: '', document: '' });
-    setPhoneList([{ ddd: '', phone: '' }]);
+    setPhoneList([{ name: '', ddd: '', phone: '' }]);
   };
 
   const handleDelete = async (id: string) => {
@@ -155,7 +155,7 @@ export default function ContatosPage() {
       document: contact.document || ''
     });
     const parsed = parsePhones(contact.phones);
-    setPhoneList(parsed.length > 0 ? parsed : [{ ddd: '', phone: '' }]);
+    setPhoneList(parsed.length > 0 ? parsed : [{ name: '', ddd: '', phone: '' }]);
     setIsModalOpen(true);
   };
 
@@ -260,6 +260,7 @@ export default function ContatosPage() {
                       <div key={i} className="flex items-center gap-2 text-slate-600">
                         <PhoneCall size={10} className="text-slate-400 shrink-0" />
                         <span className="text-[10px] font-black">
+                          {p.name ? <span className="uppercase text-slate-500 mr-1">{p.name}:</span> : null}
                           {p.ddd ? `(${p.ddd}) ` : ''}{p.phone}
                         </span>
                       </div>
@@ -308,7 +309,7 @@ export default function ContatosPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {/* Nome */}
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome Completo *</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome do Contato *</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                   <input 
@@ -362,34 +363,43 @@ export default function ContatosPage() {
                 </div>
                 <div className="space-y-2">
                   {phoneList.map((p, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
+                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-2">
                       <input
                         type="text"
-                        placeholder="DDD"
-                        maxLength={3}
-                        className="w-16 p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-800 text-center"
-                        value={p.ddd}
-                        onChange={(e) => updatePhone(idx, 'ddd', e.target.value)}
+                        placeholder="NOME (ex: WhatsApp, Fixo)"
+                        className="w-full sm:w-1/3 p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-800 uppercase"
+                        value={p.name || ''}
+                        onChange={(e) => updatePhone(idx, 'name', e.target.value)}
                       />
-                      <div className="relative flex-1">
-                        <PhoneCall className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                      <div className="flex w-full sm:w-2/3 items-center gap-2">
                         <input
                           type="text"
-                          placeholder="Número do telefone"
-                          className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-800"
-                          value={p.phone}
-                          onChange={(e) => updatePhone(idx, 'phone', e.target.value)}
+                          placeholder="DDD"
+                          maxLength={3}
+                          className="w-16 p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-800 text-center"
+                          value={p.ddd}
+                          onChange={(e) => updatePhone(idx, 'ddd', e.target.value)}
                         />
+                        <div className="relative flex-1">
+                          <PhoneCall className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+                          <input
+                            type="text"
+                            placeholder="Número do telefone"
+                            className="w-full pl-10 pr-3 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-800"
+                            value={p.phone}
+                            onChange={(e) => updatePhone(idx, 'phone', e.target.value)}
+                          />
+                        </div>
+                        {phoneList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removePhone(idx)}
+                            className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                          >
+                            <Minus size={14} />
+                          </button>
+                        )}
                       </div>
-                      {phoneList.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removePhone(idx)}
-                          className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                        >
-                          <Minus size={14} />
-                        </button>
-                      )}
                     </div>
                   ))}
                 </div>

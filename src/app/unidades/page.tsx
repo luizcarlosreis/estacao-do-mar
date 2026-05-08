@@ -18,8 +18,8 @@ type Unit = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.15-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.15';
+  ? `v1.1.16-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.16';
 
 export default function UnidadesPage() {
   const [unidades, setUnidades] = useState<Unit[]>([]);

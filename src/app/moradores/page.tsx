@@ -35,8 +35,8 @@ type Morador = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.15-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.15';
+  ? `v1.1.16-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.16';
 
 export default function MoradoresPage() {
   const [moradores, setMoradores] = useState<Morador[]>([]);
@@ -77,7 +77,14 @@ export default function MoradoresPage() {
     try {
       const res = await fetch(UNIDADES_URL);
       const data = await res.json();
-      if (Array.isArray(data)) setUnidades(data);
+      if (Array.isArray(data)) {
+        const sorted = data.sort((a, b) => {
+          const apA = `${a.block}-${a.number.padStart(5, '0')}`;
+          const apB = `${b.block}-${b.number.padStart(5, '0')}`;
+          return apA.localeCompare(apB);
+        });
+        setUnidades(sorted);
+      }
     } catch (error) {
       console.error('Erro ao buscar unidades', error);
     }
