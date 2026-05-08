@@ -34,8 +34,8 @@ type Vehicle = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.16-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.16';
+  ? `v1.1.17-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.17';
 
 export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);
