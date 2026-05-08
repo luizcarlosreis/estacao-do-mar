@@ -43,8 +43,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.18-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.18';
+  ? `v1.1.19-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.19';
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -375,7 +375,7 @@ export default function TarefasPage() {
                               <Download size={12} />
                             </button>
                           )}
-                          {task.status === 'SOLICITADA_MORADOR' && (
+                          {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
                               className="p-1 text-slate-300 hover:text-rose-500 transition"
