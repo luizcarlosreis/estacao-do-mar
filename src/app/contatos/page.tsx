@@ -31,8 +31,8 @@ type Contact = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.17-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.17';
+  ? `v1.1.18-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.18';
 
 function parsePhones(phonesJson?: string): PhoneEntry[] {
   if (!phonesJson) return [];
@@ -166,11 +166,16 @@ export default function ContatosPage() {
 
   // Already sorted by API (orderBy name asc), but ensure frontend too
   const filteredContacts = contacts
-    .filter(c => 
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter(c => {
+      const matchBasic = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         c.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         c.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const phones = parsePhones(c.phones);
+      const matchPhoneName = phones.some(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      return matchBasic || matchPhoneName;
+    })
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
   if (!mounted) return null;
