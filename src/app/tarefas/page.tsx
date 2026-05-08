@@ -43,8 +43,8 @@ const statusConfig = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.14-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.14';
+  ? `v1.1.15-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.15';
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -263,32 +263,34 @@ export default function TarefasPage() {
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
             {/* Filtros de Data */}
-            <div className="flex items-center gap-2 w-full sm:w-auto bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-              <div className="flex items-center gap-1.5 px-2 text-slate-400 border-r border-slate-100 pr-3">
-                <Filter size={14} />
-                <span className="text-[9px] font-black uppercase tracking-tighter">Filtros</span>
-              </div>
-              
-              <select 
-                value={filterYear}
-                onChange={(e) => setFilterYear(e.target.value)}
-                className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer"
-              >
-                <option value="ALL">TODOS OS ANOS</option>
-                {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
+            {currentUser?.role !== 'MORADOR' && (
+              <div className="flex items-center gap-2 w-full sm:w-auto bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-1.5 px-2 text-slate-400 border-r border-slate-100 pr-3">
+                  <Filter size={14} />
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Filtros</span>
+                </div>
+                
+                <select 
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                  className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer"
+                >
+                  <option value="ALL">TODOS OS ANOS</option>
+                  {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
 
-              <select 
-                value={filterMonth}
-                onChange={(e) => setFilterMonth(e.target.value)}
-                className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer border-l border-slate-100"
-              >
-                <option value="ALL">TODOS OS MESES</option>
-                {months.map((m, i) => (
-                  <option key={i} value={(i + 1).toString()}>{m.toUpperCase()}</option>
-                ))}
-              </select>
-            </div>
+                <select 
+                  value={filterMonth}
+                  onChange={(e) => setFilterMonth(e.target.value)}
+                  className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer border-l border-slate-100"
+                >
+                  <option value="ALL">TODOS OS MESES</option>
+                  {months.map((m, i) => (
+                    <option key={i} value={(i + 1).toString()}>{m.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Busca e Ações */}
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -302,14 +304,16 @@ export default function TarefasPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <button 
-                onClick={exportToExcel}
-                className="bg-emerald-600 text-white p-2.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 flex items-center gap-2"
-                title="Exportar Excel"
-              >
-                <FileSpreadsheet size={18} />
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-wider">Exportar</span>
-              </button>
+              {currentUser?.role !== 'MORADOR' && (
+                <button 
+                  onClick={exportToExcel}
+                  className="bg-emerald-600 text-white p-2.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-100 flex items-center gap-2"
+                  title="Exportar Excel"
+                >
+                  <FileSpreadsheet size={18} />
+                  <span className="hidden lg:inline text-[10px] font-black uppercase tracking-wider">Exportar</span>
+                </button>
+              )}
             </div>
 
             <button 
@@ -371,12 +375,14 @@ export default function TarefasPage() {
                               <Download size={12} />
                             </button>
                           )}
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
-                            className="p-1 text-slate-300 hover:text-rose-500 transition"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          {task.status === 'SOLICITADA_MORADOR' && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
+                              className="p-1 text-slate-300 hover:text-rose-500 transition"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
                         </div>
                       </div>
                       

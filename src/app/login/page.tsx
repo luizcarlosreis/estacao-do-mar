@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Lock, User as UserIcon, Loader2, Info, X, RefreshCw } from 'lucide-react';
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.14-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.14';
+  ? `v1.1.15-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.15';
 
 export default function LoginPage() {
   const [cpf, setCpf] = useState('');
