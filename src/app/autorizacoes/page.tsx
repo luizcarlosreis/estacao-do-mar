@@ -88,7 +88,13 @@ export default function AutorizacoesPage() {
   const fetchUnidades = async () => {
     try {
       const res = await fetch('/api/unidades');
-      setUnidades(await res.json());
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a, b) => 
+          a.number.localeCompare(b.number, undefined, { numeric: true })
+        );
+        setUnidades(sorted);
+      }
     } catch (e) { console.error(e); }
   };
 

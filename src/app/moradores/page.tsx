@@ -78,11 +78,9 @@ export default function MoradoresPage() {
       const res = await fetch(UNIDADES_URL);
       const data = await res.json();
       if (Array.isArray(data)) {
-        const sorted = data.sort((a, b) => {
-          const apA = `${a.block}-${a.number.padStart(5, '0')}`;
-          const apB = `${b.block}-${b.number.padStart(5, '0')}`;
-          return apA.localeCompare(apB);
-        });
+        const sorted = [...data].sort((a, b) => 
+          a.number.localeCompare(b.number, undefined, { numeric: true })
+        );
         setUnidades(sorted);
       }
     } catch (error) {
@@ -177,9 +175,7 @@ export default function MoradoresPage() {
     if (b === 'unlinked') return -1;
     const unitA = groupedMoradores[a].unit!;
     const unitB = groupedMoradores[b].unit!;
-    const apA = `${unitA.block}-${unitA.number.padStart(5, '0')}`;
-    const apB = `${unitB.block}-${unitB.number.padStart(5, '0')}`;
-    return apA.localeCompare(apB);
+    return unitA.number.localeCompare(unitB.number, undefined, { numeric: true });
   });
 
   if (!mounted) return null;

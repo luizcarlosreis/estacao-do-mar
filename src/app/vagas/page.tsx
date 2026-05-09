@@ -69,7 +69,12 @@ export default function VagasPage() {
     try {
       const res = await fetch(UNIDADES_URL);
       const data = await res.json();
-      if (Array.isArray(data)) setUnidades(data);
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a, b) => 
+          a.number.localeCompare(b.number, undefined, { numeric: true })
+        );
+        setUnidades(sorted);
+      }
     } catch (error) {
       console.error('Erro ao buscar unidades', error);
     }
@@ -152,9 +157,7 @@ export default function VagasPage() {
     if (b === 'unlinked') return -1;
     const unitA = groupedVagas[a].unit!;
     const unitB = groupedVagas[b].unit!;
-    const apA = `${unitA.block}-${unitA.number.padStart(5, '0')}`;
-    const apB = `${unitB.block}-${unitB.number.padStart(5, '0')}`;
-    return apA.localeCompare(apB);
+    return unitA.number.localeCompare(unitB.number, undefined, { numeric: true });
   });
 
   if (!mounted) return null;

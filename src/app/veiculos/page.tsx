@@ -76,7 +76,12 @@ export default function VeiculosPage() {
     try {
       const res = await fetch(UNIDADES_URL);
       const data = await res.json();
-      if (Array.isArray(data)) setUnidades(data);
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a, b) => 
+          a.number.localeCompare(b.number, undefined, { numeric: true })
+        );
+        setUnidades(sorted);
+      }
     } catch (error) {
       console.error('Erro ao buscar unidades', error);
     }
@@ -174,9 +179,7 @@ export default function VeiculosPage() {
   const sortedUnitIds = Object.keys(groupedVeiculos).sort((a, b) => {
     const unitA = groupedVeiculos[a].unit;
     const unitB = groupedVeiculos[b].unit;
-    const apA = `${unitA.block}-${unitA.number.padStart(5, '0')}`;
-    const apB = `${unitB.block}-${unitB.number.padStart(5, '0')}`;
-    return apA.localeCompare(apB);
+    return unitA.number.localeCompare(unitB.number, undefined, { numeric: true });
   });
 
   if (!mounted) return null;
