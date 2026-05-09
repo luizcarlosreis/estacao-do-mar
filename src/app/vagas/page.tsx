@@ -228,7 +228,6 @@ export default function VagasPage() {
                             <Hash size={9} className="text-slate-400" />
                             <span className="text-[10px] font-black text-slate-800 tracking-tighter uppercase truncate">VAGA {v.number}</span>
                           </div>
-                          <h3 className="text-[9px] font-bold text-slate-600 uppercase truncate leading-tight">{v.block}</h3>
                         </div>
                         
                         <div className="flex items-center gap-2 shrink-0">
