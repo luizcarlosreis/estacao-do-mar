@@ -29,8 +29,8 @@ type ParkingSpace = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.19-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.19';
+  ? `v1.1.20-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.20';
 
 export default function VagasPage() {
   const [vagas, setVagas] = useState<ParkingSpace[]>([]);
@@ -212,10 +212,9 @@ export default function VagasPage() {
                         <Building size={16} />
                       </div>
                       <div>
-                        <h2 className="text-[12px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-blue-600 transition-colors">
+                        <h2 className="text-[16px] font-black text-slate-800 uppercase tracking-wider group-hover/unit:text-blue-600 transition-colors">
                           {group.unit ? `AP ${group.unit.number}` : 'NÃO VINCULADA'}
                         </h2>
-                        <p className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{group.unit?.block || 'DISPONÍVEL'}</p>
                       </div>
                     </div>
                   </div>
@@ -304,7 +303,7 @@ export default function VagasPage() {
                   onChange={(e) => setFormData({...formData, unitId: e.target.value})}
                 >
                   <option value="">NÃO VINCULAR A NENHUM AP</option>
-                  {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+                  {unidades.map(u => <option key={u.id} value={u.id}>{u.number}</option>)}
                 </select>
               </div>
 

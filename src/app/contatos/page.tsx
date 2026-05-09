@@ -31,8 +31,8 @@ type Contact = {
 };
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.19-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.19';
+  ? `v1.1.20-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.20';
 
 function parsePhones(phonesJson?: string): PhoneEntry[] {
   if (!phonesJson) return [];
