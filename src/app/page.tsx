@@ -90,7 +90,7 @@ export default function Home() {
           </div>
         </div>
         <p className="text-slate-500 text-sm mt-3 font-medium">
-          Bem-vindo ao centro de comando. Selecione um módulo para operar o sistema.
+          Bem vindo ao Portal do condomínio Estação do Mar
         </p>
       </div>
 
