@@ -73,8 +73,10 @@ export default function ReservasPage() {
   const [filterUnit, setFilterUnit] = useState('');
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => { 
+    setMounted(true);
     fetchList(); 
     fetchUnidades(); 
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
@@ -229,6 +231,8 @@ export default function ReservasPage() {
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
   const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
 
+  if (!mounted) return null;
+
   return (
     <div className="min-h-screen pb-10">
       <div className="flex justify-between items-center mb-8">
@@ -238,10 +242,12 @@ export default function ReservasPage() {
           </h1>
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
-        <button onClick={openCreate}
-          className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
-          <Plus size={18} /> Nova Reserva
-        </button>
+        {!isAdmin && (
+          <button onClick={openCreate}
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
+            <Plus size={18} /> Nova Reserva
+          </button>
+        )}
       </div>
 
       {/* Informativo */}
@@ -360,11 +366,6 @@ export default function ReservasPage() {
                       <button onClick={() => openEdit(r)} title="Ver/Editar" className="p-2 text-slate-400 hover:text-blue-600 transition hover:bg-blue-50 rounded-lg">
                         {isAdmin ? <Edit2 size={16} /> : <Search size={16} />}
                       </button>
-                      {isAdmin && (
-                        <button onClick={() => handleDelete(r.id, r.name)} title="Excluir" className="p-2 text-slate-400 hover:text-rose-600 transition hover:bg-rose-50 rounded-lg">
-                          <Trash2 size={16} />
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -402,8 +403,8 @@ export default function ReservasPage() {
                 {/* Data */}
                 <div>
                   <label className={lbl}>Data da Reserva *</label>
-                  <input required type="date" className={`${inp} ${isMorador && isEditMode ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
-                    readOnly={isMorador && isEditMode}
+                  <input required type="date" className={`${inp} ${(isMorador && isEditMode) || isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
+                    readOnly={(isMorador && isEditMode) || isAdmin}
                     value={formData.date} 
                     onChange={e => {
                       if (isDateBlocked(e.target.value, formData.id)) {
@@ -424,26 +425,26 @@ export default function ReservasPage() {
                   <label className={lbl}>Nome completo *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input required type="text" className={`${inp} pl-10`} placeholder="NOME DO SOLICITANTE"
+                    <input required type="text" className={`${inp} pl-10 ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="NOME DO SOLICITANTE"
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
                 <div>
                   <label className={lbl}>CPF</label>
-                  <input type="text" className={inp} placeholder="000.000.000-00"
+                  <input type="text" className={`${inp} ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="000.000.000-00"
                     value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} />
                 </div>
                 <div>
                   <label className={lbl}>RG</label>
-                  <input type="text" className={inp} placeholder="RG"
+                  <input type="text" className={`${inp} ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="RG"
                     value={formData.rg} onChange={e => setFormData({ ...formData, rg: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={lbl}>Telefone para Contato</label>
                   <div className="flex gap-2">
-                    <input type="text" className={`${inp} w-20`} placeholder="DDD"
+                    <input type="text" className={`${inp} w-20 ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="DDD"
                       value={formData.ddd} onChange={e => setFormData({ ...formData, ddd: e.target.value })} />
-                    <input type="text" className={inp} placeholder="NÚMERO"
+                    <input type="text" className={`${inp} ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="NÚMERO"
                       value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                   </div>
                 </div>
@@ -452,7 +453,7 @@ export default function ReservasPage() {
               {/* Observações do Solicitante */}
               <div className="pt-4 border-t border-slate-100">
                 <label className={lbl}>Observações do Solicitante</label>
-                <textarea rows={2} className={`${inp} resize-none`} placeholder="INFORMAÇÕES ADICIONAIS..."
+                <textarea rows={2} className={`${inp} resize-none ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="INFORMAÇÕES ADICIONAIS..."
                   value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
               </div>
 
@@ -506,5 +507,5 @@ export default function ReservasPage() {
 }
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.21-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.21';
+  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.22';
