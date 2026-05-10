@@ -118,8 +118,27 @@ model Unit {
   vehicles      Vehicle[]
   parkingSpaces ParkingSpace[]
   authorizations Authorization[]
+  ballroomReservations BallroomReservation[]
   syndicMessages SyndicMessage[]
   tasks         Task[]
+}
+
+model BallroomReservation {
+  id              String    @id @default(uuid())
+  unitId          String
+  unit            Unit      @relation(fields: [unitId], references: [id])
+  name            String
+  cpf             String?
+  rg              String?
+  ddd             String?
+  phone           String?
+  date            DateTime
+  notes           String?   // Observação do solicitante
+  adminNotes      String?   // Observação do administrador
+  status          String    @default("SOLICITADO") // SOLICITADO, EFETIVADO, CANCELADO
+  requesterCpf    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Vehicle {
