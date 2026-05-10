@@ -325,6 +325,42 @@ export default function TarefasPage() {
           </div>
         </div>
 
+        {/* Info Card - Janitor Role and Services */}
+        <div className="mb-8 bg-white rounded-3xl p-6 md:p-8 border border-blue-100 shadow-sm overflow-hidden relative group">
+          <div className="absolute -top-10 -right-10 w-64 h-64 bg-blue-50 rounded-full opacity-20 group-hover:scale-110 transition-transform duration-700" />
+          <div className="relative z-10">
+            <h2 className="text-blue-700 text-[11px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+              O Zelador e a Manutenção do Condomínio
+            </h2>
+            <div className="flex flex-col xl:flex-row gap-8 items-start">
+              <div className="flex-1">
+                <p className="text-slate-600 text-[13px] leading-relaxed font-medium">
+                  O zelador de condomínio é o profissional que realiza supervisão predial, acompanha a manutenção preventiva, apoia a segurança e atua como elo entre síndico, moradores e fornecedores. Organiza rotinas, distribui tarefas e garante o bom funcionamento das áreas comuns, realiza vistorias diárias em corredores, halls, garagem, salão de festas, piscinas e demais espaços.
+                </p>
+                <p className="mt-5 text-slate-900 text-[13px] font-black leading-relaxed">
+                  Neste sentido, caso necessite dos serviços abaixo para nosso condomínio, abra um chamado para que o mesmo possa ser realizado.
+                </p>
+              </div>
+              <div className="w-full xl:w-[450px] bg-slate-50 rounded-2xl p-5 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
+                {[
+                  "Manutenção elétrica",
+                  "Troca de luminária queimada",
+                  "Limpeza e conservação",
+                  "Cuidados com jardim",
+                  "Manutenção de elevadores",
+                  "Reparos no portão e porta de entrada"
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5 text-[10px] text-slate-700 font-black uppercase tracking-tight">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Board */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start overflow-x-auto pb-4">
           {(['SOLICITADA_MORADOR', 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
