@@ -495,6 +495,16 @@ export default function ReservasPage() {
           </div>
         </div>
       )}
+      {/* Version Badge */}
+      <div className="mt-12 text-center pb-8">
+        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
+      </div>
     </div>
   );
 }
+
+const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
+  ? `v1.1.21-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.21';
