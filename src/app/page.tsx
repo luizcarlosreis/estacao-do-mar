@@ -16,7 +16,8 @@ import {
   FileText,
   LayoutDashboard,
   Activity,
-  PhoneCall
+  PhoneCall,
+  Calendar
 } from 'lucide-react';
 
 const roleLabels: Record<string, string> = {
