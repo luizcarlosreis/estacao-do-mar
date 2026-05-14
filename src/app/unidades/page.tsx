@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Home, Users, Car, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 
 type Resident = { name: string; cpf: string };
 type ParkingSpace = { number: string; block: string };
@@ -17,9 +18,7 @@ type Unit = {
   vehicles?: Vehicle[];
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.22';
+
 
 export default function UnidadesPage() {
   const [unidades, setUnidades] = useState<Unit[]>([]);

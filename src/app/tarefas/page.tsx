@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
   User
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 import * as XLSX from 'xlsx';
 
 type Task = {
@@ -42,9 +43,7 @@ const statusConfig = {
   CANCELED: { label: 'Cancelada', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-500', icon: <XCircle size={14} /> },
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.22';
+
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -339,7 +338,7 @@ export default function TarefasPage() {
                   O zelador de condomínio é o profissional que realiza supervisão predial, acompanha a manutenção preventiva, apoia a segurança e atua como elo entre síndico, moradores e fornecedores. Organiza rotinas, distribui tarefas e garante o bom funcionamento das áreas comuns, realiza vistorias diárias em corredores, halls, garagem, salão de festas, piscinas e demais espaços.
                 </p>
                 <p className="mt-5 text-slate-900 text-[13px] font-black leading-relaxed">
-                  Neste sentido, caso necessite dos serviços abaixo para nosso condomínio, abra um chamado para que o mesmo possa ser realizado.
+                  Neste sentido, caso necessite dos serviços descritos ao lado para nosso condomínio, abra um chamado para que o mesmo possa ser realizado.
                 </p>
               </div>
               <div className="w-full xl:w-[450px] bg-slate-50 rounded-2xl p-5 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">

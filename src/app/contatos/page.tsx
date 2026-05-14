@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Minus
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 import { useRouter } from 'next/navigation';
 
 type PhoneEntry = { name?: string; ddd: string; phone: string };
@@ -30,9 +31,7 @@ type Contact = {
   createdAt: string;
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.22';
+
 
 function parsePhones(phonesJson?: string): PhoneEntry[] {
   if (!phonesJson) return [];

@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Paperclip
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -45,9 +46,7 @@ const statusLabel: any = {
   RESOLVIDO: 'Resolvido',
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.0.88-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.0.88';
+
 
 export default function FaleSindicoPage() {
   const [list, setList] = useState<SyndicMessage[]>([]);

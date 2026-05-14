@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Hash
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 
 type Unit = {
   id: string;
@@ -33,9 +34,7 @@ type Vehicle = {
   unit?: Unit;
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.22';
+
 
 export default function VeiculosPage() {
   const [veiculos, setVeiculos] = useState<Vehicle[]>([]);

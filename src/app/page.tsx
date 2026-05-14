@@ -19,6 +19,7 @@ import {
   PhoneCall,
   Calendar
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 
 const roleLabels: Record<string, string> = {
   SUPER_ADMIN: 'ADMINISTRADOR',
@@ -27,9 +28,7 @@ const roleLabels: Record<string, string> = {
   MORADOR: 'MORADOR'
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.22';
+
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);

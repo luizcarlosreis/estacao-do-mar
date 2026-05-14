@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { APP_VERSION } from '@/lib/version';
 
 type Unit = { id: string; number: string; block: string };
 type BallroomGuest = { id: string; reservationId: string; name: string; cpf?: string };
@@ -78,6 +79,8 @@ export default function ReservasPage() {
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
+  // Datas bloqueadas (acessível a todos os perfis)
+  const [blockedDates, setBlockedDates] = useState<{ id: string; date: string; status: string }[]>([]);
   // Guest list modal
   const [guestModalReservation, setGuestModalReservation] = useState<Reservation | null>(null);
   const [guestName, setGuestName] = useState('');
@@ -86,10 +89,18 @@ export default function ReservasPage() {
 
   useEffect(() => { 
     setMounted(true);
-    fetchList(); 
+    fetchList();
+    fetchBlockedDates();
     fetchUnidades(); 
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, []);
+
+  const fetchBlockedDates = async () => {
+    try {
+      const res = await fetch('/api/reservas/datas-bloqueadas');
+      if (res.ok) setBlockedDates(await res.json());
+    } catch (e) { console.error(e); }
+  };
 
   const fetchList = async () => {
     try {
@@ -342,7 +353,7 @@ export default function ReservasPage() {
                 { letter: 'H', text: 'Mobiliário incluso: 5 conjuntos de madeira, mesas de 2,20m e 2,00m, banquetas, aparador, pufs e fraldário.' },
                 { letter: 'I', text: 'Disponível: 5 conjuntos de plástico. Proibido remanejar móveis de outras áreas.' },
                 { letter: 'J', text: 'Empresas terceiras devem ser avisadas previamente à portaria.' },
-                { letter: 'K', text: 'Entregar lista de convidados na portaria 1 dia antes da reserva.' }
+                { letter: 'K', text: 'Após a aprovação da reserva for efetivada, preencher a lista de convidados no portal.' }
               ].map((item) => (
                 <div key={item.letter} className="flex gap-3 text-[11px] leading-relaxed">
                   <span className="font-black text-blue-600 shrink-0">{item.letter}.</span>
@@ -372,13 +383,13 @@ export default function ReservasPage() {
       <div className="mb-6">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Datas já reservadas (Bloqueadas)</h3>
         <div className="flex flex-wrap gap-2">
-          {list.filter(r => r.status !== 'CANCELADO').map(r => (
+          {blockedDates.map(r => (
             <div key={r.id} className="bg-white border border-red-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               <span className="text-[11px] font-black text-slate-700">{formatDate(r.date)}</span>
             </div>
           ))}
-          {list.filter(r => r.status !== 'CANCELADO').length === 0 && <span className="text-xs text-slate-400 italic px-1">Nenhuma data reservada no momento.</span>}
+          {blockedDates.length === 0 && <span className="text-xs text-slate-400 italic px-1">Nenhuma data reservada no momento.</span>}
         </div>
       </div>
 
@@ -674,6 +685,4 @@ export default function ReservasPage() {
   );
 }
 
-const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.23-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.23';
+

@@ -11,29 +11,18 @@ export async function GET(request: NextRequest) {
     const role = request.headers.get('x-user-role');
     const unitId = request.headers.get('x-user-unit');
     const prisma = getPrisma();
-    
+
     let whereClause: any = {};
     if (role === 'MORADOR') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // Moradores veem:
-      // 1) Todas as suas próprias reservas
-      // 2) Reservas futuras com status SOLICITADO ou EFETIVADO de todos os apartamentos
-      const conditions: any[] = [
-        // Reservas futuras ativas de todos os apartamentos
-        {
-          date: { gte: today },
-          status: { in: ['SOLICITADO', 'EFETIVADO'] },
-        },
-      ];
-
-      // Adiciona próprias reservas se tem unitId
+      // Moradores veem apenas suas próprias reservas.
+      // As datas bloqueadas de outros apartamentos são exibidas via
+      // a seção "Datas já reservadas" no frontend (chips), usando
+      // um endpoint separado ou via a listagem pública de datas.
       if (unitId) {
-        conditions.push({ unitId });
+        whereClause.unitId = unitId;
+      } else {
+        whereClause.unitId = 'none-placeholder';
       }
-
-      whereClause = { OR: conditions };
     }
 
     const reservations = await prisma.ballroomReservation.findMany({
