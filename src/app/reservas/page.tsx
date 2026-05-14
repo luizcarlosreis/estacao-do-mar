@@ -17,12 +17,15 @@ import {
   Download,
   Phone,
   User,
-  ShieldCheck
+  ShieldCheck,
+  Users,
+  UserPlus
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 type Unit = { id: string; number: string; block: string };
+type BallroomGuest = { id: string; reservationId: string; name: string; cpf?: string };
 type Reservation = {
   id: string;
   unitId: string;
@@ -37,6 +40,7 @@ type Reservation = {
   adminNotes: string;
   status: 'SOLICITADO' | 'EFETIVADO' | 'CANCELADO';
   requesterCpf: string;
+  guests?: BallroomGuest[];
 };
 
 const emptyForm = {
@@ -74,6 +78,11 @@ export default function ReservasPage() {
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
+  // Guest list modal
+  const [guestModalReservation, setGuestModalReservation] = useState<Reservation | null>(null);
+  const [guestName, setGuestName] = useState('');
+  const [guestCpf, setGuestCpf] = useState('');
+  const [savingGuest, setSavingGuest] = useState(false);
 
   useEffect(() => { 
     setMounted(true);
@@ -171,6 +180,56 @@ export default function ReservasPage() {
     if (!confirm(`Excluir reserva de "${name}"?`)) return;
     await fetch(`/api/reservas/${id}`, { method: 'DELETE' });
     fetchList();
+  };
+
+  const openGuestModal = (r: Reservation) => {
+    setGuestModalReservation(r);
+    setGuestName('');
+    setGuestCpf('');
+  };
+
+  const handleAddGuest = async () => {
+    if (!guestName.trim() || !guestModalReservation) return;
+    setSavingGuest(true);
+    try {
+      const res = await fetch(`/api/reservas/${guestModalReservation.id}/convidados`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: guestName, cpf: guestCpf }),
+      });
+      if (res.ok) {
+        const newGuest: BallroomGuest = await res.json();
+        setGuestModalReservation(prev =>
+          prev ? { ...prev, guests: [...(prev.guests || []), newGuest].sort((a, b) => a.name.localeCompare(b.name)) } : prev
+        );
+        setList(prev => prev.map(r =>
+          r.id === guestModalReservation.id
+            ? { ...r, guests: [...(r.guests || []), newGuest].sort((a, b) => a.name.localeCompare(b.name)) }
+            : r
+        ));
+        setGuestName('');
+        setGuestCpf('');
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.message}`);
+      }
+    } finally { setSavingGuest(false); }
+  };
+
+  const handleRemoveGuest = async (guestId: string) => {
+    if (!guestModalReservation) return;
+    if (!confirm('Remover convidado?')) return;
+    const res = await fetch(`/api/reservas/${guestModalReservation.id}/convidados?guestId=${guestId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setGuestModalReservation(prev =>
+        prev ? { ...prev, guests: (prev.guests || []).filter(g => g.id !== guestId) } : prev
+      );
+      setList(prev => prev.map(r =>
+        r.id === guestModalReservation.id
+          ? { ...r, guests: (r.guests || []).filter(g => g.id !== guestId) }
+          : r
+      ));
+    }
   };
 
   const openCreate = () => {
@@ -366,6 +425,20 @@ export default function ReservasPage() {
                       <button onClick={() => openEdit(r)} title="Ver/Editar" className="p-2 text-slate-400 hover:text-blue-600 transition hover:bg-blue-50 rounded-lg">
                         {isAdmin ? <Edit2 size={16} /> : <Search size={16} />}
                       </button>
+                      {r.status === 'EFETIVADO' && (
+                        <button
+                          onClick={() => openGuestModal(r)}
+                          title="Lista de Convidados"
+                          className="p-2 text-emerald-500 hover:text-emerald-700 transition hover:bg-emerald-50 rounded-lg relative"
+                        >
+                          <Users size={16} />
+                          {(r.guests?.length ?? 0) > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                              {r.guests!.length}
+                            </span>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -496,6 +569,101 @@ export default function ReservasPage() {
           </div>
         </div>
       )}
+      {/* Guest List Modal */}
+      {guestModalReservation && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg my-6">
+            <div className="p-6 bg-emerald-700 text-white flex justify-between items-center rounded-t-3xl">
+              <h2 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                <Users size={18} /> Lista de Convidados
+              </h2>
+              <button onClick={() => setGuestModalReservation(null)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-800 font-semibold">
+                <span className="font-black">{guestModalReservation.unit?.number} – {guestModalReservation.unit?.block}</span>
+                {' '}·{' '}{formatDate(guestModalReservation.date)}
+              </div>
+
+              {/* Add guest form */}
+              <div className="flex flex-col gap-3 mb-5">
+                <div>
+                  <label className={lbl}>Nome Completo *</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                    <input
+                      type="text"
+                      className={`${inp} pl-9`}
+                      placeholder="NOME DO CONVIDADO"
+                      value={guestName}
+                      onChange={e => setGuestName(e.target.value.toUpperCase())}
+                      onKeyDown={e => e.key === 'Enter' && handleAddGuest()}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={lbl}>CPF</label>
+                  <input
+                    type="text"
+                    className={inp}
+                    placeholder="000.000.000-00"
+                    value={guestCpf}
+                    onChange={e => setGuestCpf(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddGuest()}
+                  />
+                </div>
+                <button
+                  onClick={handleAddGuest}
+                  disabled={savingGuest || !guestName.trim()}
+                  className="flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider hover:bg-emerald-700 transition disabled:opacity-50"
+                >
+                  <UserPlus size={16} /> {savingGuest ? 'Adicionando...' : 'Adicionar Convidado'}
+                </button>
+              </div>
+
+              {/* Guest list */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  Convidados cadastrados ({guestModalReservation.guests?.length ?? 0})
+                </p>
+                {(guestModalReservation.guests?.length ?? 0) === 0 ? (
+                  <p className="text-center text-xs text-slate-300 italic py-4">Nenhum convidado cadastrado ainda.</p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {guestModalReservation.guests!.map((g, idx) => (
+                      <div key={g.id} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100 group">
+                        <div>
+                          <span className="text-[10px] font-black text-slate-400 mr-2">{idx + 1}.</span>
+                          <span className="text-xs font-bold text-slate-700">{g.name}</span>
+                          {g.cpf && <span className="ml-2 text-[10px] text-slate-400 font-medium">{g.cpf}</span>}
+                        </div>
+                        <button
+                          onClick={() => handleRemoveGuest(g.id)}
+                          className="p-1.5 text-slate-300 hover:text-red-500 transition hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setGuestModalReservation(null)}
+                  className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition text-[11px] font-black uppercase"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Version Badge */}
       <div className="mt-12 text-center pb-8">
         <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
@@ -507,5 +675,5 @@ export default function ReservasPage() {
 }
 
 const APP_VERSION = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA 
-  ? `v1.1.22-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
-  : 'v1.1.22';
+  ? `v1.1.23-${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.substring(0, 6)}` 
+  : 'v1.1.23';

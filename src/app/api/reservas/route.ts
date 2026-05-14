@@ -12,19 +12,37 @@ export async function GET(request: NextRequest) {
     const unitId = request.headers.get('x-user-unit');
     const prisma = getPrisma();
     
-    const whereClause: any = {};
+    let whereClause: any = {};
     if (role === 'MORADOR') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Moradores veem:
+      // 1) Todas as suas próprias reservas
+      // 2) Reservas futuras com status SOLICITADO ou EFETIVADO de todos os apartamentos
+      const conditions: any[] = [
+        // Reservas futuras ativas de todos os apartamentos
+        {
+          date: { gte: today },
+          status: { in: ['SOLICITADO', 'EFETIVADO'] },
+        },
+      ];
+
+      // Adiciona próprias reservas se tem unitId
       if (unitId) {
-        whereClause.unitId = unitId;
-      } else {
-        whereClause.unitId = 'none-placeholder';
+        conditions.push({ unitId });
       }
+
+      whereClause = { OR: conditions };
     }
 
     const reservations = await prisma.ballroomReservation.findMany({
       where: whereClause,
       include: {
         unit: true,
+        guests: {
+          orderBy: { name: 'asc' },
+        },
       },
       orderBy: { date: 'asc' },
     });
