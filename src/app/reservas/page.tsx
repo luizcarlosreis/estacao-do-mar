@@ -75,7 +75,7 @@ export default function ReservasPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({ ...emptyForm });
-  const [filterUnit, setFilterUnit] = useState('');
+  const [filterName, setFilterName] = useState('');
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
@@ -296,7 +296,7 @@ export default function ReservasPage() {
     return doc;
   };
 
-  const filtered = filterUnit ? list.filter(a => a.unitId === filterUnit) : list;
+  const filtered = filterName ? list.filter(a => a.name.toLowerCase().includes(filterName.toLowerCase())) : list;
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
   const isZeladoria = currentUser?.role === 'ZELADORIA';
   const isReadOnlyGuest = isAdmin || isZeladoria;
@@ -316,12 +316,24 @@ export default function ReservasPage() {
           </h1>
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
-        {!isAdmin && (
-          <button onClick={openCreate}
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
-            <Plus size={18} /> Nova Reserva
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+            <input
+              type="text"
+              placeholder="Pesquisar por nome..."
+              value={filterName}
+              onChange={e => setFilterName(e.target.value)}
+              className="w-64 p-2.5 pl-9 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white"
+            />
+          </div>
+          {!isAdmin && (
+            <button onClick={openCreate}
+              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
+              <Plus size={18} /> Nova Reserva
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Informativo */}
