@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { APP_VERSION } from '@/lib/version';
 
 type Unit = { id: string; number: string; block: string };
 type Companion = { id?: string; name: string; rg: string; cpf: string };
@@ -70,6 +71,11 @@ export default function AutorizacoesPage() {
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isReportMode, setIsReportMode] = useState(false);
+  const [statusFilter, setStatusFilter] = useState({
+    aguardando: true,
+    ativo: true,
+    expirado: false,
+  });
 
   useEffect(() => { 
     fetchList(); 
@@ -368,7 +374,12 @@ export default function AutorizacoesPage() {
     doc.save(`Autorizacao_${a.name.replace(/\s+/g, '_')}.pdf`);
   };
 
-  const filtered = filterUnit ? list.filter(a => a.unitId === filterUnit) : list;
+  const filtered = list.filter(a => {
+    const matchUnit = filterUnit ? a.unitId === filterUnit : true;
+    const status = getStatus(a.entryDate, a.exitDate);
+    const matchStatus = status ? statusFilter[status as keyof typeof statusFilter] : true;
+    return matchUnit && matchStatus;
+  });
 
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
   const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
@@ -436,16 +447,32 @@ export default function AutorizacoesPage() {
       </div>
 
       {/* Filtro */}
-      {currentUser?.role !== 'MORADOR' && (
-        <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        {currentUser?.role !== 'MORADOR' && (
           <select value={filterUnit} onChange={e => setFilterUnit(e.target.value)}
             className="border border-slate-200 rounded-lg p-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-52">
             <option value="">Todos os apartamentos</option>
             {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
           </select>
-          <span className="text-slate-400 text-sm">{filtered.length} registro(s)</span>
+        )}
+        
+        <div className="flex items-center gap-4 bg-white px-4 py-2.5 rounded-lg border border-slate-200">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+            <input type="checkbox" checked={statusFilter.aguardando} onChange={e => setStatusFilter(prev => ({ ...prev, aguardando: e.target.checked }))} className="w-4 h-4 rounded text-blue-600" />
+            Aguardando
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+            <input type="checkbox" checked={statusFilter.ativo} onChange={e => setStatusFilter(prev => ({ ...prev, ativo: e.target.checked }))} className="w-4 h-4 rounded text-blue-600" />
+            Ativo
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+            <input type="checkbox" checked={statusFilter.expirado} onChange={e => setStatusFilter(prev => ({ ...prev, expirado: e.target.checked }))} className="w-4 h-4 rounded text-blue-600" />
+            Expirado
+          </label>
         </div>
-      )}
+
+        <span className="text-slate-400 text-sm ml-auto">{filtered.length} registro(s)</span>
+      </div>
 
       {/* Tabela */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -754,6 +781,13 @@ export default function AutorizacoesPage() {
           </div>
         </div>
       )}
+
+      {/* Version Badge */}
+      <div className="mt-12 text-center pb-8">
+        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
+      </div>
     </div>
   );
 }
