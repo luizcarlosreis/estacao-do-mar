@@ -299,7 +299,8 @@ export default function ReservasPage() {
   const filtered = filterName ? list.filter(a => a.name.toLowerCase().includes(filterName.toLowerCase())) : list;
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
   const isZeladoria = currentUser?.role === 'ZELADORIA';
-  const isReadOnlyGuest = isAdmin || isZeladoria;
+  const isPorteiro = currentUser?.role === 'PORTEIRO';
+  const isReadOnlyGuest = isAdmin || isZeladoria || isPorteiro;
   const isMorador = currentUser?.role === 'MORADOR';
 
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
@@ -327,7 +328,7 @@ export default function ReservasPage() {
               className="w-64 p-2.5 pl-9 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white"
             />
           </div>
-          {!isAdmin && (
+          {!isReadOnlyGuest && (
             <button onClick={openCreate}
               className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
               <Plus size={18} /> Nova Reserva
@@ -452,6 +453,11 @@ export default function ReservasPage() {
                       <button onClick={() => openEdit(r)} title="Ver/Editar" className="p-2 text-slate-400 hover:text-blue-600 transition hover:bg-blue-50 rounded-lg">
                         {isAdmin ? <Edit2 size={16} /> : <Search size={16} />}
                       </button>
+                      {isAdmin && (
+                        <button onClick={() => handleDelete(r.id, r.name)} title="Excluir" className="p-2 text-red-400 hover:text-red-600 transition hover:bg-red-50 rounded-lg">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                       {r.status === 'EFETIVADO' && (
                         <button
                           onClick={() => openGuestModal(r)}
@@ -503,8 +509,8 @@ export default function ReservasPage() {
                 {/* Data */}
                 <div>
                   <label className={lbl}>Data da Reserva *</label>
-                  <input required type="date" className={`${inp} ${(isMorador && isEditMode) || isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
-                    readOnly={(isMorador && isEditMode) || isAdmin}
+                  <input required type="date" className={`${inp} ${(isMorador && isEditMode) || isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
+                    readOnly={(isMorador && isEditMode) || isReadOnlyGuest}
                     value={formData.date} 
                     onChange={e => {
                       if (isDateBlocked(e.target.value, formData.id)) {
@@ -525,26 +531,26 @@ export default function ReservasPage() {
                   <label className={lbl}>Nome completo *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input required type="text" className={`${inp} pl-10 ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="NOME DO SOLICITANTE"
+                    <input required type="text" className={`${inp} pl-10 ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="NOME DO SOLICITANTE"
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
                 <div>
                   <label className={lbl}>CPF</label>
-                  <input type="text" className={`${inp} ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="000.000.000-00"
+                  <input type="text" className={`${inp} ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="000.000.000-00"
                     value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} />
                 </div>
                 <div>
                   <label className={lbl}>RG</label>
-                  <input type="text" className={`${inp} ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="RG"
+                  <input type="text" className={`${inp} ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="RG"
                     value={formData.rg} onChange={e => setFormData({ ...formData, rg: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={lbl}>Telefone para Contato</label>
                   <div className="flex gap-2">
-                    <input type="text" className={`${inp} w-20 ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="DDD"
+                    <input type="text" className={`${inp} w-20 ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="DDD"
                       value={formData.ddd} onChange={e => setFormData({ ...formData, ddd: e.target.value })} />
-                    <input type="text" className={`${inp} ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="NÚMERO"
+                    <input type="text" className={`${inp} ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="NÚMERO"
                       value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                   </div>
                 </div>
@@ -553,7 +559,7 @@ export default function ReservasPage() {
               {/* Observações do Solicitante */}
               <div className="pt-4 border-t border-slate-100">
                 <label className={lbl}>Observações do Solicitante</label>
-                <textarea rows={2} className={`${inp} resize-none ${isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isAdmin} placeholder="INFORMAÇÕES ADICIONAIS..."
+                <textarea rows={2} className={`${inp} resize-none ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="INFORMAÇÕES ADICIONAIS..."
                   value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
               </div>
 
@@ -587,10 +593,12 @@ export default function ReservasPage() {
                   className="px-6 py-3 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition text-[11px] font-black uppercase">
                   Fechar
                 </button>
-                <button type="submit" disabled={saving}
-                  className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 transition disabled:opacity-60 text-[11px] tracking-wider">
-                  {saving ? 'Gravando...' : isEditMode ? 'Salvar Alterações' : 'Confirmar Solicitação'}
-                </button>
+                {(!isZeladoria && !isPorteiro) && (
+                  <button type="submit" disabled={saving}
+                    className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 transition disabled:opacity-60 text-[11px] tracking-wider">
+                    {saving ? 'Gravando...' : isEditMode ? 'Salvar Alterações' : 'Confirmar Solicitação'}
+                  </button>
+                )}
               </div>
             </form>
           </div>

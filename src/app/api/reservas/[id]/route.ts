@@ -33,11 +33,15 @@ export async function DELETE(
     const { id } = await params;
     const prisma = getPrisma();
 
+    await prisma.ballroomGuest.deleteMany({
+      where: { reservationId: id },
+    });
+
     await prisma.ballroomReservation.delete({
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Reserva excluída' });
+    return NextResponse.json({ message: 'Reserva e convidados excluídos' });
   } catch (error: any) {
     console.error('API DELETE Reserva Error:', error.message);
     return NextResponse.json({ message: 'Erro ao excluir reserva' }, { status: 500 });
