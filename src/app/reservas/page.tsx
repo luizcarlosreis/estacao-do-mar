@@ -76,6 +76,7 @@ export default function ReservasPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState({ ...emptyForm });
   const [filterName, setFilterName] = useState('');
+  const [filterDateMode, setFilterDateMode] = useState<'todas' | 'futuras'>('todas');
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
@@ -296,7 +297,20 @@ export default function ReservasPage() {
     return doc;
   };
 
-  const filtered = filterName ? list.filter(a => a.name.toLowerCase().includes(filterName.toLowerCase())) : list;
+  const filtered = list.filter(a => {
+    let match = true;
+    if (filterName) {
+      match = a.name.toLowerCase().includes(filterName.toLowerCase());
+    }
+    if (match && filterDateMode === 'futuras') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      // Construct local date ignoring timezones correctly
+      const resDate = new Date(a.date.split('T')[0] + 'T00:00:00');
+      match = resDate >= today;
+    }
+    return match;
+  });
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
   const isZeladoria = currentUser?.role === 'ZELADORIA';
   const isPorteiro = currentUser?.role === 'PORTEIRO';
@@ -318,6 +332,16 @@ export default function ReservasPage() {
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <select
+              value={filterDateMode}
+              onChange={e => setFilterDateMode(e.target.value as any)}
+              className="p-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-medium"
+            >
+              <option value="todas">Todas as Reservas</option>
+              <option value="futuras">Reservas Futuras</option>
+            </select>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
             <input
