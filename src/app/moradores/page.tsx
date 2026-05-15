@@ -156,14 +156,19 @@ export default function MoradoresPage() {
   };
 
   const filteredMoradores = moradores.filter(m => 
+    !searchTerm ||
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.cpf.includes(searchTerm) ||
-    (m.unit && (m.unit.number.includes(searchTerm) || m.unit.block.toLowerCase().includes(searchTerm.toLowerCase())))
+    (m.unit && (m.unit.number.toLowerCase().includes(searchTerm.toLowerCase()) || m.unit.block.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
   // Agrupar por Unidade
   const groupedMoradores: Record<string, { unit?: Unit, moradores: Morador[] }> = {};
   
+  unidades.forEach(u => {
+    groupedMoradores[u.id] = { unit: u, moradores: [] };
+  });
+
   filteredMoradores.forEach(m => {
     const key = m.unitId || 'unlinked';
     if (!groupedMoradores[key]) {
@@ -172,7 +177,15 @@ export default function MoradoresPage() {
     groupedMoradores[key].moradores.push(m);
   });
 
-  const sortedUnitIds = Object.keys(groupedMoradores).sort((a, b) => {
+  const sortedUnitIds = Object.keys(groupedMoradores).filter(key => {
+    const group = groupedMoradores[key];
+    if (!searchTerm) return true;
+    
+    const s = searchTerm.toLowerCase();
+    const unitMatch = group.unit && (group.unit.number.toLowerCase().includes(s) || group.unit.block.toLowerCase().includes(s));
+    
+    return unitMatch || group.moradores.length > 0;
+  }).sort((a, b) => {
     if (a === 'unlinked') return 1;
     if (b === 'unlinked') return -1;
     const unitA = groupedMoradores[a].unit!;
@@ -247,39 +260,44 @@ export default function MoradoresPage() {
                     </div>
                   </div>
 
-                  {/* Lista de Moradores */}
                   <div className="p-4 space-y-2 flex-1">
-                    {group.moradores.map(m => (
-                      <div key={m.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 group/item relative hover:border-emerald-200 transition-all flex items-center justify-between gap-3 overflow-hidden">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-[10px] font-black text-slate-800 uppercase truncate leading-tight mb-0.5">{m.name}</h3>
-                          {m.email && <p className="text-[9px] text-slate-500 truncate mb-1 lowercase">{m.email}</p>}
-                          <div className="flex items-center gap-2 flex-wrap">
-                             <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
-                             {m.phone && <span className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1"><Phone size={12} /> {m.ddd ? `(${m.ddd}) ` : ''}{m.phone}</span>}
-                             <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
-                               m.residentType === 'VISITA FREQUENTE' 
-                               ? 'bg-rose-100 text-rose-600' 
-                               : 'bg-emerald-100 text-emerald-600'
-                             }`}>
-                               {m.residentType === 'VISITA FREQUENTE' ? 'VISITA' : 'MORADOR'}
-                             </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="p-1.5 bg-white text-slate-600 rounded-lg shadow-sm border border-slate-100 group-hover/item:scale-110 transition-transform">
-                            <User size={14} />
-                          </div>
-                        </div>
-
-                        {/* Ações */}
-                        <div className="absolute inset-y-0 right-0 bg-white/90 backdrop-blur-sm px-2 flex items-center gap-1 translate-x-full group-hover/item:translate-x-0 transition-transform border-l border-slate-100 shadow-[-4px_0_15px_rgba(0,0,0,0.05)]">
-                          <button onClick={() => openEditModal(m)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={12} /></button>
-                          <button onClick={() => handleDelete(m.cpf)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={12} /></button>
-                        </div>
+                    {group.moradores.length === 0 ? (
+                      <div className="h-full flex items-center justify-center py-4">
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest text-center">Nenhum residente<br/>cadastrado</span>
                       </div>
-                    ))}
+                    ) : (
+                      group.moradores.map(m => (
+                        <div key={m.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 group/item relative hover:border-emerald-200 transition-all flex items-center justify-between gap-3 overflow-hidden">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[10px] font-black text-slate-800 uppercase truncate leading-tight mb-0.5">{m.name}</h3>
+                            {m.email && <p className="text-[9px] text-slate-500 truncate mb-1 lowercase">{m.email}</p>}
+                            <div className="flex items-center gap-2 flex-wrap">
+                               <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
+                               {m.phone && <span className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1"><Phone size={12} /> {m.ddd ? `(${m.ddd}) ` : ''}{m.phone}</span>}
+                               <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
+                                 m.residentType === 'VISITA FREQUENTE' 
+                                 ? 'bg-rose-100 text-rose-600' 
+                                 : 'bg-emerald-100 text-emerald-600'
+                               }`}>
+                                 {m.residentType === 'VISITA FREQUENTE' ? 'VISITA' : 'MORADOR'}
+                               </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="p-1.5 bg-white text-slate-600 rounded-lg shadow-sm border border-slate-100 group-hover/item:scale-110 transition-transform">
+                              <User size={14} />
+                            </div>
+                          </div>
+
+                          {/* Ações */}
+                          <div className="absolute inset-y-0 right-0 bg-white/90 backdrop-blur-sm px-2 flex items-center gap-1 translate-x-full group-hover/item:translate-x-0 transition-transform border-l border-slate-100 shadow-[-4px_0_15px_rgba(0,0,0,0.05)]">
+                            <button onClick={() => openEditModal(m)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={12} /></button>
+                            <button onClick={() => handleDelete(m.cpf)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={12} /></button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               );
