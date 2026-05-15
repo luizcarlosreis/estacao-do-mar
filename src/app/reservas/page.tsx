@@ -331,34 +331,12 @@ export default function ReservasPage() {
           </h1>
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <select
-              value={filterDateMode}
-              onChange={e => setFilterDateMode(e.target.value as any)}
-              className="p-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-medium"
-            >
-              <option value="todas">Todas as Reservas</option>
-              <option value="futuras">Reservas Futuras</option>
-            </select>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-            <input
-              type="text"
-              placeholder="Pesquisar por nome..."
-              value={filterName}
-              onChange={e => setFilterName(e.target.value)}
-              className="w-64 p-2.5 pl-9 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white"
-            />
-          </div>
-          {!isReadOnlyGuest && (
-            <button onClick={openCreate}
-              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
-              <Plus size={18} /> Nova Reserva
-            </button>
-          )}
-        </div>
+        {!isReadOnlyGuest && (
+          <button onClick={openCreate}
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
+            <Plus size={18} /> Nova Reserva
+          </button>
+        )}
       </div>
 
       {/* Informativo */}
@@ -416,6 +394,30 @@ export default function ReservasPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          <select
+            value={filterDateMode}
+            onChange={e => setFilterDateMode(e.target.value as any)}
+            className="p-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-medium"
+          >
+            <option value="todas">Todas as Reservas</option>
+            <option value="futuras">Reservas Futuras</option>
+          </select>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+            <input
+              type="text"
+              placeholder="Pesquisar por nome..."
+              value={filterName}
+              onChange={e => setFilterName(e.target.value)}
+              className="w-64 p-2.5 pl-9 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white"
+            />
           </div>
         </div>
       </div>
