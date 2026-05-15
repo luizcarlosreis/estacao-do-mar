@@ -663,7 +663,7 @@ export default function ReservasPage() {
                     <input
                       type="text"
                       className={`${inp} pl-9`}
-                      placeholder="Pesquisar por nome ou CPF..."
+                      placeholder="Pesquisar por nome..."
                       value={guestSearch}
                       onChange={e => setGuestSearch(e.target.value)}
                     />
@@ -676,10 +676,7 @@ export default function ReservasPage() {
                 {(() => {
                   const allGuests = guestModalReservation.guests ?? [];
                   const filtered = isReadOnlyGuest && guestSearch.trim()
-                    ? allGuests.filter(g =>
-                        g.name.toLowerCase().includes(guestSearch.toLowerCase()) ||
-                        (g.cpf && g.cpf.replace(/\D/g, '').includes(guestSearch.replace(/\D/g, '')))
-                      )
+                    ? allGuests.filter(g => g.name.toLowerCase().includes(guestSearch.toLowerCase()))
                     : allGuests;
                   return (
                     <>
