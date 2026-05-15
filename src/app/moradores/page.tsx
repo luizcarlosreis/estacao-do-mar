@@ -391,10 +391,11 @@ export default function MoradoresPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Senha {isEditMode && '(Opcional)'}</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Senha (Opcional)</label>
                 <input 
-                  type="password" required={!isEditMode}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                  type="password"
+                  placeholder="DEIXE EM BRANCO PARA USAR 5 PRIMEIROS DÍGITOS DO CPF"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 placeholder:normal-case"
                   value={formData.password} 
                   onChange={(e) => setFormData({...formData, password: e.target.value})} 
                 />
