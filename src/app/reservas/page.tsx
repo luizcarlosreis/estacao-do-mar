@@ -86,6 +86,7 @@ export default function ReservasPage() {
   const [guestName, setGuestName] = useState('');
   const [guestCpf, setGuestCpf] = useState('');
   const [savingGuest, setSavingGuest] = useState(false);
+  const [guestSearch, setGuestSearch] = useState('');
 
   useEffect(() => { 
     setMounted(true);
@@ -197,6 +198,7 @@ export default function ReservasPage() {
     setGuestModalReservation(r);
     setGuestName('');
     setGuestCpf('');
+    setGuestSearch('');
   };
 
   const handleAddGuest = async () => {
@@ -296,6 +298,8 @@ export default function ReservasPage() {
 
   const filtered = filterUnit ? list.filter(a => a.unitId === filterUnit) : list;
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
+  const isZeladoria = currentUser?.role === 'ZELADORIA';
+  const isReadOnlyGuest = isAdmin || isZeladoria;
   const isMorador = currentUser?.role === 'MORADOR';
 
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
@@ -584,6 +588,7 @@ export default function ReservasPage() {
       {guestModalReservation && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg my-6">
+            {/* Header */}
             <div className="p-6 bg-emerald-700 text-white flex justify-between items-center rounded-t-3xl">
               <h2 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
                 <Users size={18} /> Lista de Convidados
@@ -592,74 +597,115 @@ export default function ReservasPage() {
                 <X size={24} />
               </button>
             </div>
+
             <div className="p-6">
-              <div className="mb-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-800 font-semibold">
+              {/* Info da reserva */}
+              <div className="mb-5 p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-800 font-semibold">
                 <span className="font-black">{guestModalReservation.unit?.number} – {guestModalReservation.unit?.block}</span>
                 {' '}·{' '}{formatDate(guestModalReservation.date)}
               </div>
 
-              {/* Add guest form */}
-              <div className="flex flex-col gap-3 mb-5">
-                <div>
-                  <label className={lbl}>Nome Completo *</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+              {/* Formulário de adição — somente MORADOR */}
+              {!isReadOnlyGuest && (
+                <div className="flex flex-col gap-3 mb-5">
+                  <div>
+                    <label className={lbl}>Nome Completo *</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                      <input
+                        type="text"
+                        className={`${inp} pl-9`}
+                        placeholder="NOME DO CONVIDADO"
+                        value={guestName}
+                        onChange={e => setGuestName(e.target.value.toUpperCase())}
+                        onKeyDown={e => e.key === 'Enter' && handleAddGuest()}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={lbl}>CPF</label>
                     <input
                       type="text"
-                      className={`${inp} pl-9`}
-                      placeholder="NOME DO CONVIDADO"
-                      value={guestName}
-                      onChange={e => setGuestName(e.target.value.toUpperCase())}
+                      className={inp}
+                      placeholder="000.000.000-00"
+                      value={guestCpf}
+                      onChange={e => setGuestCpf(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddGuest()}
                     />
                   </div>
+                  <button
+                    onClick={handleAddGuest}
+                    disabled={savingGuest || !guestName.trim()}
+                    className="flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider hover:bg-emerald-700 transition disabled:opacity-50"
+                  >
+                    <UserPlus size={16} /> {savingGuest ? 'Adicionando...' : 'Adicionar Convidado'}
+                  </button>
                 </div>
-                <div>
-                  <label className={lbl}>CPF</label>
-                  <input
-                    type="text"
-                    className={inp}
-                    placeholder="000.000.000-00"
-                    value={guestCpf}
-                    onChange={e => setGuestCpf(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddGuest()}
-                  />
-                </div>
-                <button
-                  onClick={handleAddGuest}
-                  disabled={savingGuest || !guestName.trim()}
-                  className="flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider hover:bg-emerald-700 transition disabled:opacity-50"
-                >
-                  <UserPlus size={16} /> {savingGuest ? 'Adicionando...' : 'Adicionar Convidado'}
-                </button>
-              </div>
+              )}
 
-              {/* Guest list */}
-              <div className="border-t border-slate-100 pt-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                  Convidados cadastrados ({guestModalReservation.guests?.length ?? 0})
-                </p>
-                {(guestModalReservation.guests?.length ?? 0) === 0 ? (
-                  <p className="text-center text-xs text-slate-300 italic py-4">Nenhum convidado cadastrado ainda.</p>
-                ) : (
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {guestModalReservation.guests!.map((g, idx) => (
-                      <div key={g.id} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100 group">
-                        <div>
-                          <span className="text-[10px] font-black text-slate-400 mr-2">{idx + 1}.</span>
-                          <span className="text-xs font-bold text-slate-700">{g.name}</span>
-                          {g.cpf && <span className="ml-2 text-[10px] text-slate-400 font-medium">{g.cpf}</span>}
-                        </div>
-                        <button
-                          onClick={() => handleRemoveGuest(g.id)}
-                          className="p-1.5 text-slate-300 hover:text-red-500 transition hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
+              {/* Barra de pesquisa — somente Admin/Zeladoria */}
+              {isReadOnlyGuest && (
+                <div className="mb-5">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                    <input
+                      type="text"
+                      className={`${inp} pl-9`}
+                      placeholder="Pesquisar por nome ou CPF..."
+                      value={guestSearch}
+                      onChange={e => setGuestSearch(e.target.value)}
+                    />
                   </div>
-                )}
+                </div>
+              )}
+
+              {/* Lista de convidados */}
+              <div className="border-t border-slate-100 pt-4">
+                {(() => {
+                  const allGuests = guestModalReservation.guests ?? [];
+                  const filtered = isReadOnlyGuest && guestSearch.trim()
+                    ? allGuests.filter(g =>
+                        g.name.toLowerCase().includes(guestSearch.toLowerCase()) ||
+                        (g.cpf && g.cpf.replace(/\D/g, '').includes(guestSearch.replace(/\D/g, '')))
+                      )
+                    : allGuests;
+                  return (
+                    <>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                        {isReadOnlyGuest
+                          ? `Convidados cadastrados (${filtered.length}${guestSearch ? ` de ${allGuests.length}` : ''})`
+                          : `Convidados cadastrados (${allGuests.length})`
+                        }
+                      </p>
+                      {filtered.length === 0 ? (
+                        <p className="text-center text-xs text-slate-300 italic py-4">
+                          {guestSearch ? 'Nenhum resultado para a pesquisa.' : 'Nenhum convidado cadastrado ainda.'}
+                        </p>
+                      ) : (
+                        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                          {filtered.map((g, idx) => (
+                            <div key={g.id} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100 group">
+                              <div>
+                                <span className="text-[10px] font-black text-slate-400 mr-2">{idx + 1}.</span>
+                                <span className="text-xs font-bold text-slate-700">{g.name}</span>
+                                {g.cpf && <span className="ml-2 text-[10px] text-slate-400 font-medium">{g.cpf}</span>}
+                              </div>
+                              {/* Botão remover — somente MORADOR */}
+                              {!isReadOnlyGuest && (
+                                <button
+                                  onClick={() => handleRemoveGuest(g.id)}
+                                  className="p-1.5 text-slate-300 hover:text-red-500 transition hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="flex justify-end pt-4">
