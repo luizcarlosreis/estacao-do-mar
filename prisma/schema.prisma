@@ -55,6 +55,7 @@ model User {
   unit      Unit?    @relation(fields: [unitId], references: [id])
   ddd       String?
   phone     String?
+  residentType String @default("MORADOR")
   
   reservations Reservation[]
   visitors     Visitor[]

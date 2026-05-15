@@ -33,6 +33,7 @@ type Morador = {
   unit?: Unit;
   ddd?: string;
   phone?: string;
+  residentType?: string;
 };
 
 
@@ -45,10 +46,11 @@ export default function MoradoresPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   
+  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '' });
+  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR' });
 
   const API_URL = '/api/moradores';
   const UNIDADES_URL = '/api/unidades';
@@ -140,14 +142,15 @@ export default function MoradoresPage() {
       password: '', 
       unitId: m.unitId || '',
       ddd: m.ddd || '',
-      phone: m.phone || ''
+      phone: m.phone || '',
+      residentType: m.residentType || 'MORADOR'
     });
     setIsEditMode(true);
     setIsModalOpen(true);
   };
 
   const openCreateModal = () => {
-    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '' });
+    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR' });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -177,6 +180,10 @@ export default function MoradoresPage() {
     return unitA.number.localeCompare(unitB.number, undefined, { numeric: true });
   });
 
+  const unitsPerPage = 16;
+  const totalPages = Math.ceil(sortedUnitIds.length / unitsPerPage);
+  const paginatedUnitIds = sortedUnitIds.slice((currentPage - 1) * unitsPerPage, currentPage * unitsPerPage);
+
   if (!mounted) return null;
 
   return (
@@ -187,7 +194,7 @@ export default function MoradoresPage() {
           <div>
             <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
               <User size={28} className="text-emerald-600" />
-              GESTÃO DE MORADORES
+              MORADORES / VISITAS FREQUENTES
             </h1>
             <p className="text-[11px] text-slate-500 uppercase font-bold tracking-widest mt-1 opacity-70">
               Controle de residentes e acessos
@@ -221,7 +228,7 @@ export default function MoradoresPage() {
           <div className="py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum morador encontrado</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-            {sortedUnitIds.map(unitId => {
+            {paginatedUnitIds.map(unitId => {
               const group = groupedMoradores[unitId];
               return (
                 <div key={unitId} className="bg-white rounded-[2rem] border border-slate-200/60 overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all group/unit h-full flex flex-col">
@@ -246,9 +253,17 @@ export default function MoradoresPage() {
                       <div key={m.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 group/item relative hover:border-emerald-200 transition-all flex items-center justify-between gap-3 overflow-hidden">
                         <div className="flex-1 min-w-0">
                           <h3 className="text-[10px] font-black text-slate-800 uppercase truncate leading-tight mb-0.5">{m.name}</h3>
-                          <div className="flex items-center gap-2">
+                          {m.email && <p className="text-[9px] text-slate-500 truncate mb-1 lowercase">{m.email}</p>}
+                          <div className="flex items-center gap-2 flex-wrap">
                              <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
                              {m.phone && <span className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1"><Phone size={12} /> {m.ddd ? `(${m.ddd}) ` : ''}{m.phone}</span>}
+                             <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
+                               m.residentType === 'VISITA FREQUENTE' 
+                               ? 'bg-rose-100 text-rose-600' 
+                               : 'bg-emerald-100 text-emerald-600'
+                             }`}>
+                               {m.residentType === 'VISITA FREQUENTE' ? 'VISITA' : 'MORADOR'}
+                             </span>
                           </div>
                         </div>
                         
@@ -269,8 +284,32 @@ export default function MoradoresPage() {
                 </div>
               );
             })}
-          </div>
-        )}
+            </div>
+          )}
+          
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-8 bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+              <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                Página {currentPage} de {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                >
+                  Anterior
+                </button>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-colors"
+                >
+                  Próximo
+                </button>
+              </div>
+            </div>
+          )}
 
         {/* Version Badge */}
         <div className="mt-12 text-center pb-8">
@@ -359,6 +398,18 @@ export default function MoradoresPage() {
                   value={formData.password} 
                   onChange={(e) => setFormData({...formData, password: e.target.value})} 
                 />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Cadastro</label>
+                <select 
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                  value={formData.residentType} 
+                  onChange={(e) => setFormData({...formData, residentType: e.target.value})}
+                >
+                  <option value="MORADOR">MORADOR</option>
+                  <option value="VISITA FREQUENTE">VISITA FREQUENTE</option>
+                </select>
               </div>
 
               <div>

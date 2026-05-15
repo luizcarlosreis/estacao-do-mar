@@ -28,7 +28,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { cpf, name, email, password, unitId, ddd, phone } = await request.json();
+    const body = await request.json();
+    const { cpf, name, email, password, unitId, ddd, phone } = body;
 
     if (!cpf || cpf.trim() === '') {
       return NextResponse.json(
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
         unitId: unitId || null,
         ddd,
         phone,
+        residentType: body.residentType || 'MORADOR'
       },
     });
     return NextResponse.json(user, { status: 201 });

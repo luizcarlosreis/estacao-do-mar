@@ -57,7 +57,7 @@ export default function Home() {
 
   const allModules = [
     { title: 'Apartamentos', icon: <Building2 size={16} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'], color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Moradores', icon: <Users size={16} />, path: '/moradores', desc: 'Cadastro de residentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { title: 'Moradores / Visitas', icon: <Users size={16} />, path: '/moradores', desc: 'Cadastro de residentes e frequentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { title: 'Vagas de Garagem', icon: <Car size={16} />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-orange-600', bg: 'bg-orange-50' },
     { title: 'Veículos', icon: <Car size={16} />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-sky-600', bg: 'bg-sky-50' },
     { title: 'Autorizações', icon: <ShieldCheck size={16} />, path: '/autorizacoes', desc: 'Controle de acesso e uso.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'], color: 'text-teal-600', bg: 'bg-teal-50' },
