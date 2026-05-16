@@ -140,7 +140,10 @@ export default function EncomendasPage() {
       const res = await fetch(`/api/encomendas/${selectedPackage.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(withdrawData)
+        body: JSON.stringify({
+          ...withdrawData,
+          withdrawnBy: withdrawData.withdrawnBy.toUpperCase()
+        })
       });
       if (res.ok) {
         setIsWithdrawModalOpen(false);
