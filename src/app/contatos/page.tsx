@@ -13,6 +13,7 @@ import {
   User,
   CreditCard,
   ChevronRight,
+  ChevronLeft,
   Minus
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
@@ -47,6 +48,8 @@ export default function ContatosPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18;
 
   const [formData, setFormData] = useState({
     id: '',
@@ -177,6 +180,9 @@ export default function ContatosPage() {
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
+  const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
+  const paginatedContacts = filteredContacts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   if (!mounted) return null;
 
   return (
@@ -218,10 +224,10 @@ export default function ContatosPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {loading ? (
             <div className="col-span-full py-20 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando contatos...</div>
-          ) : filteredContacts.length === 0 ? (
+          ) : paginatedContacts.length === 0 ? (
             <div className="col-span-full py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum contato encontrado</div>
           ) : (
-            filteredContacts.map((contact) => {
+            paginatedContacts.map((contact) => {
               const phones = parsePhones(contact.phones);
               return (
                 <div
@@ -287,6 +293,42 @@ export default function ContatosPage() {
             })
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                      : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
 
         {/* Version Badge */}
         <div className="mt-12 text-center pb-8">

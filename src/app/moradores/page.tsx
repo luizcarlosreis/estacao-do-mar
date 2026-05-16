@@ -11,6 +11,7 @@ import {
   User,
   LayoutDashboard,
   ChevronRight,
+  ChevronLeft,
   ShieldCheck,
   Mail,
   Phone
@@ -190,10 +191,12 @@ export default function MoradoresPage() {
     if (b === 'unlinked') return -1;
     const unitA = groupedMoradores[a].unit!;
     const unitB = groupedMoradores[b].unit!;
-    return unitA.number.localeCompare(unitB.number, undefined, { numeric: true });
+    const apA = `${unitA.number}-${unitA.block}`;
+    const apB = `${unitB.number}-${unitB.block}`;
+    return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
   });
 
-  const unitsPerPage = 16;
+  const unitsPerPage = 18;
   const totalPages = Math.ceil(sortedUnitIds.length / unitsPerPage);
   const paginatedUnitIds = sortedUnitIds.slice((currentPage - 1) * unitsPerPage, currentPage * unitsPerPage);
 
@@ -306,26 +309,38 @@ export default function MoradoresPage() {
           )}
           
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-8 bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
-              <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
-                Página {currentPage} de {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-colors"
-                >
-                  Anterior
-                </button>
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-colors"
-                >
-                  Próximo
-                </button>
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
+                      currentPage === page
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                        : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
           )}
 

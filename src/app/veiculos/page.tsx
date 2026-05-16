@@ -13,6 +13,7 @@ import {
   Search,
   LayoutDashboard,
   ChevronRight,
+  ChevronLeft,
   ShieldCheck,
   Hash
 } from 'lucide-react';
@@ -46,6 +47,8 @@ export default function VeiculosPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const unitsPerPage = 18;
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ id: '', plate: '', model: '', color: '', type: 'CARRO' as Vehicle['type'], unitId: '' });
 
@@ -178,8 +181,13 @@ export default function VeiculosPage() {
   const sortedUnitIds = Object.keys(groupedVeiculos).sort((a, b) => {
     const unitA = groupedVeiculos[a].unit;
     const unitB = groupedVeiculos[b].unit;
-    return unitA.number.localeCompare(unitB.number, undefined, { numeric: true });
+    const apA = `${unitA.number}-${unitA.block}`;
+    const apB = `${unitB.number}-${unitB.block}`;
+    return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
   });
+
+  const totalPages = Math.ceil(sortedUnitIds.length / unitsPerPage);
+  const paginatedUnitIds = sortedUnitIds.slice((currentPage - 1) * unitsPerPage, currentPage * unitsPerPage);
 
   if (!mounted) return null;
 
@@ -225,7 +233,7 @@ export default function VeiculosPage() {
           <div className="py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum veículo encontrado</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-            {sortedUnitIds.map(unitId => {
+            {paginatedUnitIds.map(unitId => {
               const group = groupedVeiculos[unitId];
               return (
                 <div key={unitId} className="bg-white rounded-[2rem] border border-slate-200/60 overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-200 transition-all group/unit h-full flex flex-col">
@@ -274,6 +282,42 @@ export default function VeiculosPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+        
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                      : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         )}
         {/* Rodapé com Totais */}

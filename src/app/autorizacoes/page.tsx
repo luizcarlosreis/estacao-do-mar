@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { APP_VERSION } from '@/lib/version';
@@ -72,10 +72,10 @@ export default function AutorizacoesPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isReportMode, setIsReportMode] = useState(false);
   const [statusFilter, setStatusFilter] = useState({
-    aguardando: true,
-    ativo: true,
     expirado: false,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18;
 
   useEffect(() => { 
     fetchList(); 
@@ -374,12 +374,18 @@ export default function AutorizacoesPage() {
     doc.save(`Autorizacao_${a.name.replace(/\s+/g, '_')}.pdf`);
   };
 
-  const filtered = list.filter(a => {
-    const matchUnit = filterUnit ? a.unitId === filterUnit : true;
     const status = getStatus(a.entryDate, a.exitDate);
     const matchStatus = status ? statusFilter[status as keyof typeof statusFilter] : true;
     return matchUnit && matchStatus;
+  }).sort((a, b) => {
+    if (!a.unit || !b.unit) return 0;
+    const apA = `${a.unit.number}-${a.unit.block}`;
+    const apB = `${b.unit.number}-${b.unit.block}`;
+    return apA.localeCompare(apB, undefined, { numeric: true, sensitivity: 'base' });
   });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
   const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
@@ -492,9 +498,9 @@ export default function AutorizacoesPage() {
             <tbody className="text-slate-700">
               {loading ? (
                 <tr><td colSpan={7} className="p-10 text-center text-slate-400">Carregando...</td></tr>
-              ) : filtered.length === 0 ? (
+              ) : paginated.length === 0 ? (
                 <tr><td colSpan={7} className="p-10 text-center text-slate-400">Nenhuma autorização cadastrada.</td></tr>
-              ) : filtered.map(a => {
+              ) : paginated.map(a => {
                 const status = getStatus(a.entryDate, a.exitDate);
                 const isExpanded = expandedRow === a.id;
                 return (
@@ -573,6 +579,42 @@ export default function AutorizacoesPage() {
           </table>
         </div>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
+                  currentPage === page
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                    : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white transition-all shadow-sm border border-slate-100"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
