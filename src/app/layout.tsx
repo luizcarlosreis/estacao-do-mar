@@ -19,7 +19,8 @@ import {
   Megaphone,
   FileText,
   Calendar,
-  X
+  X,
+  Package as PackageIcon
 } from 'lucide-react';
 import './globals.css';
 
@@ -130,6 +131,7 @@ export default function RootLayout({
     { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: user?.role === 'MORADOR' ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
     { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
+    { title: 'Encomendas', icon: <PackageIcon size={18} />, path: '/encomendas', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
   ];
 
   const menuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];

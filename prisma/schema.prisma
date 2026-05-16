@@ -330,3 +330,21 @@ model Contact {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+model Package {
+  id              String    @id @default(uuid())
+  unitId          String
+  unit            Unit      @relation(fields: [unitId], references: [id])
+  residentId      String
+  resident        User      @relation(fields: [residentId], references: [id])
+  type            String    // Caixa, Envelope, Pacote, Delivery, Outros
+  size            String?   // pequena, média, grande
+  carrier         String?   // Transportadora / Remetente
+  observations    String?   @db.Text
+  conciergeName   String    // Nome do Porteiro
+  receivedAt      DateTime  @default(now())
+  status          String    @default("RECEBIDO PORTARIA") // RECEBIDO PORTARIA, RETIRADO
+  withdrawnAt     DateTime?
+  withdrawnBy     String?   // Nome de quem retirou
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
