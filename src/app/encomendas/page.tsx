@@ -17,9 +17,11 @@ import {
   LogOut,
   Calendar,
   ShieldCheck,
-  X
+  X,
+  FileDown
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
+import * as XLSX from 'xlsx';
 
 type Unit = { id: string; number: string; block: string };
 type Resident = { id: string; name: string; cpf: string; email?: string; unitId?: string };
@@ -40,6 +42,13 @@ type Package = {
   withdrawnBy?: string;
 };
 
+const MONTHS = [
+  { val: '1', name: 'Janeiro' }, { val: '2', name: 'Fevereiro' }, { val: '3', name: 'Março' },
+  { val: '4', name: 'Abril' }, { val: '5', name: 'Maio' }, { val: '6', name: 'Junho' },
+  { val: '7', name: 'Julho' }, { val: '8', name: 'Agosto' }, { val: '9', name: 'Setembro' },
+  { val: '10', name: 'Outubro' }, { val: '11', name: 'Novembro' }, { val: '12', name: 'Dezembro' }
+];
+
 export default function EncomendasPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -56,6 +65,8 @@ export default function EncomendasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('RECEBIDO PORTARIA');
   const [filterUnit, setFilterUnit] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 18;
 
@@ -76,7 +87,7 @@ export default function EncomendasPage() {
   const fetchPackages = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/encomendas?unitId=${filterUnit}&status=${filterStatus}`);
+      const res = await fetch(`/api/encomendas?unitId=${filterUnit}&status=${filterStatus}&month=${filterMonth}&year=${filterYear}`);
       const data = await res.json();
       if (Array.isArray(data)) setPackages(data);
     } catch (error) {
@@ -84,7 +95,7 @@ export default function EncomendasPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterUnit, filterStatus]);
+  }, [filterUnit, filterStatus, filterMonth, filterYear]);
 
   useEffect(() => {
     fetchPackages();
@@ -150,6 +161,27 @@ export default function EncomendasPage() {
     }
   };
 
+  const exportToExcel = () => {
+    const dataToExport = filtered.map(p => ({
+      Unidade: `${p.unit.number}-${p.unit.block}`,
+      Morador: p.resident.name,
+      Tipo: p.type,
+      Tamanho: p.size,
+      'Transportadora/Remetente': p.carrier || '',
+      Porteiro: p.conciergeName,
+      'Data Recebimento': new Date(p.receivedAt).toLocaleString('pt-BR'),
+      Status: p.status,
+      'Retirado Por': p.withdrawnBy || '',
+      'Data Retirada': p.withdrawnAt ? new Date(p.withdrawnAt).toLocaleString('pt-BR') : '',
+      Observações: p.observations || ''
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
+    XLSX.writeFile(wb, `Relatorio_Encomendas_${new Date().toLocaleDateString()}.xlsx`);
+  };
+
   const filtered = packages.filter(p => {
     if (currentUser?.role === 'MORADOR' && p.unitId !== currentUser.unitId) return false;
     const s = searchTerm.toLowerCase();
@@ -164,6 +196,7 @@ export default function EncomendasPage() {
   const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const isStaff = currentUser?.role === 'SINDICO' || currentUser?.role === 'PORTEIRO' || currentUser?.role === 'SUPER_ADMIN';
+  const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
 
   return (
     <div className="min-h-screen space-y-8">
@@ -176,52 +209,94 @@ export default function EncomendasPage() {
           </h1>
           <p className="text-slate-500 font-medium">Controle de encomendas e correspondências do condomínio.</p>
         </div>
-        {isStaff && (
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95"
-          >
-            <Plus size={20} /> Nova Encomenda
-          </button>
-        )}
+        <div className="flex gap-3 w-full md:w-auto">
+          {isAdmin && (
+            <button 
+              onClick={exportToExcel}
+              className="flex-1 md:flex-none bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all border border-emerald-100 active:scale-95"
+            >
+              <FileDown size={20} /> Exportar Excel
+            </button>
+          )}
+          {isStaff && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95"
+            >
+              <Plus size={20} /> Nova Encomenda
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filtros */}
-      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text"
-            placeholder="Buscar por morador, AP ou transportadora..."
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 space-y-4">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input 
+              type="text"
+              placeholder="Buscar por morador, AP ou transportadora..."
+              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-        <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-          <Filter size={16} className="text-slate-400 ml-2" />
-          <select 
-            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-600 pr-8"
-            value={filterStatus}
-            onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-          >
-            <option value="RECEBIDO PORTARIA">RECEBIDOS</option>
-            <option value="RETIRADO">RETIRADOS</option>
-          </select>
-        </div>
-
-        {isStaff && (
           <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-            <Building size={16} className="text-slate-400 ml-2" />
+            <Filter size={16} className="text-slate-400 ml-2" />
             <select 
               className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-600 pr-8"
-              value={filterUnit}
-              onChange={(e) => { setFilterUnit(e.target.value); setCurrentPage(1); }}
+              value={filterStatus}
+              onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
             >
-              <option value="">TODAS UNIDADES</option>
-              {units.map(u => <option key={u.id} value={u.id}>AP {u.number} - {u.block}</option>)}
+              <option value="TODOS">TODOS STATUS</option>
+              <option value="RECEBIDO PORTARIA">RECEBIDOS</option>
+              <option value="RETIRADO">RETIRADOS</option>
             </select>
+          </div>
+
+          {isStaff && (
+            <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+              <Building size={16} className="text-slate-400 ml-2" />
+              <select 
+                className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-600 pr-8"
+                value={filterUnit}
+                onChange={(e) => { setFilterUnit(e.target.value); setCurrentPage(1); }}
+              >
+                <option value="">TODAS UNIDADES</option>
+                {units.map(u => <option key={u.id} value={u.id}>AP {u.number} - {u.block}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {isAdmin && (
+          <div className="flex flex-wrap gap-4 items-center pt-2 border-t border-slate-50">
+            <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+              <Calendar size={16} className="text-slate-400 ml-2" />
+              <select 
+                className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-600 pr-8"
+                value={filterMonth}
+                onChange={(e) => { setFilterMonth(e.target.value); setCurrentPage(1); }}
+              >
+                <option value="">TODOS OS MESES</option>
+                {MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+              <Calendar size={16} className="text-slate-400 ml-2" />
+              <select 
+                className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-600 pr-8"
+                value={filterYear}
+                onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}
+              >
+                {Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString()).map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </div>

@@ -12,10 +12,28 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const unitId = searchParams.get('unitId');
     const status = searchParams.get('status');
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
 
     const where: any = {};
     if (unitId) where.unitId = unitId;
-    if (status) where.status = status;
+    if (status && status !== 'TODOS') where.status = status;
+
+    if (month || year) {
+      const y = year ? parseInt(year) : new Date().getFullYear();
+      if (month) {
+        const m = parseInt(month);
+        where.receivedAt = {
+          gte: new Date(y, m - 1, 1),
+          lt: new Date(y, m, 1),
+        };
+      } else {
+        where.receivedAt = {
+          gte: new Date(y, 0, 1),
+          lt: new Date(y + 1, 0, 1),
+        };
+      }
+    }
 
     const data = await prisma.package.findMany({
       where,
