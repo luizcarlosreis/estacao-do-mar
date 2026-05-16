@@ -374,6 +374,8 @@ export default function AutorizacoesPage() {
     doc.save(`Autorizacao_${a.name.replace(/\s+/g, '_')}.pdf`);
   };
 
+  const filtered = list.filter(a => {
+    const matchUnit = filterUnit ? a.unitId === filterUnit : true;
     const status = getStatus(a.entryDate, a.exitDate);
     const matchStatus = status ? statusFilter[status as keyof typeof statusFilter] : true;
     return matchUnit && matchStatus;
