@@ -72,6 +72,8 @@ export default function AutorizacoesPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isReportMode, setIsReportMode] = useState(false);
   const [statusFilter, setStatusFilter] = useState({
+    aguardando: true,
+    ativo: true,
     expirado: false,
   });
   const [currentPage, setCurrentPage] = useState(1);
