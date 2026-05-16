@@ -65,6 +65,7 @@ model User {
   postComments PostComment[]
   syndicMessages SyndicMessage[]
   tasks        Task[]
+  packages     Package[]
 }
 
 model Employee {
@@ -122,6 +123,7 @@ model Unit {
   ballroomReservations BallroomReservation[]
   syndicMessages SyndicMessage[]
   tasks         Task[]
+  packages      Package[]
 }
 
 model BallroomReservation {
