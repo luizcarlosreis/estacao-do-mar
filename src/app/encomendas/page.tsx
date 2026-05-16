@@ -110,7 +110,12 @@ export default function EncomendasPage() {
       const res = await fetch('/api/encomendas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          carrier: formData.carrier.toUpperCase(),
+          conciergeName: formData.conciergeName.toUpperCase(),
+          observations: formData.observations.toUpperCase()
+        })
       });
       if (res.ok) {
         setIsModalOpen(false);
@@ -385,6 +390,14 @@ export default function EncomendasPage() {
                     <option value="">Selecionar Morador</option>
                     {residents.filter(r => r.unitId === formData.unitId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
+                  {formData.residentId && (
+                    <div className="mt-2 flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 animate-in slide-in-from-top-1 duration-200">
+                      <Info size={14} />
+                      <span className="text-[10px] font-bold uppercase tracking-tight">
+                        E-mail: {residents.find(r => r.id === formData.residentId)?.email || 'Não cadastrado'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
