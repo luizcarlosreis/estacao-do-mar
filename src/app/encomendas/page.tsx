@@ -95,7 +95,7 @@ export default function EncomendasPage() {
     fetch('/api/colaboradores').then(res => res.json()).then(data => {
       if (Array.isArray(data)) {
         const sortedStaff = data
-          .map((e: any) => e.name)
+          .map((e: any) => e.name.toUpperCase())
           .sort((a: string, b: string) => a.localeCompare(b, 'pt-BR'));
         setConcierges(sortedStaff);
       }
@@ -440,14 +440,15 @@ export default function EncomendasPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nome do Porteiro</label>
-                <input 
+                <select 
                   required
-                  type="text"
-                  placeholder="Nome do colaborador..."
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold uppercase"
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 uppercase"
                   value={formData.conciergeName}
-                  onChange={(e) => setFormData({ ...formData, conciergeName: e.target.value.toUpperCase() })}
-                />
+                  onChange={(e) => setFormData({ ...formData, conciergeName: e.target.value })}
+                >
+                  <option value="">Selecionar Porteiro</option>
+                  {concierges.map(name => <option key={name} value={name}>{name}</option>)}
+                </select>
               </div>
 
               <div>
