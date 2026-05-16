@@ -57,9 +57,10 @@ export async function POST(request: Request) {
 
     // Notificação por E-mail
     if (pkg.resident.email) {
+      console.log(`Tentando enviar e-mail para: ${pkg.resident.email}`);
       try {
-        await resend.emails.send({
-          from: 'Estação do Mar <contato@estacaodomar.com.br>',
+        const emailResponse = await resend.emails.send({
+          from: 'Estação do Mar <onboarding@resend.dev>', // Usando domínio padrão do Resend para teste se o principal falhar
           to: pkg.resident.email,
           subject: '📦 Nova Encomenda Recebida na Portaria',
           html: `
@@ -81,9 +82,12 @@ export async function POST(request: Request) {
             </div>
           `,
         });
+        console.log('Resposta do Resend:', emailResponse);
       } catch (err) {
-        console.error('Erro ao enviar e-mail:', err);
+        console.error('Erro CRÍTICO ao enviar e-mail via Resend:', err);
       }
+    } else {
+      console.log(`Morador ${pkg.resident.name} não possui e-mail cadastrado.`);
     }
 
     return NextResponse.json(pkg);
