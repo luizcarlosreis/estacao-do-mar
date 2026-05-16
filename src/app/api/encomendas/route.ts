@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       console.log(`Tentando enviar e-mail para: ${pkg.resident.email}`);
       try {
         const emailResponse = await resend.emails.send({
-          from: 'Estação do Mar <onboarding@resend.dev>', // Usando domínio padrão do Resend para teste se o principal falhar
+          from: 'Estação do Mar <contato@estacaodomar.com.br>',
           to: pkg.resident.email,
           subject: '📦 Nova Encomenda Recebida na Portaria',
           html: `

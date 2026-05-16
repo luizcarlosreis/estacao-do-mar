@@ -110,12 +110,7 @@ export default function EncomendasPage() {
       const res = await fetch('/api/encomendas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          carrier: formData.carrier.toUpperCase(),
-          conciergeName: formData.conciergeName.toUpperCase(),
-          observations: formData.observations.toUpperCase()
-        })
+        body: JSON.stringify(formData)
       });
       if (res.ok) {
         setIsModalOpen(false);
@@ -140,10 +135,7 @@ export default function EncomendasPage() {
       const res = await fetch(`/api/encomendas/${selectedPackage.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...withdrawData,
-          withdrawnBy: withdrawData.withdrawnBy.toUpperCase()
-        })
+        body: JSON.stringify(withdrawData)
       });
       if (res.ok) {
         setIsWithdrawModalOpen(false);
@@ -440,23 +432,22 @@ export default function EncomendasPage() {
                 <input 
                   type="text"
                   placeholder="Ex: Mercado Livre, Correios, Amazon..."
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold uppercase"
                   value={formData.carrier}
-                  onChange={(e) => setFormData({ ...formData, carrier: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, carrier: e.target.value.toUpperCase() })}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nome do Porteiro</label>
-                <select 
+                <input 
                   required
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700"
+                  type="text"
+                  placeholder="Nome do colaborador..."
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold uppercase"
                   value={formData.conciergeName}
-                  onChange={(e) => setFormData({ ...formData, conciergeName: e.target.value })}
-                >
-                  <option value="">Selecionar Porteiro</option>
-                  {concierges.map(name => <option key={name} value={name}>{name}</option>)}
-                </select>
+                  onChange={(e) => setFormData({ ...formData, conciergeName: e.target.value.toUpperCase() })}
+                />
               </div>
 
               <div>
@@ -464,9 +455,9 @@ export default function EncomendasPage() {
                 <textarea 
                   rows={3}
                   placeholder="Alguma observação importante sobre o volume?"
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-sm"
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-sm uppercase"
                   value={formData.observations}
-                  onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, observations: e.target.value.toUpperCase() })}
                 />
               </div>
 
@@ -495,9 +486,9 @@ export default function EncomendasPage() {
                   required autoFocus
                   type="text"
                   placeholder="Nome do morador ou preposto..."
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold uppercase"
                   value={withdrawData.withdrawnBy}
-                  onChange={(e) => setWithdrawData({ ...withdrawData, withdrawnBy: e.target.value })}
+                  onChange={(e) => setWithdrawData({ ...withdrawData, withdrawnBy: e.target.value.toUpperCase() })}
                 />
                 <p className="text-[10px] text-slate-400 font-medium mt-2 uppercase tracking-tighter italic">* Ao gravar, o status passará para RETIRADO e o horário será registrado.</p>
               </div>
