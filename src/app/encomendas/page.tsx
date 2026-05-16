@@ -91,11 +91,14 @@ export default function EncomendasPage() {
     fetch('/api/unidades').then(res => res.json()).then(data => setUnits(data));
     fetch('/api/moradores').then(res => res.json()).then(data => {
       setResidents(data);
-      // Extrair nomes de porteiros/admins para o combo
-      const staff = data
-        .filter((u: any) => u.role !== 'MORADOR')
-        .map((u: any) => u.name);
-      setConcierges(Array.from(new Set(staff)));
+    });
+    fetch('/api/colaboradores').then(res => res.json()).then(data => {
+      if (Array.isArray(data)) {
+        const sortedStaff = data
+          .map((e: any) => e.name)
+          .sort((a: string, b: string) => a.localeCompare(b, 'pt-BR'));
+        setConcierges(sortedStaff);
+      }
     });
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, [fetchPackages]);
