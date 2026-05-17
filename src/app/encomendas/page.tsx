@@ -328,7 +328,7 @@ export default function EncomendasPage() {
               )}
 
               <div className="mb-6">
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1 block">AP {p.unit.number} • {p.unit.block}</span>
+                <span className="text-sm font-black text-blue-600 uppercase tracking-wider mb-1 block">AP {p.unit.number} • {p.unit.block}</span>
                 <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate">{p.resident.name}</h3>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="bg-slate-100 text-slate-500 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider">{p.type}</span>
