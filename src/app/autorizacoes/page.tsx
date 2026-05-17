@@ -42,12 +42,18 @@ function formatDate(d: string) {
 }
 
 function getStatus(entry: string, exit: string) {
-  const now = new Date();
   if (!entry && !exit) return null;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
   const e = entry ? new Date(entry) : null;
   const x = exit ? new Date(exit) : null;
-  if (x && now > x) return 'expirado';
-  if (e && now < e) return 'aguardando';
+  
+  const eDate = e ? new Date(e.getFullYear(), e.getMonth(), e.getDate()) : null;
+  const xDate = x ? new Date(x.getFullYear(), x.getMonth(), x.getDate()) : null;
+
+  if (xDate && today > xDate) return 'expirado';
+  if (eDate && today < eDate) return 'aguardando';
   return 'ativo';
 }
 
