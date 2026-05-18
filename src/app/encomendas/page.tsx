@@ -370,6 +370,18 @@ export default function EncomendasPage() {
                   </div>
                 </div>
 
+                {p.status === 'RETIRADO' && p.withdrawnConciergeName && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center shrink-0">
+                      <User size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Retirada Registrada por (Porteiro)</p>
+                      <p className="text-xs font-bold text-slate-700">{p.withdrawnConciergeName}</p>
+                    </div>
+                  </div>
+                )}
+
                 {p.status === 'RETIRADO' && (
                   <div className="flex items-center gap-3 bg-emerald-50/50 p-3 rounded-2xl border border-emerald-100/50">
                     <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
