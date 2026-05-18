@@ -15,6 +15,7 @@ export async function PATCH(request: Request, context: any) {
         status: 'RETIRADO',
         withdrawnAt: new Date(),
         withdrawnBy: body.withdrawnBy,
+        withdrawnConciergeName: body.withdrawnConciergeName,
       },
     });
 

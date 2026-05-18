@@ -347,6 +347,7 @@ model Package {
   status          String    @default("RECEBIDO PORTARIA") // RECEBIDO PORTARIA, RETIRADO
   withdrawnAt     DateTime?
   withdrawnBy     String?   // Nome de quem retirou
+  withdrawnConciergeName String? // Nome do Porteiro que registrou a retirada
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }

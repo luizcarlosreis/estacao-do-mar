@@ -40,6 +40,7 @@ type Package = {
   status: string;
   withdrawnAt?: string;
   withdrawnBy?: string;
+  withdrawnConciergeName?: string;
 };
 
 const MONTHS = [
@@ -81,7 +82,8 @@ export default function EncomendasPage() {
   });
 
   const [withdrawData, setWithdrawData] = useState({
-    withdrawnBy: ''
+    withdrawnBy: '',
+    withdrawnConciergeName: ''
   });
 
   const fetchPackages = useCallback(async () => {
@@ -150,7 +152,7 @@ export default function EncomendasPage() {
       });
       if (res.ok) {
         setIsWithdrawModalOpen(false);
-        setWithdrawData({ withdrawnBy: '' });
+        setWithdrawData({ withdrawnBy: '', withdrawnConciergeName: '' });
         setSelectedPackage(null);
         fetchPackages();
       }
@@ -172,6 +174,7 @@ export default function EncomendasPage() {
       'Data Recebimento': new Date(p.receivedAt).toLocaleString('pt-BR'),
       Status: p.status,
       'Retirado Por': p.withdrawnBy || '',
+      'Porteiro Retirada': p.withdrawnConciergeName || '',
       'Data Retirada': p.withdrawnAt ? new Date(p.withdrawnAt).toLocaleString('pt-BR') : '',
       Observações: p.observations || ''
     }));
@@ -372,9 +375,12 @@ export default function EncomendasPage() {
                     <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
                       <LogOut size={16} />
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter leading-none mb-1">Retirado por {p.withdrawnBy}</p>
-                      <p className="text-[10px] font-bold text-emerald-500">{new Date(p.withdrawnAt!).toLocaleString('pt-BR')}</p>
+                      {p.withdrawnConciergeName && (
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none mb-1">Entregue por: {p.withdrawnConciergeName}</p>
+                      )}
+                      <p className="text-[9px] font-bold text-emerald-500 leading-none">{new Date(p.withdrawnAt!).toLocaleString('pt-BR')}</p>
                     </div>
                   </div>
                 )}
@@ -576,11 +582,24 @@ export default function EncomendasPage() {
                   value={withdrawData.withdrawnBy}
                   onChange={(e) => setWithdrawData({ ...withdrawData, withdrawnBy: e.target.value.toUpperCase() })}
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nome do Porteiro</label>
+                <select 
+                  required
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-slate-700 uppercase"
+                  value={withdrawData.withdrawnConciergeName}
+                  onChange={(e) => setWithdrawData({ ...withdrawData, withdrawnConciergeName: e.target.value })}
+                >
+                  <option value="">Selecionar Porteiro</option>
+                  {concierges.map(name => <option key={name} value={name}>{name}</option>)}
+                </select>
                 <p className="text-[10px] text-slate-400 font-medium mt-2 uppercase tracking-tighter italic">* Ao gravar, o status passará para RETIRADO e o horário será registrado.</p>
               </div>
               
               <div className="flex justify-end gap-3 pt-6">
-                <button type="button" onClick={() => { setIsWithdrawModalOpen(false); setSelectedPackage(null); }} className="px-6 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancelar</button>
+                <button type="button" onClick={() => { setIsWithdrawModalOpen(false); setSelectedPackage(null); setWithdrawData({ withdrawnBy: '', withdrawnConciergeName: '' }); }} className="px-6 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancelar</button>
                 <button disabled={saving} type="submit" className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 disabled:opacity-50">
                   {saving ? 'Gravando...' : 'Confirmar Retirada'}
                 </button>
