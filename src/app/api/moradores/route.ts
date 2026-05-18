@@ -8,6 +8,9 @@ export async function GET(request: Request) {
   const role = request.headers.get('x-user-role');
   const unitId = request.headers.get('x-user-unit');
   
+  const { searchParams } = new URL(request.url);
+  const activeOnly = searchParams.get('active') === 'true';
+  
   const whereClause: any = { role: 'MORADOR' };
   
   if (role === 'MORADOR') {
@@ -17,6 +20,10 @@ export async function GET(request: Request) {
       // Se é morador e não tem unidade vinculada, não vê ninguém
       whereClause.unitId = 'none-placeholder';
     }
+  }
+
+  if (activeOnly) {
+    whereClause.isActive = true;
   }
 
   const users = await (getPrisma()).user.findMany({
@@ -64,7 +71,8 @@ export async function POST(request: Request) {
         unitId: unitId || null,
         ddd,
         phone,
-        residentType: body.residentType || 'MORADOR'
+        residentType: body.residentType || 'MORADOR',
+        isActive: body.isActive !== undefined ? body.isActive : true
       },
     });
     return NextResponse.json(user, { status: 201 });

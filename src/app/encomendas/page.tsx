@@ -102,7 +102,7 @@ export default function EncomendasPage() {
   useEffect(() => {
     fetchPackages();
     fetch('/api/unidades').then(res => res.json()).then(data => setUnits(data));
-    fetch('/api/moradores').then(res => res.json()).then(data => {
+    fetch('/api/moradores?active=true').then(res => res.json()).then(data => {
       setResidents(data);
     });
     fetch('/api/colaboradores').then(res => res.json()).then(data => {

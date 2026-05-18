@@ -35,6 +35,7 @@ type Morador = {
   ddd?: string;
   phone?: string;
   residentType?: string;
+  isActive?: boolean;
 };
 
 
@@ -51,7 +52,7 @@ export default function MoradoresPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR' });
+  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true });
 
   const API_URL = '/api/moradores';
   const UNIDADES_URL = '/api/unidades';
@@ -150,14 +151,15 @@ export default function MoradoresPage() {
       unitId: m.unitId || '',
       ddd: m.ddd || '',
       phone: m.phone || '',
-      residentType: m.residentType || 'MORADOR'
+      residentType: m.residentType || 'MORADOR',
+      isActive: m.isActive !== undefined ? m.isActive : true
     });
     setIsEditMode(true);
     setIsModalOpen(true);
   };
 
   const openCreateModal = () => {
-    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR' });
+    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -283,7 +285,11 @@ export default function MoradoresPage() {
                       </div>
                     ) : (
                       group.moradores.map(m => (
-                        <div key={m.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 group/item relative hover:border-emerald-200 transition-all flex items-center justify-between gap-3 overflow-hidden">
+                        <div key={m.id} className={`p-3 rounded-xl border group/item relative hover:border-emerald-200 transition-all flex items-center justify-between gap-3 overflow-hidden ${
+                           m.isActive === false 
+                           ? 'bg-slate-100/50 border-slate-200 opacity-60' 
+                           : 'bg-slate-50/50 border-slate-100'
+                         }`}>
                           <div className="flex-1 min-w-0">
                             <h3 className="text-[10px] font-black text-slate-800 uppercase truncate leading-tight mb-0.5">{m.name}</h3>
                             {m.email && <p className="text-[9px] text-slate-500 truncate mb-1 lowercase">{m.email}</p>}
@@ -304,6 +310,13 @@ export default function MoradoresPage() {
                                    : 'MORADOR'
                                  }
                                </span>
+                               <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
+                                  m.isActive === false
+                                  ? 'bg-slate-200 text-slate-500'
+                                  : 'bg-emerald-100/60 text-emerald-600'
+                                }`}>
+                                  {m.isActive === false ? 'INATIVO' : 'ATIVO'}
+                                </span>
                             </div>
                           </div>
                           
@@ -454,17 +467,30 @@ export default function MoradoresPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Cadastro</label>
-                <select 
-                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
-                  value={formData.residentType} 
-                  onChange={(e) => setFormData({...formData, residentType: e.target.value})}
-                >
-                  <option value="MORADOR">MORADOR</option>
-                  <option value="VISITA FREQUENTE">VISITA FREQUENTE</option>
-                  <option value="PROPRIETÁRIO NÃO RESIDENTE">PROPRIETÁRIO NÃO RESIDENTE</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Cadastro</label>
+                  <select 
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                    value={formData.residentType} 
+                    onChange={(e) => setFormData({...formData, residentType: e.target.value})}
+                  >
+                    <option value="MORADOR">MORADOR</option>
+                    <option value="VISITA FREQUENTE">VISITA FREQUENTE</option>
+                    <option value="PROPRIETÁRIO NÃO RESIDENTE">PROPRIETÁRIO NÃO RESIDENTE</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status</label>
+                  <select 
+                    className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                    value={formData.isActive ? 'true' : 'false'} 
+                    onChange={(e) => setFormData({...formData, isActive: e.target.value === 'true'})}
+                  >
+                    <option value="true">ATIVO</option>
+                    <option value="false">INATIVO</option>
+                  </select>
+                </div>
               </div>
 
               <div>

@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
     // Mas a instrução diz: "o login do usuário será o seu cpf e a senha as 5 primeiras posições do cpf"
     
     if (user) {
+      if (user.isActive === false) {
+        return NextResponse.json({ message: 'Seu cadastro está inativo. Entre em contato com a administração.' }, { status: 403 });
+      }
+
       let isPasswordValid = await bcrypt.compare(password, user.password);
       
       // Fallback para moradores que ainda não trocaram a senha
