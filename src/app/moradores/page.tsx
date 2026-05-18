@@ -166,12 +166,19 @@ export default function MoradoresPage() {
   // Agrupar por Unidade
   const groupedMoradores: Record<string, { unit?: Unit, moradores: Morador[] }> = {};
   
-  unidades.forEach(u => {
+  const displayUnidades = currentUser?.role === 'MORADOR'
+    ? unidades.filter(u => u.id === currentUser.unitId)
+    : unidades;
+
+  displayUnidades.forEach(u => {
     groupedMoradores[u.id] = { unit: u, moradores: [] };
   });
 
   filteredMoradores.forEach(m => {
     const key = m.unitId || 'unlinked';
+    if (currentUser?.role === 'MORADOR' && key !== currentUser.unitId) {
+      return;
+    }
     if (!groupedMoradores[key]) {
       groupedMoradores[key] = { unit: m.unit, moradores: [] };
     }
@@ -455,7 +462,7 @@ export default function MoradoresPage() {
                   onChange={(e) => setFormData({...formData, unitId: e.target.value})}
                 >
                   <option value="">NÃO VINCULAR APARTAMENTO</option>
-                  {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+                  {displayUnidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
                 </select>
               </div>
 
