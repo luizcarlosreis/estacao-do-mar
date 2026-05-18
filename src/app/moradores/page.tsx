@@ -287,9 +287,16 @@ export default function MoradoresPage() {
                                <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
                                  m.residentType === 'VISITA FREQUENTE' 
                                  ? 'bg-rose-100 text-rose-600' 
+                                 : m.residentType === 'PROPRIETÁRIO NÃO RESIDENTE'
+                                 ? 'bg-blue-100 text-blue-600'
                                  : 'bg-emerald-100 text-emerald-600'
                                }`}>
-                                 {m.residentType === 'VISITA FREQUENTE' ? 'VISITA' : 'MORADOR'}
+                                 {m.residentType === 'VISITA FREQUENTE' 
+                                   ? 'VISITA' 
+                                   : m.residentType === 'PROPRIETÁRIO NÃO RESIDENTE'
+                                   ? 'PROPRIETÁRIO NÃO RESIDENTE'
+                                   : 'MORADOR'
+                                 }
                                </span>
                             </div>
                           </div>
@@ -450,6 +457,7 @@ export default function MoradoresPage() {
                 >
                   <option value="MORADOR">MORADOR</option>
                   <option value="VISITA FREQUENTE">VISITA FREQUENTE</option>
+                  <option value="PROPRIETÁRIO NÃO RESIDENTE">PROPRIETÁRIO NÃO RESIDENTE</option>
                 </select>
               </div>
 
