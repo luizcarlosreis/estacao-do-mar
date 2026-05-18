@@ -129,9 +129,15 @@ export default function MoradoresPage() {
     if (!confirm(`Tem certeza que deseja excluir este morador?`)) return;
     try {
       const res = await fetch(`${API_URL}/${cpf}`, { method: 'DELETE' });
-      if (res.ok) fetchMoradores();
+      if (res.ok) {
+        fetchMoradores();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || 'Erro ao excluir morador.');
+      }
     } catch (error) {
       console.error('Erro ao excluir morador', error);
+      alert('Ocorreu um erro inesperado ao tentar excluir o morador.');
     }
   };
 
