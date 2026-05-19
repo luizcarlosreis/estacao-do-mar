@@ -60,6 +60,7 @@ export default function EncomendasPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [saving, setSaving] = useState(false);
   
@@ -318,7 +319,11 @@ export default function EncomendasPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginated.map((p) => (
-            <div key={p.id} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:border-blue-200 transition-all group flex flex-col relative overflow-hidden">
+            <div 
+              key={p.id} 
+              onClick={() => { setSelectedPackage(p); setIsViewModalOpen(true); }}
+              className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:border-blue-200 transition-all group flex flex-col relative overflow-hidden cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+            >
               {p.status === 'RETIRADO' && (
                 <div className="absolute top-4 right-4 bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
                   <CheckCircle2 size={12} /> Retirado
@@ -400,7 +405,7 @@ export default function EncomendasPage() {
 
               {isStaff && p.status === 'RECEBIDO PORTARIA' && (
                 <button 
-                  onClick={() => { setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
                   className="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2"
                 >
                   <LogOut size={16} /> Dar Baixa / Retirada
@@ -617,6 +622,163 @@ export default function EncomendasPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Visualizar Encomenda (Apenas Consulta) */}
+      {isViewModalOpen && selectedPackage && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl p-10 animate-in zoom-in-95 duration-200 my-auto">
+            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                <PackageIcon className="text-blue-600 animate-pulse" size={28} />
+                Detalhes da Entrega
+              </h2>
+              <button 
+                onClick={() => { setIsViewModalOpen(false); setSelectedPackage(null); }} 
+                className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-50 rounded-full"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Header com Unidade, Morador e Status */}
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <span className="text-xs font-black text-blue-600 uppercase tracking-widest block mb-1">
+                    AP {selectedPackage.unit.number} • {selectedPackage.unit.block}
+                  </span>
+                  <h3 className="text-xl font-bold text-slate-800 leading-tight">
+                    {selectedPackage.resident.name}
+                  </h3>
+                  {selectedPackage.resident.email && (
+                    <span className="text-xs text-slate-400 font-medium">
+                      {selectedPackage.resident.email}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  {selectedPackage.status === 'RETIRADO' ? (
+                    <div className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 border border-emerald-200">
+                      <CheckCircle2 size={14} /> Retirado
+                    </div>
+                  ) : (
+                    <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 border border-amber-200 animate-pulse">
+                      <Clock size={14} /> Pendente
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid de Informações de Entrada */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 flex items-start gap-3">
+                  <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 border border-blue-100">
+                    <Truck size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Transportadora / Remetente</p>
+                    <p className="text-sm font-bold text-slate-800">{selectedPackage.carrier || 'Não informada'}</p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 flex items-start gap-3">
+                  <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                    <PackageIcon size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Tipo & Tamanho</p>
+                    <p className="text-sm font-bold text-slate-800 capitalize">
+                      {selectedPackage.type} • <span className="lowercase">{selectedPackage.size || 'médio'}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 flex items-start gap-3">
+                  <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                    <Calendar size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Recebido em</p>
+                    <p className="text-sm font-bold text-slate-800">
+                      {new Date(selectedPackage.receivedAt).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 flex items-start gap-3">
+                  <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
+                    <User size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Recebido por (Porteiro)</p>
+                    <p className="text-sm font-bold text-slate-800">{selectedPackage.conciergeName}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informações de Retirada (se retirado) */}
+              {selectedPackage.status === 'RETIRADO' && (
+                <div className="bg-emerald-50/30 p-6 rounded-2xl border border-emerald-100/50 space-y-4">
+                  <h4 className="text-xs font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2 border-b border-emerald-100 pb-2">
+                    <LogOut size={14} /> Dados da Retirada
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Retirado por</p>
+                      <p className="text-sm font-black text-emerald-700">{selectedPackage.withdrawnBy}</p>
+                    </div>
+                    {selectedPackage.withdrawnConciergeName && (
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Entregue por (Porteiro)</p>
+                        <p className="text-sm font-bold text-slate-800">{selectedPackage.withdrawnConciergeName}</p>
+                      </div>
+                    )}
+                    <div className="sm:col-span-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Data da Retirada</p>
+                      <p className="text-sm font-bold text-slate-800">
+                        {selectedPackage.withdrawnAt ? new Date(selectedPackage.withdrawnAt).toLocaleString('pt-BR') : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Observações */}
+              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                  <Info size={14} className="text-blue-500" /> Observações
+                </p>
+                <p className="text-xs font-semibold text-slate-600 leading-relaxed uppercase whitespace-pre-wrap">
+                  {selectedPackage.observations || 'NENHUMA OBSERVAÇÃO REGISTRADA.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer com Ações */}
+            <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+              <button 
+                type="button" 
+                onClick={() => { setIsViewModalOpen(false); setSelectedPackage(null); }} 
+                className="px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-all text-sm active:scale-95"
+              >
+                Fechar
+              </button>
+              {isStaff && selectedPackage.status === 'RECEBIDO PORTARIA' && (
+                <button 
+                  type="button"
+                  onClick={() => { 
+                    setIsViewModalOpen(false); 
+                    setIsWithdrawModalOpen(true); 
+                  }} 
+                  className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all text-sm shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
+                >
+                  <LogOut size={16} /> Dar Baixa / Retirada
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
