@@ -14,7 +14,6 @@ import {
   LayoutDashboard,
   ChevronRight,
   ChevronLeft,
-  ShieldCheck,
   Hash
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';

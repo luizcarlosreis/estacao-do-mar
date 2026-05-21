@@ -16,7 +16,6 @@ import {
   ChevronRight,
   LogOut,
   Calendar,
-  ShieldCheck,
   X,
   FileDown
 } from 'lucide-react';

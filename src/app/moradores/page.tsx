@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   ChevronRight,
   ChevronLeft,
-  ShieldCheck,
   Mail,
   Phone
 } from 'lucide-react';
