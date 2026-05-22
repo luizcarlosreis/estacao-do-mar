@@ -127,6 +127,7 @@ model Unit {
   syndicMessages SyndicMessage[]
   tasks         Task[]
   packages      Package[]
+  gasReadings   GasReading[]
 }
 
 model BallroomReservation {
@@ -355,3 +356,22 @@ model Package {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
+
+model GasReading {
+  id         String   @id @default(uuid())
+  month      Int      // Mês da leitura (1 a 12)
+  year       Int      // Ano da leitura
+  readAt     DateTime // Data física da leitura
+  value      Float?   // Consumo lido
+  
+  identifier String   // "COZINHA" ou o ID da unidade
+  
+  unitId     String?
+  unit       Unit?    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([month, year, identifier])
+}
+

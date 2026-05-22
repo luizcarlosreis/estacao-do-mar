@@ -191,7 +191,7 @@ export default function TarefasPage() {
   };
 
   const filteredTasks = tasks.filter(t => {
-    if (currentUser?.role === 'MORADOR' && t.userId !== currentUser.id) return false;
+    if (currentUser?.role === 'MORADOR' && t.user?.id !== currentUser.id) return false;
 
     const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           t.description?.toLowerCase().includes(searchTerm.toLowerCase());

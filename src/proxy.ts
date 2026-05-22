@@ -34,9 +34,9 @@ export default async function proxy(req: NextRequest) {
         return NextResponse.next();
       }
 
-      // ZELADORIA (usando role SINDICO provisoriamente para evitar migrations): Apartamento, Moradores, Veículos, Autorizações, Manutençao e Tarefas
+      // ZELADORIA (usando role SINDICO provisoriamente para evitar migrations): Apartamento, Moradores, Veículos, Autorizações, Manutençao, Tarefas e Leitura de Gás
       if (role === 'SINDICO') {
-        const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/manutencoes', '/tarefas', '/api'];
+        const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/manutencoes', '/tarefas', '/leitura-gas', '/api'];
         if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
           return NextResponse.redirect(new URL('/', req.url));
         }

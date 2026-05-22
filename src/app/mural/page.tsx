@@ -41,6 +41,8 @@ export default function MuralPage() {
   // Modal de Criação
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newPost, setNewPost] = useState({
+    title: '',
+    description: '',
     category: 'AVISO',
     price: '',
     expiresAt: ''
