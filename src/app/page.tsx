@@ -18,7 +18,8 @@ import {
   Activity,
   PhoneCall,
   Calendar,
-  Package
+  Package,
+  Flame
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -71,6 +72,7 @@ export default function Home() {
     { title: 'Documentos Importantes', icon: <FileText size={16} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'], color: 'text-slate-600', bg: 'bg-slate-50' },
     { title: 'Contatos Importantes', icon: <PhoneCall size={16} />, path: '/contatos', desc: 'Prestadores e emergência.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO'], color: 'text-blue-600', bg: 'bg-blue-50' },
     { title: 'Encomendas', icon: <Package size={16} />, path: '/encomendas', desc: 'Recebimento de mercadorias e avisos.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-orange-600', bg: 'bg-orange-50' },
+    { title: 'Leitura de Gás', icon: <Flame size={16} />, path: '/leitura-gas', desc: 'Registro da leitura mensal de gás.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-red-500', bg: 'bg-red-50' },
   ];
 
   const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
