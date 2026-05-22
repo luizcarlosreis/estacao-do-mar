@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       `Uma encomenda foi recebida para o seu apartamento:`,
       ``,
       `🏢 *Unidade:* AP ${pkg.unit.number} - ${pkg.unit.block}`,
+      `🔢 *Número da Mercadoria:* #${pkg.number}`,
       `📋 *Tipo:* ${pkg.type}${pkg.size ? ` (${pkg.size})` : ''}`,
       pkg.carrier ? `🚚 *Transportadora:* ${pkg.carrier}` : null,
       `👤 *Recebido por:* ${pkg.conciergeName}`,

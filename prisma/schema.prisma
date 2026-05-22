@@ -337,6 +337,7 @@ model Contact {
 }
 model Package {
   id              String    @id @default(uuid())
+  number          Int       @default(autoincrement())
   unitId          String
   unit            Unit      @relation(fields: [unitId], references: [id])
   residentId      String

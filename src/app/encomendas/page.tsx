@@ -27,6 +27,7 @@ type Unit = { id: string; number: string; block: string };
 type Resident = { id: string; name: string; cpf: string; email?: string; unitId?: string; telegramChatId?: string };
 type Package = {
   id: string;
+  number: number;
   unitId: string;
   unit: Unit;
   residentId: string;
@@ -71,6 +72,8 @@ export default function EncomendasPage() {
   const [filterUnit, setFilterUnit] = useState('');
   const [filterMonth, setFilterMonth] = useState('');
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [packageNumberInput, setPackageNumberInput] = useState('');
+  const [filterPackageNumber, setFilterPackageNumber] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 18;
 
@@ -92,7 +95,7 @@ export default function EncomendasPage() {
   const fetchPackages = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/encomendas?unitId=${filterUnit}&status=${filterStatus}&month=${filterMonth}&year=${filterYear}`);
+      const res = await fetch(`/api/encomendas?unitId=${filterUnit}&status=${filterStatus}&month=${filterMonth}&year=${filterYear}&packageNumber=${filterPackageNumber}`);
       const data = await res.json();
       if (Array.isArray(data)) setPackages(data);
     } catch (error) {
@@ -100,7 +103,7 @@ export default function EncomendasPage() {
     } finally {
       setLoading(false);
     }
-  }, [filterUnit, filterStatus, filterMonth, filterYear]);
+  }, [filterUnit, filterStatus, filterMonth, filterYear, filterPackageNumber]);
 
   useEffect(() => {
     fetchPackages();
@@ -177,6 +180,7 @@ export default function EncomendasPage() {
 
   const exportToExcel = () => {
     const dataToExport = filtered.map(p => ({
+      'Nº Mercadoria': `#${p.number}`,
       Unidade: `${p.unit.number}-${p.unit.block}`,
       Morador: p.resident.name,
       Tipo: p.type,
@@ -280,6 +284,44 @@ export default function EncomendasPage() {
             />
           </div>
 
+          {/* Busca por Número de Mercadoria */}
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              setFilterPackageNumber(packageNumberInput);
+              setCurrentPage(1);
+            }}
+            className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 min-w-[200px]"
+          >
+            <input 
+              type="number"
+              placeholder="Nº Mercadoria..."
+              className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-600 w-28 pl-3 focus:outline-none"
+              value={packageNumberInput}
+              onChange={(e) => setPackageNumberInput(e.target.value)}
+            />
+            <button 
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-sm active:scale-95 shrink-0"
+            >
+              Consultar
+            </button>
+            {filterPackageNumber && (
+              <button 
+                type="button"
+                onClick={() => {
+                  setPackageNumberInput('');
+                  setFilterPackageNumber('');
+                  setCurrentPage(1);
+                }}
+                className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                title="Limpar filtro de número"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </form>
+
           <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
             <Filter size={16} className="text-slate-400 ml-2" />
             <select 
@@ -369,7 +411,12 @@ export default function EncomendasPage() {
               )}
 
               <div className="mb-6">
-                <span className="text-sm font-black text-blue-600 uppercase tracking-wider mb-1 block">AP {p.unit.number} • {p.unit.block}</span>
+                <div className="flex justify-between items-start gap-2 mb-1">
+                  <span className="text-sm font-black text-blue-600 uppercase tracking-wider block">AP {p.unit.number} • {p.unit.block}</span>
+                  <span className="bg-blue-50 text-blue-700 font-black px-2.5 py-0.5 rounded-lg text-xs border border-blue-100">
+                    Nº #{p.number}
+                  </span>
+                </div>
                 <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate">{p.resident.name}</h3>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="bg-slate-100 text-slate-500 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider">{p.type}</span>
@@ -697,9 +744,14 @@ export default function EncomendasPage() {
               {/* Header com Unidade, Morador e Status */}
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <span className="text-xs font-black text-blue-600 uppercase tracking-widest block mb-1">
-                    AP {selectedPackage.unit.number} • {selectedPackage.unit.block}
-                  </span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-black text-blue-600 uppercase tracking-widest block">
+                      AP {selectedPackage.unit.number} • {selectedPackage.unit.block}
+                    </span>
+                    <span className="bg-blue-50 text-blue-700 font-black px-2 py-0.5 rounded-md text-[10px] border border-blue-100">
+                      Nº #{selectedPackage.number}
+                    </span>
+                  </div>
                   <h3 className="text-xl font-bold text-slate-800 leading-tight">
                     {selectedPackage.resident.name}
                   </h3>

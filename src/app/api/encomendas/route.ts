@@ -14,10 +14,14 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
     const month = searchParams.get('month');
     const year = searchParams.get('year');
+    const packageNumber = searchParams.get('packageNumber');
 
     const where: any = {};
     if (unitId) where.unitId = unitId;
     if (status && status !== 'TODOS') where.status = status;
+    if (packageNumber && packageNumber.trim() !== '') {
+      where.number = parseInt(packageNumber);
+    }
 
     if (month || year) {
       const y = year ? parseInt(year) : new Date().getFullYear();
@@ -80,13 +84,14 @@ export async function POST(request: Request) {
         const emailResponse = await resend.emails.send({
           from: 'Estação do Mar <contato@estacaodomar.com.br>',
           to: pkg.resident.email,
-          subject: '📦 Nova Encomenda Recebida na Portaria',
+          subject: `📦 Nova Encomenda Recebida na Portaria (Nº #${pkg.number})`,
           html: `
             <div style="font-family: sans-serif; padding: 20px; color: #334155;">
               <h2 style="color: #0f172a;">Olá, ${pkg.resident.name}!</h2>
               <p>Uma nova encomenda foi recebida para você na portaria do <strong>Condomínio Estação do Mar</strong>.</p>
               
               <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>🔢 Número da Mercadoria:</strong> #${pkg.number}</p>
                 <p style="margin: 5px 0;"><strong>📦 Tipo:</strong> ${pkg.type}</p>
                 <p style="margin: 5px 0;"><strong>🏷️ Transportadora/Remetente:</strong> ${pkg.carrier || 'Não informada'}</p>
                 <p style="margin: 5px 0;"><strong>🏢 Unidade:</strong> ${pkg.unit.number} - ${pkg.unit.block}</p>
