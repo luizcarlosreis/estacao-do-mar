@@ -450,8 +450,8 @@ export default function MoradoresPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
-            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0">
               <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                 <User size={18} /> {isEditMode ? 'Editar Morador' : 'Novo Morador'}
               </h2>
@@ -460,7 +460,7 @@ export default function MoradoresPage() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 pr-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">CPF (Apenas Números)</label>
