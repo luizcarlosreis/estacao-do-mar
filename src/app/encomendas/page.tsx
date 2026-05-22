@@ -104,7 +104,16 @@ export default function EncomendasPage() {
 
   useEffect(() => {
     fetchPackages();
-    fetch('/api/unidades').then(res => res.json()).then(data => setUnits(data));
+    fetch('/api/unidades')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const sorted = [...data].sort((a, b) => 
+            a.number.localeCompare(b.number, undefined, { numeric: true })
+          );
+          setUnits(sorted);
+        }
+      });
     fetch('/api/moradores?active=true').then(res => res.json()).then(data => {
       setResidents(data);
     });
