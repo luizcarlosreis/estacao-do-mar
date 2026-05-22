@@ -17,13 +17,14 @@ import {
   LogOut,
   Calendar,
   X,
-  FileDown
+  FileDown,
+  Send
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 import * as XLSX from 'xlsx';
 
 type Unit = { id: string; number: string; block: string };
-type Resident = { id: string; name: string; cpf: string; email?: string; unitId?: string };
+type Resident = { id: string; name: string; cpf: string; email?: string; unitId?: string; telegramChatId?: string };
 type Package = {
   id: string;
   unitId: string;
@@ -62,6 +63,8 @@ export default function EncomendasPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [saving, setSaving] = useState(false);
+  const [notifiedPackages, setNotifiedPackages] = useState<Set<string>>(new Set());
+  const [notifyingPackage, setNotifyingPackage] = useState<string | null>(null);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('RECEBIDO PORTARIA');
@@ -200,6 +203,28 @@ export default function EncomendasPage() {
 
   const isStaff = currentUser?.role === 'SINDICO' || currentUser?.role === 'PORTEIRO' || currentUser?.role === 'SUPER_ADMIN';
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
+
+  const handleTelegramNotify = async (pkg: Package) => {
+    setNotifyingPackage(pkg.id);
+    try {
+      const res = await fetch('/api/telegram/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packageId: pkg.id })
+      });
+      if (res.ok) {
+        setNotifiedPackages(prev => new Set(prev).add(pkg.id));
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.message}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao enviar notificação.');
+    } finally {
+      setNotifyingPackage(null);
+    }
+  };
 
   return (
     <div className="min-h-screen space-y-8">
@@ -403,12 +428,33 @@ export default function EncomendasPage() {
               </div>
 
               {isStaff && p.status === 'RECEBIDO PORTARIA' && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
-                  className="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2"
-                >
-                  <LogOut size={16} /> Dar Baixa / Retirada
-                </button>
+                <div className="mt-6 flex gap-2">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
+                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2"
+                  >
+                    <LogOut size={16} /> Dar Baixa
+                  </button>
+                  {p.resident.telegramChatId ? (
+                    notifiedPackages.has(p.id) ? (
+                      <span className="py-3 px-4 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 border border-emerald-100">
+                        <CheckCircle2 size={14} /> Notificado ✅
+                      </span>
+                    ) : (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleTelegramNotify(p); }}
+                        disabled={notifyingPackage === p.id}
+                        className="py-3 px-4 bg-[#0088cc] hover:bg-[#006da3] text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Send size={14} /> {notifyingPackage === p.id ? '...' : 'Telegram'}
+                      </button>
+                    )
+                  ) : (
+                    <span className="py-3 px-4 bg-slate-50 text-slate-400 rounded-xl font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 border border-slate-100" title="Morador não vinculou o Telegram">
+                      <Send size={12} /> Sem Telegram
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           ))}
@@ -766,16 +812,33 @@ export default function EncomendasPage() {
                 Fechar
               </button>
               {isStaff && selectedPackage.status === 'RECEBIDO PORTARIA' && (
-                <button 
-                  type="button"
-                  onClick={() => { 
-                    setIsViewModalOpen(false); 
-                    setIsWithdrawModalOpen(true); 
-                  }} 
-                  className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all text-sm shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
-                >
-                  <LogOut size={16} /> Dar Baixa / Retirada
-                </button>
+                <>
+                  {selectedPackage.resident.telegramChatId && !notifiedPackages.has(selectedPackage.id) && (
+                    <button 
+                      type="button"
+                      onClick={() => handleTelegramNotify(selectedPackage)}
+                      disabled={notifyingPackage === selectedPackage.id}
+                      className="px-8 py-4 bg-[#0088cc] hover:bg-[#006da3] text-white rounded-2xl font-bold transition-all text-sm shadow-lg shadow-blue-100 flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                    >
+                      <Send size={16} /> {notifyingPackage === selectedPackage.id ? 'Enviando...' : 'Notificar Telegram'}
+                    </button>
+                  )}
+                  {notifiedPackages.has(selectedPackage.id) && (
+                    <span className="px-8 py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-bold text-sm flex items-center gap-2 border border-emerald-100">
+                      <CheckCircle2 size={16} /> Notificado ✅
+                    </span>
+                  )}
+                  <button 
+                    type="button"
+                    onClick={() => { 
+                      setIsViewModalOpen(false); 
+                      setIsWithdrawModalOpen(true); 
+                    }} 
+                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all text-sm shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
+                  >
+                    <LogOut size={16} /> Dar Baixa / Retirada
+                  </button>
+                </>
               )}
             </div>
           </div>

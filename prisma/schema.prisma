@@ -57,6 +57,8 @@ model User {
   phone     String?
   residentType String @default("MORADOR")
   isActive     Boolean @default(true)
+  telegramChatId    String?  @unique
+  telegramLinkToken String?  @unique
   
   reservations Reservation[]
   visitors     Visitor[]

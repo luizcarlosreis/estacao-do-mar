@@ -23,7 +23,8 @@ export async function GET(req: NextRequest) {
         role: true,
         email: true,
         unitId: true,
-        cpf: true
+        cpf: true,
+        telegramChatId: true
       }
     });
 

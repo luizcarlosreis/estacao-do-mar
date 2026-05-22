@@ -13,7 +13,10 @@ import {
   ChevronRight,
   ChevronLeft,
   Mail,
-  Phone
+  Phone,
+  Send,
+  Link2,
+  Unlink
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -35,6 +38,7 @@ type Morador = {
   phone?: string;
   residentType?: string;
   isActive?: boolean;
+  telegramChatId?: string;
 };
 
 
@@ -45,6 +49,10 @@ export default function MoradoresPage() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [telegramLinked, setTelegramLinked] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,7 +68,10 @@ export default function MoradoresPage() {
     setMounted(true);
     fetchMoradores();
     fetchUnidades();
-    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => {
+      setCurrentUser(data?.user);
+      if (data?.user?.telegramChatId) setTelegramLinked(true);
+    });
   }, []);
 
   const fetchMoradores = async () => {
@@ -163,6 +174,45 @@ export default function MoradoresPage() {
     setIsModalOpen(true);
   };
 
+  const handleTelegramLink = async () => {
+    if (!telegramChatId.trim() || !currentUser) return;
+    setTelegramLoading(true);
+    try {
+      const res = await fetch('/api/telegram/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, telegramChatId: telegramChatId.trim() })
+      });
+      if (res.ok) {
+        setTelegramLinked(true);
+        setShowTelegramModal(false);
+        setTelegramChatId('');
+        alert('✅ Telegram vinculado com sucesso! Verifique a mensagem de boas-vindas no seu Telegram.');
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.message}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erro ao vincular Telegram.');
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
+  const handleTelegramUnlink = async () => {
+    if (!currentUser || !confirm('Deseja desvincular seu Telegram?')) return;
+    try {
+      const res = await fetch(`/api/telegram/link?userId=${currentUser.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setTelegramLinked(false);
+        alert('Telegram desvinculado.');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const filteredMoradores = moradores.filter(m => 
     !searchTerm ||
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -250,6 +300,33 @@ export default function MoradoresPage() {
             </button>
           </div>
         </div>
+
+        {/* Card Telegram */}
+        {currentUser && (
+          <div className="w-full md:w-auto">
+            {telegramLinked ? (
+              <div className="flex items-center gap-2">
+                <span className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider flex items-center gap-2 border border-emerald-100">
+                  <Send size={14} /> Telegram Vinculado ✅
+                </span>
+                <button
+                  onClick={handleTelegramUnlink}
+                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                  title="Desvincular Telegram"
+                >
+                  <Unlink size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowTelegramModal(true)}
+                className="bg-[#0088cc] text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#006da3] transition shadow-lg shadow-blue-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
+              >
+                <Send size={14} /> Vincular meu Telegram
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Listagem Agrupada */}
         {loading ? (
@@ -522,6 +599,63 @@ export default function MoradoresPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Telegram */}
+      {showTelegramModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+            <div className="p-6 bg-[#0088cc] text-white flex justify-between items-center">
+              <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Send size={18} /> Vincular Telegram
+              </h2>
+              <button onClick={() => setShowTelegramModal(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-3">
+                <h3 className="text-[11px] font-black text-blue-800 uppercase tracking-wider">📋 Como obter seu Chat ID:</h3>
+                <ol className="text-[11px] text-blue-700 font-medium space-y-2 list-decimal list-inside">
+                  <li>Abra o Telegram no celular ou computador</li>
+                  <li>Procure o bot <strong>@userinfobot</strong></li>
+                  <li>Envie qualquer mensagem para ele</li>
+                  <li>Ele vai responder com seu <strong>Id</strong> (um número)</li>
+                  <li>Cole esse número abaixo</li>
+                </ol>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Seu Chat ID do Telegram</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: 123456789"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0088cc]/20 outline-none text-[11px] font-bold text-slate-800"
+                  value={telegramChatId}
+                  onChange={(e) => setTelegramChatId(e.target.value.replace(/\D/g, ''))}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
+                <button 
+                  type="button" 
+                  onClick={() => setShowTelegramModal(false)} 
+                  className="flex-1 py-3 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-500 hover:bg-slate-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleTelegramLink}
+                  disabled={telegramLoading || !telegramChatId.trim()}
+                  className="flex-1 py-3 bg-[#0088cc] text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-[#006da3] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {telegramLoading ? 'Vinculando...' : (<><Link2 size={14} /> Vincular</>)}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
