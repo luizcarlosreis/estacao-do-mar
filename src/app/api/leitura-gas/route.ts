@@ -25,16 +25,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'Parâmetros inválidos' }, { status: 400 });
     }
 
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+
     const prisma = getPrisma();
-    const readings = await prisma.gasReading.findMany({
-      where: { month, year }
-    });
+    const [readings, prevReadings] = await Promise.all([
+      prisma.gasReading.findMany({
+        where: { month, year }
+      }),
+      prisma.gasReading.findMany({
+        where: { month: prevMonth, year: prevYear }
+      })
+    ]);
 
     const readAt = readings.length > 0 ? readings[0].readAt : null;
 
     return NextResponse.json({
       readAt,
       readings: readings.map(r => ({
+        identifier: r.identifier,
+        value: r.value
+      })),
+      previousReadings: prevReadings.map(r => ({
         identifier: r.identifier,
         value: r.value
       }))

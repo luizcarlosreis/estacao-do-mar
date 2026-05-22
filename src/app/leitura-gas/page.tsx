@@ -51,6 +51,7 @@ export default function GasReadingPage() {
   const [readAt, setReadAt] = useState<string>(new Date().toISOString().substring(0, 10)); // YYYY-MM-DD
   const [units, setUnits] = useState<Unit[]>([]);
   const [values, setValues] = useState<Record<string, string>>({}); // id -> value string
+  const [prevValues, setPrevValues] = useState<Record<string, number | null>>({}); // id/identifier -> previous numeric value
   
   // Keep track of the latest selected month/year to prevent race conditions during async fetches
   const latestSelected = useRef({ month: selectedMonth, year: selectedYear });
@@ -93,6 +94,7 @@ export default function GasReadingPage() {
 
     setLoading(true);
     setValues({}); // Clear values state immediately to prevent stale data bleeding
+    setPrevValues({}); // Clear previous values state immediately as well
     try {
       const res = await fetch(`/api/leitura-gas?month=${fetchMonth}&year=${fetchYear}&t=${Date.now()}`, {
         cache: 'no-store'
@@ -124,6 +126,15 @@ export default function GasReadingPage() {
             });
           }
           setValues(initialValues);
+
+          // Mapeia valores do mês anterior
+          const initialPrevValues: Record<string, number | null> = {};
+          if (Array.isArray(data.previousReadings)) {
+            data.previousReadings.forEach((r: GasReading) => {
+              initialPrevValues[r.identifier] = r.value;
+            });
+          }
+          setPrevValues(initialPrevValues);
         }
       } else {
         const err = await res.json().catch(() => ({ message: 'Erro desconhecido ao carregar leituras.' }));
@@ -324,7 +335,14 @@ export default function GasReadingPage() {
               <div>
                 <span className="text-[9px] font-black text-orange-600 uppercase tracking-widest bg-orange-100/80 px-2 py-0.5 rounded">Área Comum</span>
                 <h3 className="text-2xl font-black text-slate-800 tracking-tight leading-none mt-1">Cozinha Condomínio</h3>
-                <p className="text-slate-500 text-xs mt-1 font-medium">Medidor coletivo do salão de festas e cozinhas sociais.</p>
+                <p className="text-slate-500 text-xs mt-1 font-medium flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span>Medidor coletivo do salão de festas e cozinhas sociais.</span>
+                  {prevValues['COZINHA'] !== undefined && prevValues['COZINHA'] !== null && (
+                    <span className="bg-orange-100 text-orange-750 px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1 shrink-0 border border-orange-200/60 shadow-sm animate-pulse-subtle">
+                      Anterior: {Number(prevValues['COZINHA']).toFixed(3)}
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
             <div className="w-full md:w-auto flex items-center gap-3">
@@ -369,6 +387,14 @@ export default function GasReadingPage() {
                             <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest leading-none block mb-0.5">Apartamento</span>
                             <span className="text-base font-black text-slate-800 group-hover:text-blue-600 transition-colors">{u.number}</span>
                           </div>
+                          {prevValues[u.id] !== undefined && prevValues[u.id] !== null && (
+                            <div className="text-right">
+                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none block mb-0.5">Anterior</span>
+                              <span className="text-xs font-black text-blue-600 bg-blue-50/60 border border-blue-100/50 px-1.5 py-0.5 rounded-lg select-none shadow-sm">
+                                {Number(prevValues[u.id]).toFixed(3)}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Input Individual */}
