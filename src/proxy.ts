@@ -29,32 +29,29 @@ export default async function proxy(req: NextRequest) {
 
       // Verificação de acessos (Autorização RBAC)
       
-      // ADMIN: Acesso a tudo
-      if (role === 'SUPER_ADMIN') {
-        return NextResponse.next();
-      }
-
-      // ZELADORIA (usando role SINDICO provisoriamente para evitar migrations): Apartamento, Moradores, Veículos, Autorizações, Manutençao, Tarefas e Leitura de Gás
-      if (role === 'SINDICO') {
-        const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/manutencoes', '/tarefas', '/leitura-gas', '/api'];
-        if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
-          return NextResponse.redirect(new URL('/', req.url));
+      if (role !== 'SUPER_ADMIN') {
+        // ZELADORIA (usando role SINDICO provisoriamente para evitar migrations): Apartamento, Moradores, Veículos, Autorizações, Manutençao, Tarefas e Leitura de Gás
+        if (role === 'SINDICO') {
+          const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/manutencoes', '/tarefas', '/leitura-gas', '/api'];
+          if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
+            return NextResponse.redirect(new URL('/', req.url));
+          }
         }
-      }
 
-      // PORTARIA: Apartamento, Moradores, Veículos e Autorizações
-      if (role === 'PORTEIRO') {
-        const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/api'];
-        if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
-          return NextResponse.redirect(new URL('/', req.url));
+        // PORTARIA: Apartamento, Moradores, Veículos e Autorizações
+        else if (role === 'PORTEIRO') {
+          const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/api'];
+          if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
+            return NextResponse.redirect(new URL('/', req.url));
+          }
         }
-      }
 
-      // MORADORES: Moradores, Veículos e Autorizações
-      if (role === 'MORADOR') {
-        const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/api'];
-        if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
-          return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
+        // MORADORES: Moradores, Veículos e Autorizações
+        else if (role === 'MORADOR') {
+          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/api'];
+          if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
+            return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
+          }
         }
       }
 

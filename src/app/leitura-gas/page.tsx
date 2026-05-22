@@ -298,7 +298,7 @@ export default function GasReadingPage() {
               <div className="relative flex-grow md:flex-grow-0 min-w-[160px]">
                 <input 
                   type="text"
-                  placeholder="0.000"
+                  placeholder="0"
                   className="w-full px-4 py-3 bg-white border-2 border-orange-150 focus:border-orange-500 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner focus:ring-4 focus:ring-orange-500/10"
                   value={values['COZINHA'] || ''}
                   onChange={(e) => handleInputChange('COZINHA', e.target.value)}
@@ -341,7 +341,7 @@ export default function GasReadingPage() {
                         <div className="relative">
                           <input 
                             type="text"
-                            placeholder="0.000"
+                            placeholder="0"
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-100 hover:border-slate-200 focus:border-blue-500 rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner"
                             value={values[u.id] || ''}
                             onChange={(e) => handleInputChange(u.id, e.target.value)}
