@@ -48,6 +48,7 @@ type Morador = {
 
 
 export default function MoradoresPage() {
+  const ENABLE_TELEGRAM = false;
   const [moradores, setMoradores] = useState<Morador[]>([]);
   const [unidades, setUnidades] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -568,7 +569,7 @@ export default function MoradoresPage() {
                 </select>
               </div>
 
-              {isEditMode && selectedMorador && (
+              {ENABLE_TELEGRAM && isEditMode && selectedMorador && (
                 <div className="pt-4 border-t border-slate-100 space-y-3">
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Integração com Telegram
@@ -672,35 +673,37 @@ export default function MoradoresPage() {
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-left space-y-3">
-                <div className="flex items-center gap-1.5 text-blue-800 text-[10px] font-black uppercase tracking-wider">
-                  <Send size={14} className="text-[#0088cc]" /> Notificações de Encomendas
-                </div>
-                <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
-                  Para que o morador receba avisos automáticos e em tempo real do Bot da Portaria, peça para ele iniciar o nosso bot do Telegram:
-                </p>
+              {ENABLE_TELEGRAM && (
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-left space-y-3">
+                  <div className="flex items-center gap-1.5 text-blue-800 text-[10px] font-black uppercase tracking-wider">
+                    <Send size={14} className="text-[#0088cc]" /> Notificações de Encomendas
+                  </div>
+                  <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                    Para que o morador receba avisos automáticos e em tempo real do Bot da Portaria, peça para ele iniciar o nosso bot do Telegram:
+                  </p>
 
-                <div className="flex flex-col sm:flex-row gap-2 pt-1.5">
-                  <a
-                    href={`https://t.me/EstacaoDoMarCondominoBot?start=${registeredResident.telegramLinkToken}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-3 px-4 bg-[#0088cc] hover:bg-[#006da3] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-100"
-                  >
-                    <Send size={14} /> Iniciar Bot <ExternalLink size={12} />
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`https://t.me/EstacaoDoMarCondominoBot?start=${registeredResident.telegramLinkToken}`);
-                      alert('Link de vinculação copiado para a área de transferência!');
-                    }}
-                    className="py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    <Copy size={14} /> Copiar Link
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1.5">
+                    <a
+                      href={`https://t.me/EstacaoDoMarCondominoBot?start=${registeredResident.telegramLinkToken}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-3 px-4 bg-[#0088cc] hover:bg-[#006da3] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-100"
+                    >
+                      <Send size={14} /> Iniciar Bot <ExternalLink size={12} />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://t.me/EstacaoDoMarCondominoBot?start=${registeredResident.telegramLinkToken}`);
+                        alert('Link de vinculação copiado para a área de transferência!');
+                      }}
+                      className="py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <Copy size={14} /> Copiar Link
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <button 
                 onClick={() => setShowSuccessModal(false)}
