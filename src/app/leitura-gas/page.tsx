@@ -97,6 +97,13 @@ export default function GasReadingPage() {
       const res = await fetch(`/api/leitura-gas?month=${fetchMonth}&year=${fetchYear}&t=${Date.now()}`, {
         cache: 'no-store'
       });
+
+      if (res.redirected || res.url.includes('/login')) {
+        setNotification({ type: 'error', message: 'Sessão expirada. Redirecionando para o login...' });
+        setTimeout(() => window.location.href = '/login', 2500);
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
         
@@ -118,6 +125,9 @@ export default function GasReadingPage() {
           }
           setValues(initialValues);
         }
+      } else {
+        const err = await res.json().catch(() => ({ message: 'Erro desconhecido ao carregar leituras.' }));
+        setNotification({ type: 'error', message: err.message || 'Erro ao buscar as leituras de gás.' });
       }
     } catch (err) {
       console.error('Erro ao buscar leituras de gás:', err);
@@ -177,11 +187,17 @@ export default function GasReadingPage() {
         })
       });
 
+      if (res.redirected || res.url.includes('/login')) {
+        setNotification({ type: 'error', message: 'Sessão expirada. Redirecionando para o login...' });
+        setTimeout(() => window.location.href = '/login', 2500);
+        return;
+      }
+
       if (res.ok) {
         setNotification({ type: 'success', message: 'Leituras de gás gravadas com sucesso!' });
         fetchReadings();
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({ message: 'Erro desconhecido ao salvar as leituras.' }));
         setNotification({ type: 'error', message: err.message || 'Erro ao salvar as leituras.' });
       }
     } catch (err) {
