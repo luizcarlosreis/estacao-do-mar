@@ -246,6 +246,45 @@ export default function GasReadingPage() {
 
   const totalFields = totalApartments + 1; // Unidades + Cozinha
 
+  // Calcula os totais de consumo acumulados para m³, Kilo e Reais em tempo real
+  let totalConsumptionM3 = 0;
+  let totalConsumptionKilo = 0;
+  let totalCost = 0;
+  const hasPrice = pricePerKilo !== '' && !isNaN(parseFloat(pricePerKilo));
+  const numericPrice = hasPrice ? parseFloat(pricePerKilo) : 0;
+
+  // 1. Cozinha
+  const cozinhaCurStr = values['COZINHA'];
+  const cozinhaPrev = prevValues['COZINHA'];
+  if (cozinhaCurStr && cozinhaPrev !== undefined && cozinhaPrev !== null) {
+    const cur = parseFloat(cozinhaCurStr);
+    if (!isNaN(cur)) {
+      const diff = cur - cozinhaPrev;
+      totalConsumptionM3 += diff;
+      totalConsumptionKilo += diff * 2.32;
+      if (hasPrice) {
+        totalCost += diff * 2.32 * numericPrice;
+      }
+    }
+  }
+
+  // 2. Apartamentos
+  units.forEach(u => {
+    const curStr = values[u.id];
+    const prev = prevValues[u.id];
+    if (curStr && prev !== undefined && prev !== null) {
+      const cur = parseFloat(curStr);
+      if (!isNaN(cur)) {
+        const diff = cur - prev;
+        totalConsumptionM3 += diff;
+        totalConsumptionKilo += diff * 2.32;
+        if (hasPrice) {
+          totalCost += diff * 2.32 * numericPrice;
+        }
+      }
+    }
+  });
+
   return (
     <div className="space-y-8 pb-32">
       {/* Header Premium */}
@@ -336,11 +375,11 @@ export default function GasReadingPage() {
           </label>
           <input 
             type="text"
-            placeholder="0.00"
+            placeholder="0.0000"
             value={pricePerKilo}
             onChange={(e) => {
               const rawVal = e.target.value.replace(',', '.');
-              if (rawVal === '' || /^\d*(\.\d{0,2})?$/.test(rawVal)) {
+              if (rawVal === '' || /^\d*(\.\d{0,4})?$/.test(rawVal)) {
                 setPricePerKilo(rawVal);
               }
             }}
@@ -540,6 +579,61 @@ export default function GasReadingPage() {
                 </div>
               ))
             )}
+          </div>
+
+          {/* Card de Resumo Geral (Totais) */}
+          <div className="bg-gradient-to-br from-slate-800 to-indigo-950 p-6 md:p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden mt-8">
+            <div className="absolute -right-16 -bottom-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl"></div>
+            <div className="absolute -left-16 -top-16 w-48 h-48 bg-blue-500/15 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/15">
+                  <Flame size={20} className="text-amber-300 animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest block leading-none mb-0.5">Consolidado Mensal</span>
+                  <h3 className="text-xl font-black tracking-tight leading-none">Resumo Geral de Consumo</h3>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                {/* Total m³ */}
+                <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+                  <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Total Consumido (m³)</span>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-white">{totalConsumptionM3.toFixed(3)}</span>
+                    <span className="text-xs font-bold text-indigo-300 font-medium">m³</span>
+                  </div>
+                </div>
+
+                {/* Total Kg */}
+                <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+                  <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Total Consumido (Kg)</span>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-blue-300">{totalConsumptionKilo.toFixed(3)}</span>
+                    <span className="text-xs font-bold text-indigo-300 font-medium">Kg</span>
+                  </div>
+                </div>
+
+                {/* Total Reais */}
+                <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 flex flex-col justify-between">
+                  <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Valor Total Acumulado</span>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    {hasPrice ? (
+                      <>
+                        <span className="text-xs font-bold text-indigo-300 font-medium mr-0.5">R$</span>
+                        <span className="text-3xl font-black text-emerald-400">
+                          {totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-bold text-indigo-300/60 italic font-medium">Preço do Kg não definido</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
