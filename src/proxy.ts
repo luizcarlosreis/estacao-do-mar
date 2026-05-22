@@ -9,7 +9,7 @@ export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // Rotas públicas
-  if (path === '/login' || path.startsWith('/api/login') || path.startsWith('/api/seed')) {
+  if (path === '/login' || path.startsWith('/api/login') || path.startsWith('/api/seed') || path === '/api/telegram/webhook') {
     if (token && path === '/login') {
       return NextResponse.redirect(new URL('/', req.url));
     }
