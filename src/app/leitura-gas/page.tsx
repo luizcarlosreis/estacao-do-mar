@@ -299,11 +299,10 @@ export default function GasReadingPage() {
                 <input 
                   type="text"
                   placeholder="0.000"
-                  className="w-full px-4 py-3 bg-white border-2 border-orange-150 focus:border-orange-500 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner pr-12 focus:ring-4 focus:ring-orange-500/10"
+                  className="w-full px-4 py-3 bg-white border-2 border-orange-150 focus:border-orange-500 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner focus:ring-4 focus:ring-orange-500/10"
                   value={values['COZINHA'] || ''}
                   onChange={(e) => handleInputChange('COZINHA', e.target.value)}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-orange-400">m³</span>
               </div>
             </div>
           </div>
@@ -343,11 +342,10 @@ export default function GasReadingPage() {
                           <input 
                             type="text"
                             placeholder="0.000"
-                            className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-100 hover:border-slate-200 focus:border-blue-500 rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner"
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-100 hover:border-slate-200 focus:border-blue-500 rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner"
                             value={values[u.id] || ''}
                             onChange={(e) => handleInputChange(u.id, e.target.value)}
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400">m³</span>
                         </div>
                       </div>
                     ))}
