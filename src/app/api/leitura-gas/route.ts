@@ -38,6 +38,12 @@ export async function GET(request: Request) {
         identifier: r.identifier,
         value: r.value
       }))
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
   } catch (error: any) {
     console.error('GET GasReadings Error:', error.message);

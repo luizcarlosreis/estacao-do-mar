@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Flame, 
   Calendar, 
@@ -52,6 +52,13 @@ export default function GasReadingPage() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [values, setValues] = useState<Record<string, string>>({}); // id -> value string
   
+  // Keep track of the latest selected month/year to prevent race conditions during async fetches
+  const latestSelected = useRef({ month: selectedMonth, year: selectedYear });
+  
+  useEffect(() => {
+    latestSelected.current = { month: selectedMonth, year: selectedYear };
+  }, [selectedMonth, selectedYear]);
+  
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -81,32 +88,43 @@ export default function GasReadingPage() {
 
   // Fetch Existing Readings for Selected Month/Year
   const fetchReadings = useCallback(async () => {
+    const fetchMonth = selectedMonth;
+    const fetchYear = selectedYear;
+
     setLoading(true);
+    setValues({}); // Clear values state immediately to prevent stale data bleeding
     try {
-      const res = await fetch(`/api/leitura-gas?month=${selectedMonth}&year=${selectedYear}`);
+      const res = await fetch(`/api/leitura-gas?month=${fetchMonth}&year=${fetchYear}&t=${Date.now()}`, {
+        cache: 'no-store'
+      });
       if (res.ok) {
         const data = await res.json();
         
-        // Se a data de leitura existir, atualiza ela (YYYY-MM-DD)
-        if (data.readAt) {
-          setReadAt(new Date(data.readAt).toISOString().substring(0, 10));
-        } else {
-          setReadAt(new Date().toISOString().substring(0, 10));
-        }
+        // Compare with latestSelected.current to ensure user hasn't switched selection in the meantime
+        if (latestSelected.current.month === fetchMonth && latestSelected.current.year === fetchYear) {
+          // Se a data de leitura existir, atualiza ela (YYYY-MM-DD)
+          if (data.readAt) {
+            setReadAt(new Date(data.readAt).toISOString().substring(0, 10));
+          } else {
+            setReadAt(new Date().toISOString().substring(0, 10));
+          }
 
-        // Mapeia valores salvos
-        const initialValues: Record<string, string> = {};
-        if (Array.isArray(data.readings)) {
-          data.readings.forEach((r: GasReading) => {
-            initialValues[r.identifier] = r.value !== null && r.value !== undefined ? r.value.toString() : '';
-          });
+          // Mapeia valores salvos
+          const initialValues: Record<string, string> = {};
+          if (Array.isArray(data.readings)) {
+            data.readings.forEach((r: GasReading) => {
+              initialValues[r.identifier] = r.value !== null && r.value !== undefined ? r.value.toString() : '';
+            });
+          }
+          setValues(initialValues);
         }
-        setValues(initialValues);
       }
     } catch (err) {
       console.error('Erro ao buscar leituras de gás:', err);
     } finally {
-      setLoading(false);
+      if (latestSelected.current.month === fetchMonth && latestSelected.current.year === fetchYear) {
+        setLoading(false);
+      }
     }
   }, [selectedMonth, selectedYear]);
 
