@@ -444,7 +444,7 @@ export default function EncomendasPage() {
                   >
                     <LogOut size={16} /> Dar Baixa
                   </button>
-                  {p.resident.telegramChatId ? (
+                  {p.resident.telegramChatId && (
                     notifiedPackages.has(p.id) ? (
                       <span className="py-3 px-4 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 border border-emerald-100">
                         <CheckCircle2 size={14} /> Notificado ✅
@@ -458,10 +458,6 @@ export default function EncomendasPage() {
                         <Send size={14} /> {notifyingPackage === p.id ? '...' : 'Telegram'}
                       </button>
                     )
-                  ) : (
-                    <span className="py-3 px-4 bg-slate-50 text-slate-400 rounded-xl font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 border border-slate-100" title="Morador não vinculou o Telegram">
-                      <Send size={12} /> Sem Telegram
-                    </span>
                   )}
                 </div>
               )}
