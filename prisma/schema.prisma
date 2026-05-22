@@ -375,3 +375,15 @@ model GasReading {
   @@unique([month, year, identifier])
 }
 
+model GasPrice {
+  id           String   @id @default(uuid())
+  month        Int      // Mês de referência (1 a 12)
+  year         Int      // Ano de referência
+  pricePerKilo Float    // Valor do quilo do gás (monetário) para este mês/ano
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([month, year])
+}
+
+

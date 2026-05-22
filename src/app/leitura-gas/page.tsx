@@ -10,7 +10,8 @@ import {
   UtensilsCrossed, 
   Building,
   RefreshCw,
-  Info
+  Info,
+  DollarSign
 } from 'lucide-react';
 
 interface Unit {
@@ -49,6 +50,7 @@ export default function GasReadingPage() {
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthVal);
   const [selectedYear, setSelectedYear] = useState<string>(currentYearVal.toString());
   const [readAt, setReadAt] = useState<string>(new Date().toISOString().substring(0, 10)); // YYYY-MM-DD
+  const [pricePerKilo, setPricePerKilo] = useState<string>('');
   const [units, setUnits] = useState<Unit[]>([]);
   const [values, setValues] = useState<Record<string, string>>({}); // id -> value string
   const [prevValues, setPrevValues] = useState<Record<string, number | null>>({}); // id/identifier -> previous numeric value
@@ -95,6 +97,7 @@ export default function GasReadingPage() {
     setLoading(true);
     setValues({}); // Clear values state immediately to prevent stale data bleeding
     setPrevValues({}); // Clear previous values state immediately as well
+    setPricePerKilo(''); // Clear price state immediately to prevent stale data bleeding
     try {
       const res = await fetch(`/api/leitura-gas?month=${fetchMonth}&year=${fetchYear}&t=${Date.now()}`, {
         cache: 'no-store'
@@ -116,6 +119,13 @@ export default function GasReadingPage() {
             setReadAt(new Date(data.readAt).toISOString().substring(0, 10));
           } else {
             setReadAt(new Date().toISOString().substring(0, 10));
+          }
+
+          // Se o preço por quilo existir, atualiza ele
+          if (data.pricePerKilo !== null && data.pricePerKilo !== undefined) {
+            setPricePerKilo(data.pricePerKilo.toString());
+          } else {
+            setPricePerKilo('');
           }
 
           // Mapeia valores salvos
@@ -194,7 +204,8 @@ export default function GasReadingPage() {
           month: selectedMonth,
           year: parseInt(selectedYear),
           readAt,
-          readings: readingsPayload
+          readings: readingsPayload,
+          pricePerKilo: pricePerKilo !== '' ? pricePerKilo : null
         })
       });
 
@@ -275,7 +286,7 @@ export default function GasReadingPage() {
       )}
 
       {/* Barra de Filtros / Período */}
-      <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-6 items-end">
+      <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-end">
         {/* Mês */}
         <div className="space-y-2">
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Escolha o Mês</label>
@@ -315,6 +326,25 @@ export default function GasReadingPage() {
             value={readAt}
             onChange={(e) => setReadAt(e.target.value)}
             className="w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 transition-all cursor-pointer"
+          />
+        </div>
+
+        {/* Valor do Kilo (R$) */}
+        <div className="space-y-2">
+          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <DollarSign size={12} className="text-slate-400" /> Valor do Kilo (R$)
+          </label>
+          <input 
+            type="text"
+            placeholder="0.00"
+            value={pricePerKilo}
+            onChange={(e) => {
+              const rawVal = e.target.value.replace(',', '.');
+              if (rawVal === '' || /^\d*(\.\d{0,2})?$/.test(rawVal)) {
+                setPricePerKilo(rawVal);
+              }
+            }}
+            className="w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 transition-all"
           />
         </div>
       </div>
@@ -366,6 +396,8 @@ export default function GasReadingPage() {
                   if (!isNaN(currentVal)) {
                     const consumption = currentVal - prevVal;
                     const consumptionKilo = consumption * 2.32;
+                    const numericPrice = parseFloat(pricePerKilo);
+                    const cost = !isNaN(numericPrice) ? consumptionKilo * numericPrice : null;
                     return (
                       <div className="text-right mt-1 px-2 select-none animate-in fade-in duration-200 flex flex-col items-end gap-0.5">
                         <div>
@@ -380,6 +412,14 @@ export default function GasReadingPage() {
                             {consumptionKilo >= 0 ? '+' : ''}{consumptionKilo.toFixed(3)}
                           </span>
                         </div>
+                        {cost !== null && (
+                          <div className="mt-1 border-t border-orange-200/60 pt-1 w-full text-right">
+                            <span className="text-[10px] font-black text-orange-600/70 uppercase tracking-wider inline-block mr-1">Valor do Gás:</span>
+                            <span className={`text-sm font-black ${cost >= 0 ? 'text-blue-600' : 'text-rose-500'}`}>
+                              R$ {cost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     );
                   }
@@ -447,6 +487,8 @@ export default function GasReadingPage() {
                             if (!isNaN(currentVal)) {
                               const consumption = currentVal - prevVal;
                               const consumptionKilo = consumption * 2.32;
+                              const numericPrice = parseFloat(pricePerKilo);
+                              const cost = !isNaN(numericPrice) ? consumptionKilo * numericPrice : null;
                               return (
                                 <div className="text-right mt-1.5 px-1 select-none animate-in fade-in duration-200 space-y-1">
                                   <div>
@@ -461,6 +503,14 @@ export default function GasReadingPage() {
                                       {consumptionKilo >= 0 ? '+' : ''}{consumptionKilo.toFixed(3)}
                                     </span>
                                   </div>
+                                  {cost !== null && (
+                                    <div className="mt-1 border-t border-slate-100 pt-1 text-right">
+                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Valor do Consumo:</span>
+                                      <span className={`text-xs font-black ${cost >= 0 ? 'text-blue-600' : 'text-rose-500 font-extrabold'}`}>
+                                        R$ {cost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             }
@@ -475,6 +525,12 @@ export default function GasReadingPage() {
                                 <span className="text-[9px] font-black text-slate-350 uppercase tracking-wider block leading-none mb-0.5">Consumo em Kilo:</span>
                                 <span className="text-xs font-bold text-slate-350">-</span>
                               </div>
+                              {pricePerKilo !== '' && !isNaN(parseFloat(pricePerKilo)) && (
+                                <div className="mt-1 border-t border-slate-100 pt-1">
+                                  <span className="text-[9px] font-black text-slate-350 uppercase tracking-wider block leading-none mb-0.5">Valor do Consumo:</span>
+                                  <span className="text-xs font-bold text-slate-350">-</span>
+                                </div>
+                              )}
                             </div>
                           );
                         })()}

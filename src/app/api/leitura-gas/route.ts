@@ -29,19 +29,29 @@ export async function GET(request: Request) {
     const prevYear = month === 1 ? year - 1 : year;
 
     const prisma = getPrisma();
-    const [readings, prevReadings] = await Promise.all([
+    const [readings, prevReadings, gasPrice] = await Promise.all([
       prisma.gasReading.findMany({
         where: { month, year }
       }),
       prisma.gasReading.findMany({
         where: { month: prevMonth, year: prevYear }
+      }),
+      prisma.gasPrice.findUnique({
+        where: {
+          month_year: {
+            month,
+            year
+          }
+        }
       })
     ]);
 
     const readAt = readings.length > 0 ? readings[0].readAt : null;
+    const pricePerKilo = gasPrice ? gasPrice.pricePerKilo : null;
 
     return NextResponse.json({
       readAt,
+      pricePerKilo,
       readings: readings.map(r => ({
         identifier: r.identifier,
         value: r.value
@@ -71,7 +81,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { month, year, readAt, readings } = body;
+    const { month, year, readAt, readings, pricePerKilo } = body;
 
     // Validações básicas
     if (!month || !year || !readAt || !Array.isArray(readings)) {
@@ -92,6 +102,22 @@ export async function POST(request: Request) {
     const parsedReadAt = new Date(readAt);
     if (isNaN(parsedReadAt.getTime())) {
       return NextResponse.json({ message: 'Data de leitura inválida' }, { status: 400 });
+    }
+
+    // Validação monetária do preço por quilo (caso fornecido)
+    let parsedPrice: number | null = null;
+    if (pricePerKilo !== null && pricePerKilo !== undefined && pricePerKilo !== '') {
+      parsedPrice = parseFloat(String(pricePerKilo).replace(',', '.'));
+      if (isNaN(parsedPrice) || parsedPrice < 0) {
+        return NextResponse.json({ message: 'O valor do quilo do gás deve ser um número maior ou igual a zero.' }, { status: 400 });
+      }
+
+      // Validação de até 4 casas decimais para o preço
+      const priceStr = String(parsedPrice);
+      const priceParts = priceStr.split('.');
+      if (priceParts[1] && priceParts[1].length > 4) {
+        return NextResponse.json({ message: 'O valor do quilo do gás excede o limite permitido de 4 casas decimais.' }, { status: 400 });
+      }
     }
 
     // Validação rígida de formato de casas decimais para cada lançamento
@@ -116,6 +142,25 @@ export async function POST(request: Request) {
     // Persistência atômica via transação interativa com Promise.all e timeout de 20 segundos
     await prisma.$transaction(
       async (tx) => {
+        // Grava ou atualiza o preço do quilo para este mês/ano
+        await tx.gasPrice.upsert({
+          where: {
+            month_year: {
+              month: parsedMonth,
+              year: parsedYear
+            }
+          },
+          update: {
+            pricePerKilo: parsedPrice ?? 0
+          },
+          create: {
+            month: parsedMonth,
+            year: parsedYear,
+            pricePerKilo: parsedPrice ?? 0
+          }
+        });
+
+        // Grava ou atualiza as leituras físicas
         await Promise.all(
           readings.map(r => {
             const val = (r.value !== null && r.value !== undefined && r.value !== '') ? parseFloat(r.value) : null;
