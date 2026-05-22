@@ -17,25 +17,26 @@ export async function GET(request: Request) {
     const packageNumber = searchParams.get('packageNumber');
 
     const where: any = {};
-    if (unitId) where.unitId = unitId;
-    if (status && status !== 'TODOS') where.status = status;
     if (packageNumber && packageNumber.trim() !== '') {
       where.number = parseInt(packageNumber);
-    }
+    } else {
+      if (unitId) where.unitId = unitId;
+      if (status && status !== 'TODOS') where.status = status;
 
-    if (month || year) {
-      const y = year ? parseInt(year) : new Date().getFullYear();
-      if (month) {
-        const m = parseInt(month);
-        where.receivedAt = {
-          gte: new Date(y, m - 1, 1),
-          lt: new Date(y, m, 1),
-        };
-      } else {
-        where.receivedAt = {
-          gte: new Date(y, 0, 1),
-          lt: new Date(y + 1, 0, 1),
-        };
+      if (month || year) {
+        const y = year ? parseInt(year) : new Date().getFullYear();
+        if (month) {
+          const m = parseInt(month);
+          where.receivedAt = {
+            gte: new Date(y, m - 1, 1),
+            lt: new Date(y, m, 1),
+          };
+        } else {
+          where.receivedAt = {
+            gte: new Date(y, 0, 1),
+            lt: new Date(y + 1, 0, 1),
+          };
+        }
       }
     }
 
