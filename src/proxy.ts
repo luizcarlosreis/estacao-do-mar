@@ -46,9 +46,9 @@ export default async function proxy(req: NextRequest) {
           }
         }
 
-        // MORADORES: Moradores, Veículos e Autorizações
+        // MORADORES: Moradores, Veículos, Autorizações e Leitura de Gás
         else if (role === 'MORADOR') {
-          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/api'];
+          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
           }

@@ -47,6 +47,7 @@ export default function GasReadingPage() {
   ];
 
   // States
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthVal);
   const [selectedYear, setSelectedYear] = useState<string>(currentYearVal.toString());
   const [readAt, setReadAt] = useState<string>(new Date().toISOString().substring(0, 10)); // YYYY-MM-DD
@@ -54,6 +55,14 @@ export default function GasReadingPage() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [values, setValues] = useState<Record<string, string>>({}); // id -> value string
   const [prevValues, setPrevValues] = useState<Record<string, number | null>>({}); // id/identifier -> previous numeric value
+
+  // Fetch logged in user profile on mount
+  useEffect(() => {
+    fetch('/api/me')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setCurrentUser(data?.user))
+      .catch(err => console.error('Erro ao buscar perfil do usuário:', err));
+  }, []);
   
   // Keep track of the latest selected month/year to prevent race conditions during async fetches
   const latestSelected = useRef({ month: selectedMonth, year: selectedYear });
@@ -285,6 +294,8 @@ export default function GasReadingPage() {
     }
   });
 
+  const isMorador = currentUser?.role === 'MORADOR';
+
   return (
     <div className="space-y-8 pb-32">
       {/* Header Premium */}
@@ -295,11 +306,16 @@ export default function GasReadingPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
           <div>
             <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest inline-flex items-center gap-2 mb-3 border border-white/20">
-              <Flame size={14} className="text-amber-300 animate-pulse" /> Leitura Predial
+              <Flame size={14} className="text-amber-300 animate-pulse" /> {isMorador ? 'Consumo Individual' : 'Leitura Predial'}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none mb-2">Registro de Leitura do Gás</h1>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none mb-2">
+              {isMorador ? 'Histórico de Consumo de Gás' : 'Registro de Leitura do Gás'}
+            </h1>
             <p className="text-blue-100 text-sm font-medium opacity-90 max-w-xl">
-              Área exclusiva para Zeladoria e Administração registrar as medições individuais mensais dos cilindros de gás do condomínio.
+              {isMorador 
+                ? 'Consulte com facilidade as medições de consumo de gás do seu apartamento e acompanhe o histórico mensal.'
+                : 'Área exclusiva para Zeladoria e Administração registrar as medições individuais mensais dos cilindros de gás do condomínio.'
+              }
             </p>
           </div>
           <button 
@@ -362,9 +378,14 @@ export default function GasReadingPage() {
           <input 
             type="date"
             required
+            disabled={isMorador}
             value={readAt}
             onChange={(e) => setReadAt(e.target.value)}
-            className="w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 transition-all cursor-pointer"
+            className={`w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none font-bold text-slate-700 transition-all ${
+              isMorador 
+                ? 'opacity-75 cursor-not-allowed border-transparent bg-slate-100/50' 
+                : 'focus:ring-2 focus:ring-blue-500/20 cursor-pointer'
+            }`}
           />
         </div>
 
@@ -376,6 +397,7 @@ export default function GasReadingPage() {
           <input 
             type="text"
             placeholder="0.0000"
+            disabled={isMorador}
             value={pricePerKilo}
             onChange={(e) => {
               const rawVal = e.target.value.replace(',', '.');
@@ -383,7 +405,11 @@ export default function GasReadingPage() {
                 setPricePerKilo(rawVal);
               }
             }}
-            className="w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 transition-all"
+            className={`w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none font-bold text-slate-700 transition-all ${
+              isMorador 
+                ? 'opacity-75 cursor-not-allowed border-transparent bg-slate-100/50' 
+                : 'focus:ring-2 focus:ring-blue-500/20'
+            }`}
           />
         </div>
       </div>
@@ -393,7 +419,165 @@ export default function GasReadingPage() {
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-slate-400 font-bold animate-pulse">Carregando leituras do período...</p>
         </div>
+      ) : isMorador ? (
+        /* VISÃO EXCLUSIVA DO MORADOR (READ-ONLY DEMONSTRATIVO PREMIUM) */
+        <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-300">
+          {!currentUser?.unitId ? (
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-12 text-center shadow-sm space-y-4">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Vínculo não encontrado</h3>
+              <p className="text-slate-500 text-sm font-medium max-w-md mx-auto leading-relaxed">
+                Seu perfil de morador ainda não está associado a nenhum apartamento no sistema.
+              </p>
+              <p className="text-slate-400 text-xs">
+                Por favor, entre em contato com a zeladoria ou a administração para realizar o vínculo da sua unidade.
+              </p>
+            </div>
+          ) : (() => {
+            const myUnit = units.find(u => u.id === currentUser.unitId);
+            const currentReadingStr = values[currentUser.unitId];
+            const hasReading = currentReadingStr !== undefined && currentReadingStr !== '';
+
+            if (!hasReading) {
+              return (
+                <div className="bg-white border border-slate-200 rounded-[2.5rem] p-12 text-center shadow-sm space-y-6">
+                  <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mx-auto shadow-sm border border-amber-100">
+                    <Calendar size={32} className="animate-pulse" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Medição em andamento</h3>
+                    <p className="text-slate-500 text-sm font-medium max-w-md mx-auto leading-relaxed">
+                      A leitura do medidor de gás para o apartamento <strong className="text-slate-800 font-black">AP {myUnit?.number || 'carregando...'} {myUnit?.block ? `- Bloco ${myUnit.block}` : ''}</strong> referente a <strong className="text-indigo-600 font-black">{months.find(m => m.value === selectedMonth)?.label} de {selectedYear}</strong> ainda não foi lançada pela administração do condomínio.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100 text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                    Zeladoria • Estação do Mar Condomínio
+                  </div>
+                </div>
+              );
+            }
+
+            const currentReading = parseFloat(currentReadingStr);
+            const prevReadingVal = prevValues[currentUser.unitId];
+            const prevReading = prevReadingVal !== undefined && prevReadingVal !== null ? prevReadingVal : null;
+            const hasPrev = prevReading !== null;
+            const consumption = hasPrev ? (currentReading - prevReading) : 0;
+            const consumptionKilo = consumption * 2.32;
+            const price = pricePerKilo !== '' ? parseFloat(pricePerKilo) : 0;
+            const cost = (price > 0) ? (consumptionKilo * price) : 0;
+
+            return (
+              <div className="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-xl overflow-hidden relative">
+                {/* Cabeçalho do Demonstrativo */}
+                <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 text-white relative">
+                  <div className="absolute right-6 top-6 opacity-10">
+                    <Flame size={120} />
+                  </div>
+                  <span className="text-[10px] font-black bg-indigo-500/20 text-indigo-200 border border-indigo-400/20 px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-3">
+                    Demonstrativo Individual
+                  </span>
+                  <h3 className="text-2xl font-black tracking-tight leading-none">CONSUMO DE GÁS</h3>
+                  <p className="text-indigo-200 text-xs font-semibold uppercase tracking-wider mt-2">
+                    Apartamento {myUnit?.number} — Bloco {myUnit?.block}
+                  </p>
+                  <div className="mt-6 flex justify-between items-end border-t border-white/10 pt-4 text-xs font-medium text-indigo-200/70">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-indigo-300/80 font-black">Período de Referência</p>
+                      <p className="text-sm font-black text-white mt-0.5">{months.find(m => m.value === selectedMonth)?.label} / {selectedYear}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] uppercase tracking-wider text-indigo-300/80 font-black">Data da Leitura</p>
+                      <p className="text-sm font-black text-white mt-0.5">
+                        {readAt ? new Date(readAt + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Corpo do Demonstrativo (Recibo) */}
+                <div className="p-8 space-y-6 bg-slate-50/50">
+                  <div className="space-y-4">
+                    {/* Linha: Leitura Anterior */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-500 font-medium">Leitura Anterior</span>
+                      <span className="font-bold text-slate-800">
+                        {hasPrev ? `${Number(prevReading).toFixed(3)} m³` : '-'}
+                      </span>
+                    </div>
+
+                    {/* Linha: Leitura Atual */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-500 font-medium">Leitura Atual</span>
+                      <span className="font-bold text-slate-800">
+                        {currentReading.toFixed(3)} m³
+                      </span>
+                    </div>
+
+                    <div className="border-t border-dashed border-slate-200 my-2" />
+
+                    {/* Linha: Consumo Líquido */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-slate-800 font-black text-sm block">Consumo Líquido (m³)</span>
+                        <span className="text-[10px] text-slate-400 font-bold block">(Leitura Atual - Leitura Anterior)</span>
+                      </div>
+                      <span className="text-base font-black text-emerald-600">
+                        {consumption.toFixed(3)} m³
+                      </span>
+                    </div>
+
+                    {/* Linha: Consumo em Quilo */}
+                    <div className="flex justify-between items-center pt-2">
+                      <div>
+                        <span className="text-slate-800 font-black text-sm block">Consumo Convertido (Kg)</span>
+                        <span className="text-[10px] text-slate-400 font-bold block">(Volume em m³ × 2.32)</span>
+                      </div>
+                      <span className="text-base font-black text-blue-600">
+                        {consumptionKilo.toFixed(3)} Kg
+                      </span>
+                    </div>
+
+                    {/* Linha: Valor por Quilo */}
+                    <div className="flex justify-between items-center pt-2">
+                      <div>
+                        <span className="text-slate-800 font-black text-sm block">Valor Unitário do Gás</span>
+                        <span className="text-[10px] text-slate-400 font-bold block">(Preço por quilo no período)</span>
+                      </div>
+                      <span className="text-base font-black text-slate-700">
+                        {price > 0 ? `R$ ${price.toFixed(4)}` : 'Não definido'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Totalizador do Recibo (Destaque) */}
+                  {price > 0 && (
+                    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-3xl p-6 flex justify-between items-center mt-6">
+                      <div>
+                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest block mb-0.5">Custo Estimado do Período</span>
+                        <span className="text-xs text-slate-500 font-medium block">Rateio estimado para faturamento</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-indigo-600 block mr-1 leading-none">R$</span>
+                        <span className="text-3xl font-black text-indigo-900 leading-none">
+                          {cost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Selo de Garantia */}
+                  <div className="text-center pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <CheckCircle2 size={12} className="text-emerald-500" /> Medição verificada pela Zeladoria
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       ) : (
+        /* VISÃO ADMINISTRATIVA (SUPER_ADMIN E SINDICO) */
         <div className="space-y-10">
           {/* Card Especial da Cozinha */}
           <div className="bg-gradient-to-br from-amber-50/60 to-orange-50/60 p-6 md:p-8 rounded-[2.5rem] border border-orange-100/60 shadow-inner-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -639,7 +823,7 @@ export default function GasReadingPage() {
       )}
 
       {/* Barra de Ação Adesiva / Sticky Footer */}
-      {!loading && (
+      {!loading && !isMorador && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-200 py-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2.5">

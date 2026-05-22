@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     const role = request.headers.get('x-user-role');
-    if (role !== 'SUPER_ADMIN' && role !== 'SINDICO') {
+    const unitId = request.headers.get('x-user-unit');
+    if (role !== 'SUPER_ADMIN' && role !== 'SINDICO' && role !== 'MORADOR') {
       return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
     }
 
@@ -29,12 +30,18 @@ export async function GET(request: Request) {
     const prevYear = month === 1 ? year - 1 : year;
 
     const prisma = getPrisma();
+    const isMorador = role === 'MORADOR';
+
     const [readings, prevReadings, gasPrice] = await Promise.all([
       prisma.gasReading.findMany({
-        where: { month, year }
+        where: isMorador 
+          ? { month, year, identifier: unitId || 'undefined' } 
+          : { month, year }
       }),
       prisma.gasReading.findMany({
-        where: { month: prevMonth, year: prevYear }
+        where: isMorador 
+          ? { month: prevMonth, year: prevYear, identifier: unitId || 'undefined' } 
+          : { month: prevMonth, year: prevYear }
       }),
       prisma.gasPrice.findUnique({
         where: {
