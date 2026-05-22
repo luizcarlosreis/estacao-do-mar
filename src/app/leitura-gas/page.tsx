@@ -365,12 +365,21 @@ export default function GasReadingPage() {
                   const currentVal = parseFloat(currentValStr);
                   if (!isNaN(currentVal)) {
                     const consumption = currentVal - prevVal;
+                    const consumptionKilo = consumption * 2.32;
                     return (
-                      <div className="text-right mt-1 px-2 select-none animate-in fade-in duration-200">
-                        <span className="text-[10px] font-black text-orange-600/70 uppercase tracking-wider inline-block mr-1">Consumo em m³:</span>
-                        <span className={`text-sm font-black ${consumption >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                          {consumption >= 0 ? '+' : ''}{consumption.toFixed(3)}
-                        </span>
+                      <div className="text-right mt-1 px-2 select-none animate-in fade-in duration-200 flex flex-col items-end gap-0.5">
+                        <div>
+                          <span className="text-[10px] font-black text-orange-600/70 uppercase tracking-wider inline-block mr-1">Consumo em m³:</span>
+                          <span className={`text-sm font-black ${consumption >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                            {consumption >= 0 ? '+' : ''}{consumption.toFixed(3)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-black text-orange-600/70 uppercase tracking-wider inline-block mr-1">Consumo em Kilo:</span>
+                          <span className={`text-sm font-black ${consumptionKilo >= 0 ? 'text-blue-600' : 'text-rose-500'}`}>
+                            {consumptionKilo >= 0 ? '+' : ''}{consumptionKilo.toFixed(3)}
+                          </span>
+                        </div>
                       </div>
                     );
                   }
@@ -437,20 +446,35 @@ export default function GasReadingPage() {
                             const currentVal = parseFloat(currentValStr);
                             if (!isNaN(currentVal)) {
                               const consumption = currentVal - prevVal;
+                              const consumptionKilo = consumption * 2.32;
                               return (
-                                <div className="text-right mt-1 px-1 select-none animate-in fade-in duration-200">
-                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Consumo em m³:</span>
-                                  <span className={`text-xs font-black ${consumption >= 0 ? 'text-emerald-600' : 'text-rose-500 font-extrabold'}`}>
-                                    {consumption >= 0 ? '+' : ''}{consumption.toFixed(3)}
-                                  </span>
+                                <div className="text-right mt-1.5 px-1 select-none animate-in fade-in duration-200 space-y-1">
+                                  <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Consumo em m³:</span>
+                                    <span className={`text-xs font-black ${consumption >= 0 ? 'text-emerald-600' : 'text-rose-500 font-extrabold'}`}>
+                                      {consumption >= 0 ? '+' : ''}{consumption.toFixed(3)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Consumo em Kilo:</span>
+                                    <span className={`text-xs font-black ${consumptionKilo >= 0 ? 'text-blue-600' : 'text-rose-500 font-extrabold'}`}>
+                                      {consumptionKilo >= 0 ? '+' : ''}{consumptionKilo.toFixed(3)}
+                                    </span>
+                                  </div>
                                 </div>
                               );
                             }
                           }
                           return (
-                            <div className="text-right mt-1 px-1 select-none opacity-40">
-                              <span className="text-[9px] font-black text-slate-350 uppercase tracking-wider block leading-none mb-0.5">Consumo em m³:</span>
-                              <span className="text-xs font-bold text-slate-350">-</span>
+                            <div className="text-right mt-1.5 px-1 select-none opacity-40 space-y-1">
+                              <div>
+                                <span className="text-[9px] font-black text-slate-350 uppercase tracking-wider block leading-none mb-0.5">Consumo em m³:</span>
+                                <span className="text-xs font-bold text-slate-350">-</span>
+                              </div>
+                              <div>
+                                <span className="text-[9px] font-black text-slate-350 uppercase tracking-wider block leading-none mb-0.5">Consumo em Kilo:</span>
+                                <span className="text-xs font-bold text-slate-350">-</span>
+                              </div>
                             </div>
                           );
                         })()}
