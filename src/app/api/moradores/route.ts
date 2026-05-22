@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,11 +27,28 @@ export async function GET(request: Request) {
     whereClause.isActive = true;
   }
 
-  const users = await (getPrisma()).user.findMany({
+  const prisma = getPrisma();
+  const users = await prisma.user.findMany({
     where: whereClause,
     include: { unit: true }
   });
-  return NextResponse.json(users);
+
+  // Garantir que todos possuem telegramLinkToken
+  const updatedUsers = await Promise.all(
+    users.map(async (u) => {
+      if (!u.telegramLinkToken) {
+        const token = randomUUID();
+        await prisma.user.update({
+          where: { id: u.id },
+          data: { telegramLinkToken: token }
+        });
+        return { ...u, telegramLinkToken: token };
+      }
+      return u;
+    })
+  );
+
+  return NextResponse.json(updatedUsers);
 }
 
 export async function POST(request: Request) {
@@ -72,7 +90,8 @@ export async function POST(request: Request) {
         ddd,
         phone,
         residentType: body.residentType || 'MORADOR',
-        isActive: body.isActive !== undefined ? body.isActive : true
+        isActive: body.isActive !== undefined ? body.isActive : true,
+        telegramLinkToken: randomUUID()
       },
     });
     return NextResponse.json(user, { status: 201 });

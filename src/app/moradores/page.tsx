@@ -16,7 +16,10 @@ import {
   Phone,
   Send,
   Link2,
-  Unlink
+  Unlink,
+  Copy,
+  ExternalLink,
+  CheckCircle2
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -39,6 +42,7 @@ type Morador = {
   residentType?: string;
   isActive?: boolean;
   telegramChatId?: string;
+  telegramLinkToken?: string;
 };
 
 
@@ -54,6 +58,10 @@ export default function MoradoresPage() {
   const [telegramLoading, setTelegramLoading] = useState(false);
   const [telegramLinked, setTelegramLinked] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  const [selectedMorador, setSelectedMorador] = useState<Morador | null>(null);
+  const [registeredResident, setRegisteredResident] = useState<Morador | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -123,8 +131,13 @@ export default function MoradoresPage() {
       });
 
       if (res.ok) {
+        const savedResident = await res.json();
         setIsModalOpen(false);
         fetchMoradores();
+        if (!isEditMode) {
+          setRegisteredResident(savedResident);
+          setShowSuccessModal(true);
+        }
       } else {
         const errorData = await res.json();
         alert(`Erro: ${errorData.message}`);
@@ -153,6 +166,7 @@ export default function MoradoresPage() {
   };
 
   const openEditModal = (m: Morador) => {
+    setSelectedMorador(m);
     setFormData({ 
       cpf: m.cpf, 
       name: m.name, 
@@ -169,34 +183,31 @@ export default function MoradoresPage() {
   };
 
   const openCreateModal = () => {
+    setSelectedMorador(null);
     setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
 
-  const handleTelegramLink = async () => {
-    if (!telegramChatId.trim() || !currentUser) return;
-    setTelegramLoading(true);
+  const handleUnlinkTelegram = async (morador: Morador) => {
+    if (!confirm(`Deseja desvincular o Telegram de ${morador.name}?`)) return;
     try {
-      const res = await fetch('/api/telegram/link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, telegramChatId: telegramChatId.trim() })
-      });
+      const res = await fetch(`/api/telegram/link?userId=${morador.id}`, { method: 'DELETE' });
       if (res.ok) {
-        setTelegramLinked(true);
-        setShowTelegramModal(false);
-        setTelegramChatId('');
-        alert('✅ Telegram vinculado com sucesso! Verifique a mensagem de boas-vindas no seu Telegram.');
+        fetchMoradores();
+        if (currentUser && morador.id === currentUser.id) {
+          setTelegramLinked(false);
+        }
+        if (selectedMorador && selectedMorador.id === morador.id) {
+          setSelectedMorador(prev => prev ? { ...prev, telegramChatId: undefined } : null);
+        }
+        alert('Telegram desvinculado com sucesso!');
       } else {
-        const err = await res.json();
-        alert(`Erro: ${err.message}`);
+        alert('Erro ao desvincular Telegram.');
       }
     } catch (e) {
       console.error(e);
-      alert('Erro ao vincular Telegram.');
-    } finally {
-      setTelegramLoading(false);
+      alert('Erro ao desvincular Telegram.');
     }
   };
 
@@ -301,32 +312,7 @@ export default function MoradoresPage() {
           </div>
         </div>
 
-        {/* Card Telegram */}
-        {currentUser && (
-          <div className="w-full md:w-auto">
-            {telegramLinked ? (
-              <div className="flex items-center gap-2">
-                <span className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider flex items-center gap-2 border border-emerald-100">
-                  <Send size={14} /> Telegram Vinculado ✅
-                </span>
-                <button
-                  onClick={handleTelegramUnlink}
-                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                  title="Desvincular Telegram"
-                >
-                  <Unlink size={14} />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowTelegramModal(true)}
-                className="bg-[#0088cc] text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#006da3] transition shadow-lg shadow-blue-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
-              >
-                <Send size={14} /> Vincular meu Telegram
-              </button>
-            )}
-          </div>
-        )}
+
 
         {/* Listagem Agrupada */}
         {loading ? (
@@ -582,6 +568,63 @@ export default function MoradoresPage() {
                 </select>
               </div>
 
+              {isEditMode && selectedMorador && (
+                <div className="pt-4 border-t border-slate-100 space-y-3">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Integração com Telegram
+                  </label>
+                  
+                  {selectedMorador.telegramChatId ? (
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-emerald-700 text-[11px] font-black uppercase">
+                          <CheckCircle2 size={14} /> Telegram Ativo
+                        </div>
+                        <p className="text-[9px] text-emerald-600 font-medium mt-0.5">
+                          ID: {selectedMorador.telegramChatId} • Recebendo notificações.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUnlinkTelegram(selectedMorador)}
+                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors shrink-0"
+                        title="Desvincular Telegram"
+                      >
+                        <Unlink size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
+                      <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                        Vincule esta conta ao Telegram para habilitar avisos instantâneos de encomendas na portaria:
+                      </p>
+                      
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://t.me/EstacaoDoMarCondominoBot?start=${selectedMorador.telegramLinkToken}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-2 px-3 bg-[#0088cc] hover:bg-[#006da3] text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-blue-100"
+                        >
+                          <Send size={12} /> Abrir Telegram <ExternalLink size={10} />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`https://t.me/EstacaoDoMarCondominoBot?start=${selectedMorador.telegramLinkToken}`);
+                            alert('Link de vinculação copiado para a área de transferência!');
+                          }}
+                          className="py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-600 transition-all flex items-center gap-1 shadow-sm"
+                          title="Copiar Link"
+                        >
+                          <Copy size={12} /> Copiar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-4 border-t">
                 <button 
                   type="button" 
@@ -603,58 +646,68 @@ export default function MoradoresPage() {
         </div>
       )}
 
-      {/* Modal Telegram */}
-      {showTelegramModal && (
+      {/* Modal Sucesso Cadastro com Telegram */}
+      {showSuccessModal && registeredResident && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
-            <div className="p-6 bg-[#0088cc] text-white flex justify-between items-center">
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
               <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <Send size={18} /> Vincular Telegram
+                <CheckCircle2 size={18} className="text-emerald-500 animate-bounce" /> Cadastro Concluído!
               </h2>
-              <button onClick={() => setShowTelegramModal(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+              <button onClick={() => setShowSuccessModal(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
                 <X size={24} />
               </button>
             </div>
             
-            <div className="p-6 space-y-5">
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-3">
-                <h3 className="text-[11px] font-black text-blue-800 uppercase tracking-wider">📋 Como obter seu Chat ID:</h3>
-                <ol className="text-[11px] text-blue-700 font-medium space-y-2 list-decimal list-inside">
-                  <li>Abra o Telegram no celular ou computador</li>
-                  <li>Procure o bot <strong>@userinfobot</strong></li>
-                  <li>Envie qualquer mensagem para ele</li>
-                  <li>Ele vai responder com seu <strong>Id</strong> (um número)</li>
-                  <li>Cole esse número abaixo</li>
-                </ol>
+            <div className="p-6 space-y-5 text-center">
+              <div className="space-y-2">
+                <div className="inline-flex p-3 bg-emerald-100 text-emerald-600 rounded-full">
+                  <User size={32} />
+                </div>
+                <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">
+                  {registeredResident.name}
+                </h3>
+                <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+                  Cadastrado com sucesso no portal!
+                </p>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Seu Chat ID do Telegram</label>
-                <input 
-                  type="text" 
-                  placeholder="Ex: 123456789"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0088cc]/20 outline-none text-[11px] font-bold text-slate-800"
-                  value={telegramChatId}
-                  onChange={(e) => setTelegramChatId(e.target.value.replace(/\D/g, ''))}
-                />
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-left space-y-3">
+                <div className="flex items-center gap-1.5 text-blue-800 text-[10px] font-black uppercase tracking-wider">
+                  <Send size={14} className="text-[#0088cc]" /> Notificações de Encomendas
+                </div>
+                <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                  Para que o morador receba avisos automáticos e em tempo real do Bot da Portaria, peça para ele iniciar o nosso bot do Telegram:
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-1.5">
+                  <a
+                    href={`https://t.me/EstacaoDoMarCondominoBot?start=${registeredResident.telegramLinkToken}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-3 px-4 bg-[#0088cc] hover:bg-[#006da3] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-100"
+                  >
+                    <Send size={14} /> Iniciar Bot <ExternalLink size={12} />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://t.me/EstacaoDoMarCondominoBot?start=${registeredResident.telegramLinkToken}`);
+                      alert('Link de vinculação copiado para a área de transferência!');
+                    }}
+                    className="py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    <Copy size={14} /> Copiar Link
+                  </button>
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t">
-                <button 
-                  type="button" 
-                  onClick={() => setShowTelegramModal(false)} 
-                  className="flex-1 py-3 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-500 hover:bg-slate-50 transition"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={handleTelegramLink}
-                  disabled={telegramLoading || !telegramChatId.trim()}
-                  className="flex-1 py-3 bg-[#0088cc] text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-[#006da3] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                >
-                  {telegramLoading ? 'Vinculando...' : (<><Link2 size={14} /> Vincular</>)}
-                </button>
-              </div>
+              <button 
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-3 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition"
+              >
+                Concluir e Fechar
+              </button>
             </div>
           </div>
         </div>

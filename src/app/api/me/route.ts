@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { getPrisma } from '@/lib/prisma';
+import { randomUUID } from 'crypto';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-estacao-do-mar');
 
@@ -24,12 +25,22 @@ export async function GET(req: NextRequest) {
         email: true,
         unitId: true,
         cpf: true,
-        telegramChatId: true
+        telegramChatId: true,
+        telegramLinkToken: true
       }
     });
 
     if (!user) {
       return NextResponse.json({ message: 'Usuário não encontrado' }, { status: 404 });
+    }
+
+    if (!user.telegramLinkToken) {
+      const token = randomUUID();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { telegramLinkToken: token }
+      });
+      user.telegramLinkToken = token;
     }
 
     return NextResponse.json({ user });
