@@ -345,17 +345,38 @@ export default function GasReadingPage() {
                 </p>
               </div>
             </div>
-            <div className="w-full md:w-auto flex items-center gap-3">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:block shrink-0">Leitura Atual:</label>
-              <div className="relative flex-grow md:flex-grow-0 min-w-[160px]">
-                <input 
-                  type="text"
-                  placeholder="0"
-                  className="w-full px-4 py-3 bg-white border-2 border-orange-150 focus:border-orange-500 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner focus:ring-4 focus:ring-orange-500/10"
-                  value={values['COZINHA'] || ''}
-                  onChange={(e) => handleInputChange('COZINHA', e.target.value)}
-                />
+            <div className="w-full md:w-auto flex flex-col items-end gap-1 shrink-0">
+              <div className="flex items-center gap-3 w-full justify-end">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:block shrink-0">Leitura Atual:</label>
+                <div className="relative flex-grow md:flex-grow-0 min-w-[160px]">
+                  <input 
+                    type="text"
+                    placeholder="0"
+                    className="w-full px-4 py-3 bg-white border-2 border-orange-150 focus:border-orange-500 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner focus:ring-4 focus:ring-orange-500/10"
+                    value={values['COZINHA'] || ''}
+                    onChange={(e) => handleInputChange('COZINHA', e.target.value)}
+                  />
+                </div>
               </div>
+              {(() => {
+                const currentValStr = values['COZINHA'];
+                const prevVal = prevValues['COZINHA'];
+                if (currentValStr && prevVal !== undefined && prevVal !== null) {
+                  const currentVal = parseFloat(currentValStr);
+                  if (!isNaN(currentVal)) {
+                    const consumption = currentVal - prevVal;
+                    return (
+                      <div className="text-right mt-1 px-2 select-none animate-in fade-in duration-200">
+                        <span className="text-[10px] font-black text-orange-600/70 uppercase tracking-wider inline-block mr-1">Consumo em m³:</span>
+                        <span className={`text-sm font-black ${consumption >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                          {consumption >= 0 ? '+' : ''}{consumption.toFixed(3)}
+                        </span>
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
           </div>
 
@@ -407,6 +428,32 @@ export default function GasReadingPage() {
                             onChange={(e) => handleInputChange(u.id, e.target.value)}
                           />
                         </div>
+
+                        {/* Consumo Calculado */}
+                        {(() => {
+                          const currentValStr = values[u.id];
+                          const prevVal = prevValues[u.id];
+                          if (currentValStr && prevVal !== undefined && prevVal !== null) {
+                            const currentVal = parseFloat(currentValStr);
+                            if (!isNaN(currentVal)) {
+                              const consumption = currentVal - prevVal;
+                              return (
+                                <div className="text-right mt-1 px-1 select-none animate-in fade-in duration-200">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Consumo em m³:</span>
+                                  <span className={`text-xs font-black ${consumption >= 0 ? 'text-emerald-600' : 'text-rose-500 font-extrabold'}`}>
+                                    {consumption >= 0 ? '+' : ''}{consumption.toFixed(3)}
+                                  </span>
+                                </div>
+                              );
+                            }
+                          }
+                          return (
+                            <div className="text-right mt-1 px-1 select-none opacity-40">
+                              <span className="text-[9px] font-black text-slate-350 uppercase tracking-wider block leading-none mb-0.5">Consumo em m³:</span>
+                              <span className="text-xs font-bold text-slate-350">-</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>
