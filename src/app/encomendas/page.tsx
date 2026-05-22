@@ -411,11 +411,13 @@ export default function EncomendasPage() {
               )}
 
               <div className="mb-6">
-                <div className="flex justify-between items-start gap-2 mb-1">
+                <div className="flex flex-col gap-1.5 mb-1.5">
                   <span className="text-sm font-black text-blue-600 uppercase tracking-wider block">AP {p.unit.number} • {p.unit.block}</span>
-                  <span className="bg-blue-50 text-blue-700 font-black px-2.5 py-0.5 rounded-lg text-xs border border-blue-100">
-                    Nº #{p.number}
-                  </span>
+                  <div className="flex">
+                    <span className="bg-blue-50 text-blue-700 font-black px-2.5 py-0.5 rounded-lg text-xs border border-blue-100">
+                      Nº #{p.number}
+                    </span>
+                  </div>
                 </div>
                 <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate">{p.resident.name}</h3>
                 <div className="flex items-center gap-2 mt-2">
@@ -744,13 +746,15 @@ export default function EncomendasPage() {
               {/* Header com Unidade, Morador e Status */}
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-col gap-1.5 mb-2">
                     <span className="text-xs font-black text-blue-600 uppercase tracking-widest block">
                       AP {selectedPackage.unit.number} • {selectedPackage.unit.block}
                     </span>
-                    <span className="bg-blue-50 text-blue-700 font-black px-2 py-0.5 rounded-md text-[10px] border border-blue-100">
-                      Nº #{selectedPackage.number}
-                    </span>
+                    <div className="flex">
+                      <span className="bg-blue-50 text-blue-700 font-black px-2 py-0.5 rounded-md text-[10px] border border-blue-100">
+                        Nº #{selectedPackage.number}
+                      </span>
+                    </div>
                   </div>
                   <h3 className="text-xl font-bold text-slate-800 leading-tight">
                     {selectedPackage.resident.name}
