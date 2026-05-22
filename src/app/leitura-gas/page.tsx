@@ -11,8 +11,10 @@ import {
   Building,
   RefreshCw,
   Info,
-  DollarSign
+  DollarSign,
+  FileSpreadsheet
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface Unit {
   id: string;
@@ -239,6 +241,120 @@ export default function GasReadingPage() {
     }
   };
 
+  // Export readings to Excel sheet (Zeladoria & Administrador only)
+  const exportToExcel = () => {
+    const exportedData: any[] = [];
+    const numericPrice = pricePerKilo !== '' && !isNaN(parseFloat(pricePerKilo)) ? parseFloat(pricePerKilo) : 0;
+    
+    const formattedReadDate = readAt 
+      ? new Date(readAt + 'T00:00:00').toLocaleDateString('pt-BR') 
+      : '-';
+
+    const getCalculations = (identifier: string, curValStr: string) => {
+      const cur = parseFloat(curValStr);
+      if (isNaN(cur)) return null;
+
+      const prev = prevValues[identifier] !== undefined && prevValues[identifier] !== null 
+        ? Number(prevValues[identifier]) 
+        : null;
+
+      const hasPrev = prev !== null;
+      const consumptionM3 = hasPrev ? (cur - prev) : 0;
+      const consumptionKilo = consumptionM3 * 2.32;
+      const cost = numericPrice > 0 ? (consumptionKilo * numericPrice) : 0;
+
+      return {
+        prev: hasPrev ? prev : null,
+        current: cur,
+        consumptionM3,
+        consumptionKilo,
+        cost
+      };
+    };
+
+    // 1. Process common area "Cozinha Condomínio" if filled
+    const cozinhaVal = values['COZINHA'];
+    if (cozinhaVal !== undefined && cozinhaVal !== '') {
+      const calcs = getCalculations('COZINHA', cozinhaVal);
+      if (calcs) {
+        exportedData.push({
+          'Unidade': 'Cozinha Condomínio',
+          'Data da Leitura': formattedReadDate,
+          'Leitura Anterior (m³)': calcs.prev !== null ? calcs.prev : '-',
+          'Leitura Atual (m³)': calcs.current,
+          'Consumo Líquido (m³)': calcs.consumptionM3,
+          'Consumo Convertido (Kg)': calcs.consumptionKilo,
+          'Preço por Kg (R$)': numericPrice > 0 ? numericPrice : '-',
+          'Valor do Consumo (R$)': numericPrice > 0 ? calcs.cost : 0
+        });
+      }
+    }
+
+    // 2. Process all units
+    units.forEach(u => {
+      const aptVal = values[u.id];
+      if (aptVal !== undefined && aptVal !== '') {
+        const calcs = getCalculations(u.id, aptVal);
+        if (calcs) {
+          exportedData.push({
+            'Unidade': `Ap ${u.number} - Bloco ${u.block}`,
+            'Data da Leitura': formattedReadDate,
+            'Leitura Anterior (m³)': calcs.prev !== null ? calcs.prev : '-',
+            'Leitura Atual (m³)': calcs.current,
+            'Consumo Líquido (m³)': calcs.consumptionM3,
+            'Consumo Convertido (Kg)': calcs.consumptionKilo,
+            'Preço por Kg (R$)': numericPrice > 0 ? numericPrice : '-',
+            'Valor do Consumo (R$)': numericPrice > 0 ? calcs.cost : 0
+          });
+        }
+      }
+    });
+
+    if (exportedData.length === 0) {
+      alert('Nenhuma medição preenchida para o período selecionado para exportar.');
+      return;
+    }
+
+    // 3. Compute Totals
+    const sumM3 = exportedData.reduce((acc, row) => acc + Number(row['Consumo Líquido (m³)']), 0);
+    const sumKilo = exportedData.reduce((acc, row) => acc + Number(row['Consumo Convertido (Kg)']), 0);
+    const sumCost = exportedData.reduce((acc, row) => acc + Number(row['Valor do Consumo (R$)']), 0);
+
+    // 4. Append consolidated TOTAL row at the end
+    exportedData.push({
+      'Unidade': 'TOTAL',
+      'Data da Leitura': '',
+      'Leitura Anterior (m³)': '',
+      'Leitura Atual (m³)': '',
+      'Consumo Líquido (m³)': sumM3,
+      'Consumo Convertido (Kg)': sumKilo,
+      'Preço por Kg (R$)': '',
+      'Valor do Consumo (R$)': sumCost
+    });
+
+    // 5. Build sheet and workbook
+    const ws = XLSX.utils.json_to_sheet(exportedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leituras de Gás');
+
+    // 6. Define column widths to prevent text clipping
+    const colWidths = [
+      { wch: 25 }, // Unidade
+      { wch: 18 }, // Data da Leitura
+      { wch: 22 }, // Leitura Anterior (m³)
+      { wch: 20 }, // Leitura Atual (m³)
+      { wch: 22 }, // Consumo Líquido (m³)
+      { wch: 25 }, // Consumo Convertido (Kg)
+      { wch: 20 }, // Preço por Kg (R$)
+      { wch: 22 }  // Valor do Consumo (R$)
+    ];
+    ws['!cols'] = colWidths;
+
+    // 7. Write and trigger download
+    const monthLabel = months.find(m => m.value === selectedMonth)?.label || selectedMonth.toString();
+    XLSX.writeFile(wb, `Leituras_Gas_${monthLabel}_${selectedYear}.xlsx`);
+  };
+
   // Agrupa apartamentos por Bloco para exibição elegante
   const groupedUnits = units.reduce((acc, unit) => {
     if (!acc[unit.block]) acc[unit.block] = [];
@@ -318,13 +434,25 @@ export default function GasReadingPage() {
               }
             </p>
           </div>
-          <button 
-            onClick={fetchReadings}
-            className="bg-white/10 hover:bg-white/20 text-white font-bold p-3 rounded-2xl border border-white/15 transition-all active:scale-95 flex items-center gap-2 self-end md:self-auto"
-            title="Recarregar dados"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            {!isMorador && (
+              <button 
+                onClick={exportToExcel}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-2xl border border-emerald-500/20 transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-emerald-700/20"
+                title="Exportar Leituras para Excel"
+              >
+                <FileSpreadsheet size={18} />
+                <span className="hidden sm:inline text-xs font-black uppercase tracking-wider">Exportar Excel</span>
+              </button>
+            )}
+            <button 
+              onClick={fetchReadings}
+              className="bg-white/10 hover:bg-white/20 text-white font-bold p-3 rounded-2xl border border-white/15 transition-all active:scale-95 flex items-center gap-2"
+              title="Recarregar dados"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
       </div>
 
