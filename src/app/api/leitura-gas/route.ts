@@ -113,33 +113,40 @@ export async function POST(request: Request) {
 
     const prisma = getPrisma();
 
-    // Persistência atômica via transação
+    // Persistência atômica via transação interativa com Promise.all e timeout de 20 segundos
     await prisma.$transaction(
-      readings.map(r => {
-        const val = (r.value !== null && r.value !== undefined && r.value !== '') ? parseFloat(r.value) : null;
-        return prisma.gasReading.upsert({
-          where: {
-            month_year_identifier: {
-              month: parsedMonth,
-              year: parsedYear,
-              identifier: r.identifier
-            }
-          },
-          update: {
-            readAt: parsedReadAt,
-            value: val,
-            unitId: r.unitId || null
-          },
-          create: {
-            month: parsedMonth,
-            year: parsedYear,
-            readAt: parsedReadAt,
-            value: val,
-            identifier: r.identifier,
-            unitId: r.unitId || null
-          }
-        });
-      })
+      async (tx) => {
+        await Promise.all(
+          readings.map(r => {
+            const val = (r.value !== null && r.value !== undefined && r.value !== '') ? parseFloat(r.value) : null;
+            return tx.gasReading.upsert({
+              where: {
+                month_year_identifier: {
+                  month: parsedMonth,
+                  year: parsedYear,
+                  identifier: r.identifier
+                }
+              },
+              update: {
+                readAt: parsedReadAt,
+                value: val,
+                unitId: r.unitId || null
+              },
+              create: {
+                month: parsedMonth,
+                year: parsedYear,
+                readAt: parsedReadAt,
+                value: val,
+                identifier: r.identifier,
+                unitId: r.unitId || null
+              }
+            });
+          })
+        );
+      },
+      {
+        timeout: 20000 // 20 segundos de limite para evitar timeout sob concorrência ou frio no Neon
+      }
     );
 
     return NextResponse.json({ message: 'Leituras salvas com sucesso!' });
