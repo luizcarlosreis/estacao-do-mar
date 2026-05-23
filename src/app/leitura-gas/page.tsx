@@ -15,6 +15,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { APP_VERSION } from '@/lib/version';
 
 interface Unit {
   id: string;
@@ -29,7 +30,12 @@ interface GasReading {
 
 export default function GasReadingPage() {
   const currentYearVal = new Date().getFullYear();
-  const currentMonthVal = new Date().getMonth() + 1; // 1-indexed
+  
+  // Obter a data do mês anterior da data vigente
+  const prevMonthDate = new Date();
+  prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+  const defaultMonthVal = prevMonthDate.getMonth() + 1; // 1-indexed
+  const defaultYearVal = prevMonthDate.getFullYear().toString();
 
   // Dropdown presets
   const years = Array.from({ length: 5 }, (_, i) => (currentYearVal - i).toString());
@@ -50,8 +56,8 @@ export default function GasReadingPage() {
 
   // States
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [selectedMonth, setSelectedMonth] = useState<number>(currentMonthVal);
-  const [selectedYear, setSelectedYear] = useState<string>(currentYearVal.toString());
+  const [selectedMonth, setSelectedMonth] = useState<number>(defaultMonthVal);
+  const [selectedYear, setSelectedYear] = useState<string>(defaultYearVal);
   const [readAt, setReadAt] = useState<string>(new Date().toISOString().substring(0, 10)); // YYYY-MM-DD
   const [pricePerKilo, setPricePerKilo] = useState<string>('');
   const [units, setUnits] = useState<Unit[]>([]);
@@ -984,6 +990,12 @@ export default function GasReadingPage() {
           </div>
         </div>
       )}
+      {/* Rodapé da Versão do Sistema */}
+      <div className="mt-12 text-center pb-8 select-none">
+        <span className="text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full text-red-600 bg-white shadow-sm border border-red-100">
+          Estação do Mar Management Portal • {APP_VERSION}
+        </span>
+      </div>
     </div>
   );
 }
