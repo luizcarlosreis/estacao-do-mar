@@ -76,7 +76,11 @@ export default function Home() {
     { title: 'Leitura de Gás', icon: <Flame size={16} />, path: '/leitura-gas', desc: user?.role === 'MORADOR' ? 'Consulte o histórico de consumo de gás da sua unidade.' : 'Registro da leitura mensal de gás.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'], color: 'text-red-500', bg: 'bg-red-50' },
   ];
 
-  const modules = user ? allModules.filter(item => item.roles.includes(user.role)) : [];
+  const modules = user 
+    ? allModules
+        .filter(item => item.roles.includes(user.role))
+        .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
+    : [];
 
   return (
     <div className="max-w-[1400px] mx-auto">

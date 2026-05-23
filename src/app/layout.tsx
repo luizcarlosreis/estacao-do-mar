@@ -136,7 +136,12 @@ export default function RootLayout({
     { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
   ];
 
-  const menuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];
+  const rawMenuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];
+  const inicioItem = rawMenuItems.find(item => item.path === '/');
+  const otherMenuItems = rawMenuItems
+    .filter(item => item.path !== '/')
+    .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+  const menuItems = inicioItem ? [inicioItem, ...otherMenuItems] : otherMenuItems;
 
   return (
     <html lang="pt-br">
