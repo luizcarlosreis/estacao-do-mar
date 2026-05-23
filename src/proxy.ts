@@ -53,6 +53,14 @@ export default async function proxy(req: NextRequest) {
             return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
           }
         }
+
+        // ADMINISTRADORA: Moradores e Leitura de Gás
+        else if (role === 'ADMINISTRADORA') {
+          const allowedPaths = ['/', '/moradores', '/leitura-gas', '/api'];
+          if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
+            return NextResponse.redirect(new URL('/', req.url));
+          }
+        }
       }
 
       // Passar dados do usuário para o Header assim a API pode ler

@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const role = request.headers.get('x-user-role');
     const unitId = request.headers.get('x-user-unit');
-    if (role !== 'SUPER_ADMIN' && role !== 'SINDICO' && role !== 'MORADOR') {
+    if (role !== 'SUPER_ADMIN' && role !== 'SINDICO' && role !== 'MORADOR' && role !== 'ADMINISTRADORA') {
       return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
     }
 

@@ -121,9 +121,9 @@ export default function RootLayout({
   }
 
   const allMenuItems = [
-    { title: 'Início', icon: <Home size={18} />, path: '/', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
+    { title: 'Início', icon: <Home size={18} />, path: '/', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
     { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'] },
-    { title: 'Moradores/Visitas', icon: <Users size={18} />, path: '/moradores', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
+    { title: 'Moradores/Visitas', icon: <Users size={18} />, path: '/moradores', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
     { title: 'Vagas', icon: <Car size={18} />, path: '/vagas', roles: ['SUPER_ADMIN'] },
     { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
     { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
@@ -133,7 +133,7 @@ export default function RootLayout({
     { title: user?.role === 'MORADOR' ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
     { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
     { title: 'Encomendas', icon: <PackageIcon size={18} />, path: '/encomendas', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
+    { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
   ];
 
   const menuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];

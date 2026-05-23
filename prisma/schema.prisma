@@ -11,6 +11,7 @@ enum Role {
   SINDICO
   PORTEIRO
   MORADOR
+  ADMINISTRADORA
 }
 
 enum EmployeeRole {

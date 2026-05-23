@@ -48,6 +48,21 @@ export async function GET() {
       },
     });
 
+    const passwordAdministradora = await bcrypt.hash('01', 10);
+
+    // Criar Administradora
+    await prisma.user.upsert({
+      where: { cpf: '01123204810' },
+      update: { password: passwordAdministradora },
+      create: {
+        cpf: '01123204810',
+        name: 'RICARDO DE MORAES AQUINO',
+        email: 'ricardo.aquino@estacaodomar.com',
+        password: passwordAdministradora,
+        role: 'ADMINISTRADORA',
+      },
+    });
+
     return NextResponse.json({ message: 'Seed concluído com sucesso' });
   } catch (error: any) {
     console.error('Erro no seed:', error);

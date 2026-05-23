@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Usuário não encontrado' }, { status: 404 });
     }
 
-    if (user.role !== 'MORADOR' && user.role !== 'SUPER_ADMIN' && user.role !== 'PORTEIRO' && user.role !== 'SINDICO') {
+    if (user.role !== 'MORADOR' && user.role !== 'SUPER_ADMIN' && user.role !== 'PORTEIRO' && user.role !== 'SINDICO' && user.role !== 'ADMINISTRADORA') {
        // Permitir para todos os perfis cadastrados no banco? 
        // O usuário pediu especificamente reset, geralmente é para moradores, mas vou permitir para todos se o CPF existir.
        // Mas o padrão dos 5 dígitos é para moradores.

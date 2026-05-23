@@ -417,6 +417,7 @@ export default function GasReadingPage() {
   });
 
   const isMorador = currentUser?.role === 'MORADOR';
+  const isReadOnly = isMorador || currentUser?.role === 'ADMINISTRADORA';
 
   return (
     <div className="space-y-8 pb-32">
@@ -512,11 +513,11 @@ export default function GasReadingPage() {
           <input 
             type="date"
             required
-            disabled={isMorador}
+            disabled={isReadOnly}
             value={readAt}
             onChange={(e) => setReadAt(e.target.value)}
             className={`w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none font-bold text-slate-700 transition-all ${
-              isMorador 
+              isReadOnly 
                 ? 'opacity-75 cursor-not-allowed border-transparent bg-slate-100/50' 
                 : 'focus:ring-2 focus:ring-blue-500/20 cursor-pointer'
             }`}
@@ -531,7 +532,7 @@ export default function GasReadingPage() {
           <input 
             type="text"
             placeholder="0.0000"
-            disabled={isMorador}
+            disabled={isReadOnly}
             value={pricePerKilo}
             onChange={(e) => {
               const rawVal = e.target.value.replace(',', '.');
@@ -540,7 +541,7 @@ export default function GasReadingPage() {
               }
             }}
             className={`w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none font-bold text-slate-700 transition-all ${
-              isMorador 
+              isReadOnly 
                 ? 'opacity-75 cursor-not-allowed border-transparent bg-slate-100/50' 
                 : 'focus:ring-2 focus:ring-blue-500/20'
             }`}
@@ -739,7 +740,12 @@ export default function GasReadingPage() {
                   <input 
                     type="text"
                     placeholder="0"
-                    className="w-full px-4 py-3 bg-white border-2 border-orange-150 focus:border-orange-500 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner focus:ring-4 focus:ring-orange-500/10"
+                    disabled={isReadOnly}
+                    className={`w-full px-4 py-3 bg-white border-2 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner ${
+                      isReadOnly 
+                        ? 'border-transparent bg-slate-100/50 cursor-not-allowed opacity-75' 
+                        : 'border-orange-150 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
+                    }`}
                     value={values['COZINHA'] || ''}
                     onChange={(e) => handleInputChange('COZINHA', e.target.value)}
                   />
@@ -829,7 +835,12 @@ export default function GasReadingPage() {
                           <input 
                             type="text"
                             placeholder="0"
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-100 hover:border-slate-200 focus:border-blue-500 rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner"
+                            disabled={isReadOnly}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner ${
+                              isReadOnly 
+                                ? 'border-transparent bg-slate-100/40 cursor-not-allowed opacity-75' 
+                                : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:border-blue-500'
+                            }`}
                             value={values[u.id] || ''}
                             onChange={(e) => handleInputChange(u.id, e.target.value)}
                           />
@@ -957,7 +968,7 @@ export default function GasReadingPage() {
       )}
 
       {/* Barra de Ação Adesiva / Sticky Footer */}
-      {!loading && !isMorador && (
+      {!loading && !isReadOnly && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-slate-200 py-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2.5">
