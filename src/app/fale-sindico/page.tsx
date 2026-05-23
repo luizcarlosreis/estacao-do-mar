@@ -537,6 +537,7 @@ export default function FaleSindicoPage() {
                     <option value="Serviço">Serviço</option>
                     <option value="Autorização de utilização da vaga de garagem">Autorização de utilização da vaga de garagem</option>
                     <option value="Obras no meu Apartamento">Obras no meu Apartamento</option>
+                    <option value="Solicitar cartão do carrinho de compras">Solicitar cartão do carrinho de compras</option>
                     <option value="Outro">Outro</option>
                   </select>
                 </div>
