@@ -303,7 +303,7 @@ export default function GasReadingPage() {
         const calcs = getCalculations(u.id, aptVal);
         if (calcs) {
           exportedData.push({
-            'Unidade': `Ap ${u.number} - Bloco ${u.block}`,
+            'Unidade': u.number,
             'Data da Leitura': formattedReadDate,
             'Leitura Anterior (m³)': calcs.prev !== null ? parseFloat(calcs.prev.toFixed(3)) : '-',
             'Leitura Atual (m³)': parseFloat(calcs.current.toFixed(3)),
