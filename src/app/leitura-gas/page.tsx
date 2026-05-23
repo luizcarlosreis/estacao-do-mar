@@ -286,12 +286,12 @@ export default function GasReadingPage() {
         exportedData.push({
           'Unidade': 'Cozinha Condomínio',
           'Data da Leitura': formattedReadDate,
-          'Leitura Anterior (m³)': calcs.prev !== null ? calcs.prev : '-',
-          'Leitura Atual (m³)': calcs.current,
-          'Consumo Líquido (m³)': calcs.consumptionM3,
-          'Consumo Convertido (Kg)': calcs.consumptionKilo,
-          'Preço por Kg (R$)': numericPrice > 0 ? numericPrice : '-',
-          'Valor do Consumo (R$)': numericPrice > 0 ? calcs.cost : 0
+          'Leitura Anterior (m³)': calcs.prev !== null ? parseFloat(calcs.prev.toFixed(3)) : '-',
+          'Leitura Atual (m³)': parseFloat(calcs.current.toFixed(3)),
+          'Consumo Líquido (m³)': parseFloat(calcs.consumptionM3.toFixed(3)),
+          'Consumo Convertido (Kg)': parseFloat(calcs.consumptionKilo.toFixed(3)),
+          'Preço por Kg (R$)': numericPrice > 0 ? parseFloat(numericPrice.toFixed(4)) : '-',
+          'Valor do Consumo (R$)': numericPrice > 0 ? parseFloat(calcs.cost.toFixed(2)) : 0
         });
       }
     }
@@ -305,12 +305,12 @@ export default function GasReadingPage() {
           exportedData.push({
             'Unidade': `Ap ${u.number} - Bloco ${u.block}`,
             'Data da Leitura': formattedReadDate,
-            'Leitura Anterior (m³)': calcs.prev !== null ? calcs.prev : '-',
-            'Leitura Atual (m³)': calcs.current,
-            'Consumo Líquido (m³)': calcs.consumptionM3,
-            'Consumo Convertido (Kg)': calcs.consumptionKilo,
-            'Preço por Kg (R$)': numericPrice > 0 ? numericPrice : '-',
-            'Valor do Consumo (R$)': numericPrice > 0 ? calcs.cost : 0
+            'Leitura Anterior (m³)': calcs.prev !== null ? parseFloat(calcs.prev.toFixed(3)) : '-',
+            'Leitura Atual (m³)': parseFloat(calcs.current.toFixed(3)),
+            'Consumo Líquido (m³)': parseFloat(calcs.consumptionM3.toFixed(3)),
+            'Consumo Convertido (Kg)': parseFloat(calcs.consumptionKilo.toFixed(3)),
+            'Preço por Kg (R$)': numericPrice > 0 ? parseFloat(numericPrice.toFixed(4)) : '-',
+            'Valor do Consumo (R$)': numericPrice > 0 ? parseFloat(calcs.cost.toFixed(2)) : 0
           });
         }
       }
@@ -332,10 +332,10 @@ export default function GasReadingPage() {
       'Data da Leitura': '',
       'Leitura Anterior (m³)': '',
       'Leitura Atual (m³)': '',
-      'Consumo Líquido (m³)': sumM3,
-      'Consumo Convertido (Kg)': sumKilo,
+      'Consumo Líquido (m³)': parseFloat(sumM3.toFixed(3)),
+      'Consumo Convertido (Kg)': parseFloat(sumKilo.toFixed(3)),
       'Preço por Kg (R$)': '',
-      'Valor do Consumo (R$)': sumCost
+      'Valor do Consumo (R$)': parseFloat(sumCost.toFixed(2))
     });
 
     // 5. Build sheet and workbook
