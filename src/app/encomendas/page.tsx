@@ -120,7 +120,7 @@ export default function EncomendasPage() {
     fetch('/api/moradores?active=true').then(res => res.json()).then(data => {
       setResidents(data);
     });
-    fetch('/api/usuarios').then(res => res.json()).then(data => {
+    fetch('/api/colaboradores').then(res => res.json()).then(data => {
       if (Array.isArray(data)) {
         const sortedStaff = data
           .map((e: any) => e.name.toUpperCase())

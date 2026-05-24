@@ -129,6 +129,7 @@ export default function RootLayout({
     { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
     { title: 'Salão de Festas', icon: <Calendar size={18} />, path: '/reservas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'PORTEIRO'] },
     { title: 'Cadastro de Usuários', icon: <UserCog size={18} />, path: '/usuarios', roles: ['SUPER_ADMIN'] },
+    { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores', roles: ['SUPER_ADMIN'] },
     { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'SINDICO'] },
     { title: user?.role === 'MORADOR' ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
     { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
