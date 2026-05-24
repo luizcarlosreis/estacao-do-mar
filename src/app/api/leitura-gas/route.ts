@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     const prisma = getPrisma();
     const isMorador = role === 'MORADOR';
 
-    const [readings, prevReadings, gasPrice] = await Promise.all([
+    const [readings, prevReadings, gasPrice, prevGasPrice] = await Promise.all([
       prisma.gasReading.findMany({
         where: isMorador 
           ? { month, year, identifier: unitId || 'undefined' } 
@@ -50,15 +50,25 @@ export async function GET(request: Request) {
             year
           }
         }
+      }),
+      prisma.gasPrice.findUnique({
+        where: {
+          month_year: {
+            month: prevMonth,
+            year: prevYear
+          }
+        }
       })
     ]);
 
     const readAt = readings.length > 0 ? readings[0].readAt : null;
     const pricePerKilo = gasPrice ? gasPrice.pricePerKilo : null;
+    const previousPricePerKilo = prevGasPrice ? prevGasPrice.pricePerKilo : null;
 
     return NextResponse.json({
       readAt,
       pricePerKilo,
+      previousPricePerKilo,
       readings: readings.map(r => ({
         identifier: r.identifier,
         value: r.value
@@ -111,20 +121,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Data de leitura inválida' }, { status: 400 });
     }
 
-    // Validação monetária do preço por quilo (caso fornecido)
-    let parsedPrice: number | null = null;
-    if (pricePerKilo !== null && pricePerKilo !== undefined && pricePerKilo !== '') {
-      parsedPrice = parseFloat(String(pricePerKilo).replace(',', '.'));
-      if (isNaN(parsedPrice) || parsedPrice < 0) {
-        return NextResponse.json({ message: 'O valor do quilo do gás deve ser um número maior ou igual a zero.' }, { status: 400 });
-      }
+    // Validação monetária do preço por quilo (obrigatório)
+    if (pricePerKilo === null || pricePerKilo === undefined || pricePerKilo === '') {
+      return NextResponse.json({ message: 'O Valor do Kilo (R$) é obrigatório para salvar as leituras.' }, { status: 400 });
+    }
 
-      // Validação de até 4 casas decimais para o preço
-      const priceStr = String(parsedPrice);
-      const priceParts = priceStr.split('.');
-      if (priceParts[1] && priceParts[1].length > 4) {
-        return NextResponse.json({ message: 'O valor do quilo do gás excede o limite permitido de 4 casas decimais.' }, { status: 400 });
-      }
+    const parsedPrice = parseFloat(String(pricePerKilo).replace(',', '.'));
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      return NextResponse.json({ message: 'O valor do quilo do gás deve ser um número maior ou igual a zero.' }, { status: 400 });
+    }
+
+    // Validação de até 4 casas decimais para o preço
+    const priceStr = String(pricePerKilo);
+    const priceParts = priceStr.split('.');
+    if (priceParts[1] && priceParts[1].length > 4) {
+      return NextResponse.json({ message: 'O valor do quilo do gás excede o limite permitido de 4 casas decimais.' }, { status: 400 });
     }
 
     // Validação rígida de formato de casas decimais para cada lançamento
@@ -158,12 +169,12 @@ export async function POST(request: Request) {
             }
           },
           update: {
-            pricePerKilo: parsedPrice ?? 0
+            pricePerKilo: parsedPrice
           },
           create: {
             month: parsedMonth,
             year: parsedYear,
-            pricePerKilo: parsedPrice ?? 0
+            pricePerKilo: parsedPrice
           }
         });
 

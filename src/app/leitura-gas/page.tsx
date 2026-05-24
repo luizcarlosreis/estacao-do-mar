@@ -62,6 +62,7 @@ export default function GasReadingPage() {
   const [selectedYear, setSelectedYear] = useState<string>(defaultYearVal);
   const [readAt, setReadAt] = useState<string>(new Date().toISOString().substring(0, 10)); // YYYY-MM-DD
   const [pricePerKilo, setPricePerKilo] = useState<string>('');
+  const [previousPricePerKilo, setPreviousPricePerKilo] = useState<string>('');
   const [units, setUnits] = useState<Unit[]>([]);
   const [values, setValues] = useState<Record<string, string>>({}); // id -> value string
   const [prevValues, setPrevValues] = useState<Record<string, number | null>>({}); // id/identifier -> previous numeric value
@@ -117,6 +118,7 @@ export default function GasReadingPage() {
     setValues({}); // Clear values state immediately to prevent stale data bleeding
     setPrevValues({}); // Clear previous values state immediately as well
     setPricePerKilo(''); // Clear price state immediately to prevent stale data bleeding
+    setPreviousPricePerKilo(''); // Clear previous price state as well
     try {
       const res = await fetch(`/api/leitura-gas?month=${fetchMonth}&year=${fetchYear}&t=${Date.now()}`, {
         cache: 'no-store'
@@ -145,6 +147,13 @@ export default function GasReadingPage() {
             setPricePerKilo(data.pricePerKilo.toString());
           } else {
             setPricePerKilo('');
+          }
+
+          // Se o preço do quilo do mês anterior existir, atualiza ele
+          if (data.previousPricePerKilo !== null && data.previousPricePerKilo !== undefined) {
+            setPreviousPricePerKilo(data.previousPricePerKilo.toString());
+          } else {
+            setPreviousPricePerKilo('');
           }
 
           // Mapeia valores salvos
@@ -201,6 +210,16 @@ export default function GasReadingPage() {
     setSaving(true);
     setNotification(null);
     try {
+      // Validação: Preço por quilo é obrigatório
+      if (pricePerKilo === '' || pricePerKilo === null || pricePerKilo === undefined) {
+        setNotification({
+          type: 'error',
+          message: 'O Valor do Kilo (R$) é obrigatório para salvar as leituras.'
+        });
+        setSaving(false);
+        return;
+      }
+
       // Validação: a leitura atual não pode ser menor que a anterior
       let hasInvalidReading = false;
       let invalidUnitDetails = '';
@@ -587,11 +606,12 @@ export default function GasReadingPage() {
         {/* Valor do Kilo (R$) */}
         <div className="space-y-2">
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-            <DollarSign size={12} className="text-slate-400" /> Valor do Kilo (R$)
+            <DollarSign size={12} className="text-slate-400" /> Valor do Kilo (R$) <span className="text-rose-500">*</span>
           </label>
           <input 
             type="text"
             placeholder="0.0000"
+            required
             disabled={isReadOnly}
             value={pricePerKilo}
             onChange={(e) => {
@@ -606,6 +626,17 @@ export default function GasReadingPage() {
                 : 'focus:ring-2 focus:ring-blue-500/20'
             }`}
           />
+          {!isReadOnly && previousPricePerKilo !== '' && previousPricePerKilo !== null && previousPricePerKilo !== undefined && (
+            <div className="flex justify-start mt-1.5">
+              <button
+                type="button"
+                onClick={() => setPricePerKilo(previousPricePerKilo)}
+                className="text-[9px] font-black uppercase text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200/50 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 select-none"
+              >
+                <Copy size={10} /> Repetir anterior (R$ {Number(previousPricePerKilo).toFixed(4)})
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
