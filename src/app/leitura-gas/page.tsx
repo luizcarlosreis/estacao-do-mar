@@ -12,7 +12,9 @@ import {
   RefreshCw,
   Info,
   DollarSign,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ShieldAlert,
+  Copy
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { APP_VERSION } from '@/lib/version';
@@ -417,6 +419,24 @@ export default function GasReadingPage() {
 
   const totalFields = totalApartments + 1; // Unidades + Cozinha
 
+  const hasInvalidReading = (() => {
+    const cozCur = values['COZINHA'];
+    const cozPrev = prevValues['COZINHA'];
+    if (cozCur && cozPrev !== null && cozPrev !== undefined) {
+      const curVal = parseFloat(cozCur);
+      if (!isNaN(curVal) && curVal < cozPrev) return true;
+    }
+    for (const u of units) {
+      const cur = values[u.id];
+      const prev = prevValues[u.id];
+      if (cur && prev !== null && prev !== undefined) {
+        const curVal = parseFloat(cur);
+        if (!isNaN(curVal) && curVal < prev) return true;
+      }
+    }
+    return false;
+  })();
+
   // Calcula os totais de consumo acumulados para m³, Kilo e Reais em tempo real
   let totalConsumptionM3 = 0;
   let totalConsumptionKilo = 0;
@@ -801,6 +821,17 @@ export default function GasReadingPage() {
                           Leitura menor que anterior!
                         </span>
                       )}
+                      {!isReadOnly && prev !== null && prev !== undefined && (
+                        <div className="flex justify-end mt-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setValues(prevVals => ({ ...prevVals, COZINHA: String(prev) }))}
+                            className="text-[9px] font-black uppercase text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200/50 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 select-none"
+                          >
+                            <Copy size={10} /> Repetir valor ({Number(prev).toFixed(3)})
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -909,6 +940,17 @@ export default function GasReadingPage() {
                                 <span className="text-[8px] font-black text-rose-500 uppercase tracking-wider block mt-1 text-right select-none animate-in fade-in slide-in-from-top-1 duration-200">
                                   Leitura menor que anterior!
                                 </span>
+                              )}
+                              {!isReadOnly && prev !== null && prev !== undefined && (
+                                <div className="flex justify-end mt-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setValues(prevVals => ({ ...prevVals, [u.id]: String(prev) }))}
+                                    className="w-full text-[9px] font-black uppercase text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200/50 py-1 rounded-lg transition-colors flex items-center justify-center gap-1 select-none"
+                                  >
+                                    <Copy size={10} /> Repetir valor ({Number(prev).toFixed(3)})
+                                  </button>
+                                </div>
                               )}
                             </div>
                           );
@@ -1054,11 +1096,19 @@ export default function GasReadingPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-50 min-w-[200px]"
+              className={`w-full sm:w-auto font-bold px-8 py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 min-w-[200px] ${
+                hasInvalidReading 
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+              }`}
             >
               {saving ? (
                 <>
                   <RefreshCw size={18} className="animate-spin" /> Gravando Leituras...
+                </>
+              ) : hasInvalidReading ? (
+                <>
+                  <ShieldAlert size={18} /> Valor menor detectado!
                 </>
               ) : (
                 <>
