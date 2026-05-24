@@ -199,6 +199,46 @@ export default function GasReadingPage() {
     setSaving(true);
     setNotification(null);
     try {
+      // Validação: a leitura atual não pode ser menor que a anterior
+      let hasInvalidReading = false;
+      let invalidUnitDetails = '';
+
+      // Verificar Cozinha
+      const cozinhaCurStr = values['COZINHA'];
+      const cozinhaPrev = prevValues['COZINHA'];
+      if (cozinhaCurStr && cozinhaPrev !== null && cozinhaPrev !== undefined) {
+        const cur = parseFloat(cozinhaCurStr);
+        if (!isNaN(cur) && cur < cozinhaPrev) {
+          hasInvalidReading = true;
+          invalidUnitDetails = 'Cozinha Condomínio';
+        }
+      }
+
+      // Verificar Apartamentos
+      if (!hasInvalidReading) {
+        for (const u of units) {
+          const curStr = values[u.id];
+          const prev = prevValues[u.id];
+          if (curStr && prev !== null && prev !== undefined) {
+            const cur = parseFloat(curStr);
+            if (!isNaN(cur) && cur < prev) {
+              hasInvalidReading = true;
+              invalidUnitDetails = `Apartamento ${u.number} - Bloco ${u.block}`;
+              break;
+            }
+          }
+        }
+      }
+
+      if (hasInvalidReading) {
+        setNotification({
+          type: 'error',
+          message: `Gravação impedida: A leitura atual não pode ser menor que a leitura anterior (${invalidUnitDetails}).`
+        });
+        setSaving(false);
+        return;
+      }
+
       const readingsPayload = [
         // Adiciona a Cozinha
         {
@@ -736,20 +776,34 @@ export default function GasReadingPage() {
             <div className="w-full md:w-auto flex flex-col items-end gap-1 shrink-0">
               <div className="flex items-center gap-3 w-full justify-end">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:block shrink-0">Leitura Atual:</label>
-                <div className="relative flex-grow md:flex-grow-0 min-w-[160px]">
-                  <input 
-                    type="text"
-                    placeholder="0"
-                    disabled={isReadOnly}
-                    className={`w-full px-4 py-3 bg-white border-2 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner ${
-                      isReadOnly 
-                        ? 'border-transparent bg-slate-100/50 cursor-not-allowed opacity-75' 
-                        : 'border-orange-150 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
-                    }`}
-                    value={values['COZINHA'] || ''}
-                    onChange={(e) => handleInputChange('COZINHA', e.target.value)}
-                  />
-                </div>
+                {(() => {
+                  const curStr = values['COZINHA'];
+                  const prev = prevValues['COZINHA'];
+                  const isInvalid = curStr && prev !== null && prev !== undefined && parseFloat(curStr) < prev;
+                  return (
+                    <div className="relative flex-grow md:flex-grow-0 min-w-[160px]">
+                      <input 
+                        type="text"
+                        placeholder="0"
+                        disabled={isReadOnly}
+                        className={`w-full px-4 py-3 bg-white border-2 rounded-2xl focus:outline-none transition-all font-black text-right text-orange-700 text-lg shadow-inner ${
+                          isReadOnly 
+                            ? 'border-transparent bg-slate-100/50 cursor-not-allowed opacity-75' 
+                            : isInvalid
+                              ? 'border-rose-500 focus:border-rose-600 focus:ring-4 focus:ring-rose-500/10'
+                              : 'border-orange-150 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
+                        }`}
+                        value={values['COZINHA'] || ''}
+                        onChange={(e) => handleInputChange('COZINHA', e.target.value)}
+                      />
+                      {isInvalid && (
+                        <span className="text-[10px] font-black text-rose-500 uppercase tracking-wider block mt-1.5 text-right select-none animate-in fade-in slide-in-from-top-1 duration-200">
+                          Leitura menor que anterior!
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               {(() => {
                 const currentValStr = values['COZINHA'];
@@ -831,20 +885,34 @@ export default function GasReadingPage() {
                         </div>
 
                         {/* Input Individual */}
-                        <div className="relative">
-                          <input 
-                            type="text"
-                            placeholder="0"
-                            disabled={isReadOnly}
-                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner ${
-                              isReadOnly 
-                                ? 'border-transparent bg-slate-100/40 cursor-not-allowed opacity-75' 
-                                : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:border-blue-500'
-                            }`}
-                            value={values[u.id] || ''}
-                            onChange={(e) => handleInputChange(u.id, e.target.value)}
-                          />
-                        </div>
+                        {(() => {
+                          const curStr = values[u.id];
+                          const prev = prevValues[u.id];
+                          const isInvalid = curStr && prev !== null && prev !== undefined && parseFloat(curStr) < prev;
+                          return (
+                            <div className="relative">
+                              <input 
+                                type="text"
+                                placeholder="0"
+                                disabled={isReadOnly}
+                                className={`w-full px-3 py-2 border rounded-xl focus:outline-none transition-all font-bold text-right text-slate-700 text-sm shadow-inner ${
+                                  isReadOnly 
+                                    ? 'border-transparent bg-slate-100/40 cursor-not-allowed opacity-75' 
+                                    : isInvalid
+                                      ? 'bg-rose-50/50 border-rose-400 hover:border-rose-500 focus:border-rose-500 text-rose-700'
+                                      : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:border-blue-500'
+                                }`}
+                                value={values[u.id] || ''}
+                                onChange={(e) => handleInputChange(u.id, e.target.value)}
+                              />
+                              {isInvalid && (
+                                <span className="text-[8px] font-black text-rose-500 uppercase tracking-wider block mt-1 text-right select-none animate-in fade-in slide-in-from-top-1 duration-200">
+                                  Leitura menor que anterior!
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Consumo Calculado */}
                         {(() => {
