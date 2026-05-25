@@ -63,8 +63,17 @@ export default function TarefasPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filtros de Data
-  const [filterYear, setFilterYear] = useState<string>('ALL');
+  // Limites visíveis no Kanban (Alternativa B)
+  const [visibleLimits, setVisibleLimits] = useState<Record<Task['status'], number>>({
+    SOLICITADA_MORADOR: 5,
+    BACKLOG: 5,
+    IN_PROGRESS: 5,
+    DONE: 5,
+    CANCELED: 5
+  });
+
+  // Filtros de Data (Inicia com o ano corrente)
+  const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
   const [filterMonth, setFilterMonth] = useState<string>('ALL');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,6 +98,13 @@ export default function TarefasPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setVisibleLimits({
+      SOLICITADA_MORADOR: 5,
+      BACKLOG: 5,
+      IN_PROGRESS: 5,
+      DONE: 5,
+      CANCELED: 5
+    });
   }, [searchTerm, filterYear, filterMonth]);
 
   const fetchTasks = async () => {
@@ -426,88 +442,109 @@ export default function TarefasPage() {
                   ) : filteredTasks.filter(t => t.status === status).length === 0 ? (
                     <div className="py-10 text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Vazio</div>
                   ) : (
-                    filteredTasks
-                      .filter(t => t.status === status)
-                      .sort((a, b) => {
-                        if (status === 'DONE' && a.performedAt && b.performedAt) {
-                          return new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime();
-                        }
-                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                      })
-                      .map((task) => (
-                      <div 
-                        key={task.id} 
-                        className="bg-white p-3 rounded-xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all cursor-pointer relative"
-                        onClick={() => openEditModal(task)}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${statusConfig[task.status].color}`}>
-                            {statusConfig[task.status].label}
-                          </span>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                            {task.attachmentUrl && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo'); }}
-                                className="p-1 text-blue-400 hover:text-blue-600 transition"
-                                title="Baixar Anexo"
+                    <>
+                      {(() => {
+                        const statusTasks = filteredTasks
+                          .filter(t => t.status === status)
+                          .sort((a, b) => {
+                            if (status === 'DONE' && a.performedAt && b.performedAt) {
+                              return new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime();
+                            }
+                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                          });
+                        
+                        const visibleTasks = statusTasks.slice(0, visibleLimits[status]);
+                        
+                        return (
+                          <>
+                            {visibleTasks.map((task) => (
+                              <div 
+                                key={task.id} 
+                                className="bg-white p-3 rounded-xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all cursor-pointer relative"
+                                onClick={() => openEditModal(task)}
                               >
-                                <Download size={12} />
-                              </button>
-                            )}
-                            {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
-                                className="p-1 text-slate-300 hover:text-rose-500 transition"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">
-                          {task.number ? <span className="text-blue-600 mr-1">#{task.number}</span> : null}
-                          {task.title}
-                        </h3>
-                        {task.description && (
-                          <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-2 lowercase first-letter:uppercase">{task.description}</p>
-                        )}
-                        
-                        {(task.user || task.unit) && (
-                          <div className="flex items-center gap-1.5 mt-2 mb-2 text-[9px] text-slate-500 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                            <User size={10} className="text-slate-400" />
-                            <span className="font-bold truncate uppercase">{task.user?.name || 'DESCONHECIDO'}</span>
-                            {task.unit && (
-                              <>
-                                <span className="text-slate-300">•</span>
-                                <span className="font-black text-slate-600">AP {task.unit.number}</span>
-                              </>
-                            )}
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
-                              <Calendar size={10} />
-                              {new Date(task.createdAt).toLocaleDateString('pt-BR')}
-                            </div>
-                            {task.attachmentUrl && (
-                              <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
-                                <Paperclip size={10} />
-                                ANEXO
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${statusConfig[task.status].color}`}>
+                                    {statusConfig[task.status].label}
+                                  </span>
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                                    {task.attachmentUrl && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo'); }}
+                                        className="p-1 text-blue-400 hover:text-blue-600 transition"
+                                        title="Baixar Anexo"
+                                      >
+                                        <Download size={12} />
+                                      </button>
+                                    )}
+                                    {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
+                                        className="p-1 text-slate-300 hover:text-rose-500 transition"
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">
+                                  {task.number ? <span className="text-blue-600 mr-1">#{task.number}</span> : null}
+                                  {task.title}
+                                </h3>
+                                {task.description && (
+                                  <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-2 lowercase first-letter:uppercase">{task.description}</p>
+                                )}
+                                
+                                {(task.user || task.unit) && (
+                                  <div className="flex items-center gap-1.5 mt-2 mb-2 text-[9px] text-slate-500 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                    <User size={10} className="text-slate-400" />
+                                    <span className="font-bold truncate uppercase">{task.user?.name || 'DESCONHECIDO'}</span>
+                                    {task.unit && (
+                                      <>
+                                        <span className="text-slate-300">•</span>
+                                        <span className="font-black text-slate-600">AP {task.unit.number}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
+                                      <Calendar size={10} />
+                                      {new Date(task.createdAt).toLocaleDateString('pt-BR')}
+                                    </div>
+                                    {task.attachmentUrl && (
+                                      <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
+                                        <Paperclip size={10} />
+                                        ANEXO
+                                      </div>
+                                    )}
+                                  </div>
+                                  {task.status === 'DONE' && task.performedAt && (
+                                    <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                      <CheckCircle2 size={10} />
+                                      {task.performedAt.split('T')[0].split('-').reverse().join('/')}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
+                            ))}
+
+                            {statusTasks.length > visibleLimits[status] && (
+                              <button
+                                type="button"
+                                onClick={() => setVisibleLimits(prev => ({ ...prev, [status]: prev[status] + 5 }))}
+                                className="w-full py-2.5 mt-2 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-[9px] font-black text-slate-500 hover:text-slate-700 transition uppercase tracking-wider text-center shadow-sm flex items-center justify-center gap-1.5 duration-200"
+                              >
+                                <span>Ver Mais (+{statusTasks.length - visibleLimits[status]})</span>
+                              </button>
                             )}
-                          </div>
-                          {task.status === 'DONE' && task.performedAt && (
-                            <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
-                              <CheckCircle2 size={10} />
-                              {task.performedAt.split('T')[0].split('-').reverse().join('/')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
+                          </>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
               </div>
