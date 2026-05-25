@@ -83,6 +83,7 @@ export default function TarefasPage() {
   // Filtros de Data (Inicia com o ano corrente)
   const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
   const [filterMonth, setFilterMonth] = useState<string>('ALL');
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -113,7 +114,7 @@ export default function TarefasPage() {
       DONE: 5,
       CANCELED: 5
     });
-  }, [searchTerm, filterYear, filterMonth]);
+  }, [searchTerm, filterYear, filterMonth, filterStatus]);
 
   const fetchTasks = async () => {
     try {
@@ -240,22 +241,27 @@ export default function TarefasPage() {
     return true;
   });
 
-  // Ordenar para a Lista conforme a prioridade dos status
-  const sortedListTasks = [...filteredTasks].sort((a, b) => {
-    const orderA = statusOrder[a.status as keyof typeof statusOrder] || 99;
-    const orderB = statusOrder[b.status as keyof typeof statusOrder] || 99;
-    if (orderA !== orderB) {
-      return orderA - orderB;
-    }
-    // Se o status for o mesmo, ordena por data de criação decrescente (mais recente primeiro)
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  // Ordenar e filtrar para a Lista conforme a prioridade dos status e filtro de status
+  const sortedListTasks = [...filteredTasks]
+    .filter(t => {
+      if (viewMode === 'list' && filterStatus !== 'ALL' && t.status !== filterStatus) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const orderA = statusOrder[a.status as keyof typeof statusOrder] || 99;
+      const orderB = statusOrder[b.status as keyof typeof statusOrder] || 99;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      // Se o status for o mesmo, ordena por data de criação decrescente (mais recente primeiro)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   // Cálculos para paginação
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentTasks = sortedListTasks.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedListTasks.length / itemsPerPage);
 
   const exportToExcel = () => {
     if (filteredTasks.length === 0) return alert('Nenhuma tarefa para exportar.');
@@ -313,33 +319,52 @@ export default function TarefasPage() {
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
-            {/* Filtros de Data */}
-            {currentUser?.role !== 'MORADOR' && (
+            {/* Filtros */}
+            {(currentUser?.role !== 'MORADOR' || viewMode === 'list') && (
               <div className="flex items-center gap-2 w-full sm:w-auto bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-1.5 px-2 text-slate-400 border-r border-slate-100 pr-3">
+                <div className="flex items-center gap-1.5 px-2 text-slate-400 border-r border-slate-100 pr-3 flex-shrink-0">
                   <Filter size={14} />
                   <span className="text-[9px] font-black uppercase tracking-tighter">Filtros</span>
                 </div>
                 
-                <select 
-                  value={filterYear}
-                  onChange={(e) => setFilterYear(e.target.value)}
-                  className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer"
-                >
-                  <option value="ALL">TODOS OS ANOS</option>
-                  {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
+                {currentUser?.role !== 'MORADOR' && (
+                  <>
+                    <select 
+                      value={filterYear}
+                      onChange={(e) => setFilterYear(e.target.value)}
+                      className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer"
+                    >
+                      <option value="ALL">TODOS OS ANOS</option>
+                      {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
 
-                <select 
-                  value={filterMonth}
-                  onChange={(e) => setFilterMonth(e.target.value)}
-                  className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer border-l border-slate-100"
-                >
-                  <option value="ALL">TODOS OS MESES</option>
-                  {months.map((m, i) => (
-                    <option key={i} value={(i + 1).toString()}>{m.toUpperCase()}</option>
-                  ))}
-                </select>
+                    <select 
+                      value={filterMonth}
+                      onChange={(e) => setFilterMonth(e.target.value)}
+                      className="bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer border-l border-slate-100"
+                    >
+                      <option value="ALL">TODOS OS MESES</option>
+                      {months.map((m, i) => (
+                        <option key={i} value={(i + 1).toString()}>{m.toUpperCase()}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
+
+                {viewMode === 'list' && (
+                  <select 
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className={`bg-transparent text-[10px] font-bold text-slate-600 outline-none px-2 py-1 cursor-pointer ${
+                      currentUser?.role !== 'MORADOR' ? 'border-l border-slate-100' : ''
+                    }`}
+                  >
+                    <option value="ALL">TODOS OS STATUS</option>
+                    {Object.entries(statusConfig).map(([status, config]) => (
+                      <option key={status} value={status}>{config.label.toUpperCase()}</option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
 
