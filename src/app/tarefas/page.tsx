@@ -571,17 +571,17 @@ export default function TarefasPage() {
           </div>
         ) : (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-in fade-in duration-200">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[950px]">
+            <div className="w-full overflow-x-hidden">
+              <table className="w-full text-left border-collapse table-auto">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/70">
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Número</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Tarefa</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Solicitante</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Data Criação</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Realização</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right min-w-[125px]">Ações</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider w-[8%]">Número</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider w-[32%]">Tarefa</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider w-[18%]">Status</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider w-[18%]">Solicitante</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider w-[12%]">Data Criação</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider w-[12%]">Realização</th>
+                    <th className="py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right w-[110px]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -604,13 +604,13 @@ export default function TarefasPage() {
                         className="hover:bg-slate-50/50 transition cursor-pointer group"
                         onClick={() => openEditModal(task)}
                       >
-                        <td className="py-4 px-6 whitespace-nowrap">
+                        <td className="py-3 px-3 whitespace-nowrap">
                           <span className="font-black text-blue-600 text-[11px]">
                             {task.number ? `#${task.number}` : '—'}
                           </span>
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="max-w-md">
+                        <td className="py-3 px-3">
+                          <div className="max-w-xs md:max-w-sm lg:max-w-md">
                             <h3 className="font-bold text-slate-800 text-[11px] uppercase truncate">
                               {task.title}
                             </h3>
@@ -621,15 +621,15 @@ export default function TarefasPage() {
                             )}
                           </div>
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap">
+                        <td className="py-3 px-3 whitespace-nowrap">
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${statusConfig[task.status].color}`}>
                             {statusConfig[task.status].label}
                           </span>
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap">
+                        <td className="py-3 px-3 whitespace-nowrap">
                           {(task.user || task.unit) ? (
                             <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-bold">
-                              <span className="uppercase truncate max-w-[120px]">{task.user?.name || 'DESCONHECIDO'}</span>
+                              <span className="uppercase truncate max-w-[90px] md:max-w-[120px]">{task.user?.name || 'DESCONHECIDO'}</span>
                               {task.unit && (
                                 <>
                                   <span className="text-slate-300">•</span>
@@ -641,10 +641,10 @@ export default function TarefasPage() {
                             <span className="text-slate-400 text-[10px] font-bold">—</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap text-[10px] text-slate-500 font-bold">
+                        <td className="py-3 px-3 whitespace-nowrap text-[10px] text-slate-500 font-bold">
                           {new Date(task.createdAt).toLocaleDateString('pt-BR')}
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap">
+                        <td className="py-3 px-3 whitespace-nowrap">
                           {task.status === 'DONE' && task.performedAt ? (
                             <span className="text-[10px] text-emerald-600 font-black bg-emerald-50 px-1.5 py-0.5 rounded">
                               {task.performedAt.split('T')[0].split('-').reverse().join('/')}
@@ -653,31 +653,31 @@ export default function TarefasPage() {
                             <span className="text-slate-400 text-[10px] font-bold">—</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap text-right min-w-[125px]" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1">
+                        <td className="py-3 px-3 whitespace-nowrap text-right w-[110px]" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-0.5">
                             {task.attachmentUrl && (
                               <button 
                                 onClick={() => downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo')}
-                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                                className="p-1 text-blue-500 hover:bg-blue-50 rounded-lg transition animate-in hover:scale-105 duration-100"
                                 title="Baixar Anexo"
                               >
-                                <Download size={14} />
+                                <Download size={13} />
                               </button>
                             )}
                             <button 
                               onClick={() => openEditModal(task)}
-                              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition"
+                              className="p-1 text-slate-500 hover:bg-slate-100 rounded-lg transition animate-in hover:scale-105 duration-100"
                               title="Editar"
                             >
-                              <Edit2 size={14} />
+                              <Edit2 size={13} />
                             </button>
                             {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
                               <button 
                                 onClick={() => handleDelete(task.id)}
-                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                                className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg transition animate-in hover:scale-105 duration-100"
                                 title="Excluir"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={13} />
                               </button>
                             )}
                           </div>
