@@ -16,7 +16,8 @@ import {
   Paperclip,
   Filter,
   FileSpreadsheet,
-  User
+  User,
+  LayoutGrid
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 import * as XLSX from 'xlsx';
@@ -57,6 +58,11 @@ export default function TarefasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   
+  // Alternador de Visualização e Paginação
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Filtros de Data
   const [filterYear, setFilterYear] = useState<string>('ALL');
   const [filterMonth, setFilterMonth] = useState<string>('ALL');
@@ -80,6 +86,10 @@ export default function TarefasPage() {
     fetchTasks();
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterYear, filterMonth]);
 
   const fetchTasks = async () => {
     try {
@@ -207,6 +217,12 @@ export default function TarefasPage() {
     return true;
   });
 
+  // Cálculos para paginação
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
+
   const exportToExcel = () => {
     if (filteredTasks.length === 0) return alert('Nenhuma tarefa para exportar.');
 
@@ -291,6 +307,32 @@ export default function TarefasPage() {
               </div>
             )}
 
+            {/* Alternador de Visualização */}
+            <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-full sm:w-auto justify-center">
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
+                  viewMode === 'kanban'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <LayoutGrid size={12} />
+                Quadro
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <ListTodo size={12} />
+                Lista
+              </button>
+            </div>
+
             {/* Busca e Ações */}
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-64">
@@ -360,115 +402,280 @@ export default function TarefasPage() {
           </div>
         </div>
 
-        {/* Board */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start overflow-x-auto pb-4">
-          {(['SOLICITADA_MORADOR', 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
-            <div key={status} className="flex flex-col min-w-0">
-              <div className="flex items-center justify-between mb-3 px-1">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${statusConfig[status].dot}`} />
-                  <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    {statusConfig[status].label}
-                  </h2>
-                  <span className="bg-slate-200 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                    {filteredTasks.filter(t => t.status === status).length}
-                  </span>
+        {/* Board or List View */}
+        {viewMode === 'kanban' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start overflow-x-auto pb-4 animate-in fade-in duration-200">
+            {(['SOLICITADA_MORADOR', 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CANCELED'] as const).map((status) => (
+              <div key={status} className="flex flex-col min-w-0">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${statusConfig[status].dot}`} />
+                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                      {statusConfig[status].label}
+                    </h2>
+                    <span className="bg-slate-200 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      {filteredTasks.filter(t => t.status === status).length}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-3 min-h-[500px] bg-slate-100/50 p-2 rounded-2xl border border-slate-200/60 border-dashed">
-                {loading ? (
-                  <div className="py-10 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando...</div>
-                ) : filteredTasks.filter(t => t.status === status).length === 0 ? (
-                  <div className="py-10 text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Vazio</div>
-                ) : (
-                  filteredTasks
-                    .filter(t => t.status === status)
-                    .sort((a, b) => {
-                      if (status === 'DONE' && a.performedAt && b.performedAt) {
-                        return new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime();
-                      }
-                      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                    })
-                    .map((task) => (
-                    <div 
-                      key={task.id} 
-                      className="bg-white p-3 rounded-xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all cursor-pointer relative"
-                      onClick={() => openEditModal(task)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${statusConfig[task.status].color}`}>
-                          {statusConfig[task.status].label}
-                        </span>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                          {task.attachmentUrl && (
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo'); }}
-                              className="p-1 text-blue-400 hover:text-blue-600 transition"
-                              title="Baixar Anexo"
-                            >
-                              <Download size={12} />
-                            </button>
-                          )}
-                          {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
-                              className="p-1 text-slate-300 hover:text-rose-500 transition"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">
-                        {task.number ? <span className="text-blue-600 mr-1">#{task.number}</span> : null}
-                        {task.title}
-                      </h3>
-                      {task.description && (
-                        <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-2 lowercase first-letter:uppercase">{task.description}</p>
-                      )}
-                      
-                      {(task.user || task.unit) && (
-                        <div className="flex items-center gap-1.5 mt-2 mb-2 text-[9px] text-slate-500 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                          <User size={10} className="text-slate-400" />
-                          <span className="font-bold truncate uppercase">{task.user?.name || 'DESCONHECIDO'}</span>
-                          {task.unit && (
-                            <>
-                              <span className="text-slate-300">•</span>
-                              <span className="font-black text-slate-600">AP {task.unit.number}</span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
-                            <Calendar size={10} />
-                            {new Date(task.createdAt).toLocaleDateString('pt-BR')}
+                <div className="space-y-3 min-h-[500px] bg-slate-100/50 p-2 rounded-2xl border border-slate-200/60 border-dashed">
+                  {loading ? (
+                    <div className="py-10 text-center animate-pulse text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carregando...</div>
+                  ) : filteredTasks.filter(t => t.status === status).length === 0 ? (
+                    <div className="py-10 text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Vazio</div>
+                  ) : (
+                    filteredTasks
+                      .filter(t => t.status === status)
+                      .sort((a, b) => {
+                        if (status === 'DONE' && a.performedAt && b.performedAt) {
+                          return new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime();
+                        }
+                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                      })
+                      .map((task) => (
+                      <div 
+                        key={task.id} 
+                        className="bg-white p-3 rounded-xl shadow-sm border border-slate-200/60 group hover:shadow-md hover:border-blue-200 transition-all cursor-pointer relative"
+                        onClick={() => openEditModal(task)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${statusConfig[task.status].color}`}>
+                            {statusConfig[task.status].label}
+                          </span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                            {task.attachmentUrl && (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo'); }}
+                                className="p-1 text-blue-400 hover:text-blue-600 transition"
+                                title="Baixar Anexo"
+                              >
+                                <Download size={12} />
+                              </button>
+                            )}
+                            {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
+                                className="p-1 text-slate-300 hover:text-rose-500 transition"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
                           </div>
-                          {task.attachmentUrl && (
-                            <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
-                              <Paperclip size={10} />
-                              ANEXO
+                        </div>
+                        
+                        <h3 className="font-bold text-slate-800 text-[11px] leading-tight mb-1 uppercase break-words">
+                          {task.number ? <span className="text-blue-600 mr-1">#{task.number}</span> : null}
+                          {task.title}
+                        </h3>
+                        {task.description && (
+                          <p className="text-[10px] text-slate-500 line-clamp-2 leading-snug mb-2 lowercase first-letter:uppercase">{task.description}</p>
+                        )}
+                        
+                        {(task.user || task.unit) && (
+                          <div className="flex items-center gap-1.5 mt-2 mb-2 text-[9px] text-slate-500 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                            <User size={10} className="text-slate-400" />
+                            <span className="font-bold truncate uppercase">{task.user?.name || 'DESCONHECIDO'}</span>
+                            {task.unit && (
+                              <>
+                                <span className="text-slate-300">•</span>
+                                <span className="font-black text-slate-600">AP {task.unit.number}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
+                              <Calendar size={10} />
+                              {new Date(task.createdAt).toLocaleDateString('pt-BR')}
+                            </div>
+                            {task.attachmentUrl && (
+                              <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
+                                <Paperclip size={10} />
+                                ANEXO
+                              </div>
+                            )}
+                          </div>
+                          {task.status === 'DONE' && task.performedAt && (
+                            <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                              <CheckCircle2 size={10} />
+                              {task.performedAt.split('T')[0].split('-').reverse().join('/')}
                             </div>
                           )}
                         </div>
-                        {task.status === 'DONE' && task.performedAt && (
-                          <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
-                            <CheckCircle2 size={10} />
-                            {task.performedAt.split('T')[0].split('-').reverse().join('/')}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-in fade-in duration-200">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/70">
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Número</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Tarefa</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Solicitante</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Data Criação</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Realização</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-400 font-bold uppercase text-[10px] tracking-widest animate-pulse">
+                        Carregando tarefas...
+                      </td>
+                    </tr>
+                  ) : currentTasks.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                        Nenhuma tarefa encontrada
+                      </td>
+                    </tr>
+                  ) : (
+                    currentTasks.map((task) => (
+                      <tr 
+                        key={task.id} 
+                        className="hover:bg-slate-50/50 transition cursor-pointer group"
+                        onClick={() => openEditModal(task)}
+                      >
+                        <td className="py-4 px-6 whitespace-nowrap">
+                          <span className="font-black text-blue-600 text-[11px]">
+                            {task.number ? `#${task.number}` : '—'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="max-w-md">
+                            <h3 className="font-bold text-slate-800 text-[11px] uppercase truncate">
+                              {task.title}
+                            </h3>
+                            {task.description && (
+                              <p className="text-[10px] text-slate-400 truncate mt-0.5 lowercase first-letter:uppercase">
+                                {task.description}
+                              </p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 whitespace-nowrap">
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${statusConfig[task.status].color}`}>
+                            {statusConfig[task.status].label}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 whitespace-nowrap">
+                          {(task.user || task.unit) ? (
+                            <div className="flex items-center gap-1.5 text-[10px] text-slate-600 font-bold">
+                              <span className="uppercase truncate max-w-[120px]">{task.user?.name || 'DESCONHECIDO'}</span>
+                              {task.unit && (
+                                <>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="font-black text-slate-500">AP {task.unit.number}</span>
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-[10px] font-bold">—</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 whitespace-nowrap text-[10px] text-slate-500 font-bold">
+                          {new Date(task.createdAt).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="py-4 px-6 whitespace-nowrap">
+                          {task.status === 'DONE' && task.performedAt ? (
+                            <span className="text-[10px] text-emerald-600 font-black bg-emerald-50 px-1.5 py-0.5 rounded">
+                              {task.performedAt.split('T')[0].split('-').reverse().join('/')}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[10px] font-bold">—</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
+                            {task.attachmentUrl && (
+                              <button 
+                                onClick={() => downloadFile(task.attachmentUrl!, task.attachmentName || 'anexo')}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"
+                                title="Baixar Anexo"
+                              >
+                                <Download size={14} />
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => openEditModal(task)}
+                              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition"
+                              title="Editar"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
+                              <button 
+                                onClick={() => handleDelete(task.id)}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                                title="Excluir"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="bg-slate-50/50 border-t border-slate-100 py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  Exibindo {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, filteredTasks.length)} de {filteredTasks.length} tarefas
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase text-slate-500 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
+                  >
+                    Anterior
+                  </button>
+                  
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 rounded-lg text-[10px] font-black uppercase transition ${
+                          currentPage === pageNum
+                            ? 'bg-slate-900 text-white shadow-sm'
+                            : 'border border-slate-200 text-slate-500 hover:bg-white'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black uppercase text-slate-500 hover:bg-white disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal */}
@@ -507,33 +714,36 @@ export default function TarefasPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status Atual</label>
-                  <select 
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none disabled:opacity-50"
-                    value={formData.status} 
-                    onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                    disabled={(!formData.id) || (currentUser?.role === 'MORADOR')}
-                  >
-                    <option value="SOLICITADA_MORADOR">SOLICITADA PELO MORADOR</option>
-                    <option value="BACKLOG">BACKLOG</option>
-                    <option value="IN_PROGRESS">EM ANDAMENTO</option>
-                    <option value="DONE">REALIZADA</option>
-                    <option value="CANCELED">CANCELADA</option>
-                  </select>
+              {currentUser?.role !== 'MORADOR' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={formData.status === 'DONE' ? 'col-span-1' : 'col-span-2'}>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status Atual</label>
+                    <select 
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none disabled:opacity-50"
+                      value={formData.status} 
+                      onChange={(e) => setFormData({...formData, status: e.target.value as any})}
+                      disabled={!formData.id}
+                    >
+                      <option value="SOLICITADA_MORADOR">SOLICITADA PELO MORADOR</option>
+                      <option value="BACKLOG">BACKLOG</option>
+                      <option value="IN_PROGRESS">EM ANDAMENTO</option>
+                      <option value="DONE">REALIZADA</option>
+                      <option value="CANCELED">CANCELADA</option>
+                    </select>
+                  </div>
+                  {formData.status === 'DONE' && (
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Data de Realização</label>
+                      <input 
+                        type="date" 
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700"
+                        value={formData.performedAt} 
+                        onChange={(e) => setFormData({...formData, performedAt: e.target.value})} 
+                      />
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Data de Realização</label>
-                  <input 
-                    type="date" 
-                    disabled={formData.status !== 'DONE'} 
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 disabled:opacity-50"
-                    value={formData.performedAt} 
-                    onChange={(e) => setFormData({...formData, performedAt: e.target.value})} 
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Upload de Arquivo */}
               <div className="space-y-2">
