@@ -44,6 +44,14 @@ const statusConfig = {
   CANCELED: { label: 'Cancelada', color: 'bg-rose-50 text-rose-600', dot: 'bg-rose-500', icon: <XCircle size={14} /> },
 };
 
+const statusOrder = {
+  SOLICITADA_MORADOR: 1,
+  BACKLOG: 2,
+  IN_PROGRESS: 3,
+  DONE: 4,
+  CANCELED: 5
+};
+
 
 
 const months = [
@@ -232,10 +240,21 @@ export default function TarefasPage() {
     return true;
   });
 
+  // Ordenar para a Lista conforme a prioridade dos status
+  const sortedListTasks = [...filteredTasks].sort((a, b) => {
+    const orderA = statusOrder[a.status as keyof typeof statusOrder] || 99;
+    const orderB = statusOrder[b.status as keyof typeof statusOrder] || 99;
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    // Se o status for o mesmo, ordena por data de criação decrescente (mais recente primeiro)
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   // Cálculos para paginação
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentTasks = filteredTasks.slice(indexOfFirstItem, indexOfLastItem);
+  const currentTasks = sortedListTasks.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
 
   const exportToExcel = () => {
@@ -553,7 +572,7 @@ export default function TarefasPage() {
         ) : (
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden animate-in fade-in duration-200">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[950px]">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/70">
                     <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Número</th>
@@ -562,7 +581,7 @@ export default function TarefasPage() {
                     <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Solicitante</th>
                     <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Data Criação</th>
                     <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider">Realização</th>
-                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Ações</th>
+                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right min-w-[125px]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -634,7 +653,7 @@ export default function TarefasPage() {
                             <span className="text-slate-400 text-[10px] font-bold">—</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-4 px-6 whitespace-nowrap text-right min-w-[125px]" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
                             {task.attachmentUrl && (
                               <button 
