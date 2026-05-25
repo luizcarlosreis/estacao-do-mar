@@ -207,10 +207,9 @@ export default function TarefasPage() {
                           t.description?.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (filterYear !== 'ALL' || filterMonth !== 'ALL') {
-      if (!t.performedAt) return false;
-      const perfDate = new Date(t.performedAt);
-      const perfYear = perfDate.getUTCFullYear().toString();
-      const perfMonth = (perfDate.getUTCMonth() + 1).toString();
+      const dateToUse = (t.status === 'DONE' && t.performedAt) ? new Date(t.performedAt) : new Date(t.createdAt);
+      const perfYear = dateToUse.getUTCFullYear().toString();
+      const perfMonth = (dateToUse.getUTCMonth() + 1).toString();
       if (filterYear !== 'ALL' && perfYear !== filterYear) return false;
       if (filterMonth !== 'ALL' && perfMonth !== filterMonth) return false;
     }
@@ -255,8 +254,10 @@ export default function TarefasPage() {
   };
 
   const availableYears = Array.from(new Set(tasks
-    .filter(t => t.performedAt)
-    .map(t => new Date(t.performedAt!).getUTCFullYear().toString())
+    .map(t => {
+      const dateToUse = (t.status === 'DONE' && t.performedAt) ? new Date(t.performedAt) : new Date(t.createdAt);
+      return dateToUse.getUTCFullYear().toString();
+    })
   )).sort((a, b) => b.localeCompare(a));
 
   if (!mounted) return null;
