@@ -278,7 +278,8 @@ export default function EncomendasPage() {
   });
 
   const maxDailyCount = Math.max(...dailyCounts, 1);
-  const dailyAverage = totalDashboardReceived > 0 ? (totalDashboardReceived / daysInMonth).toFixed(2) : '0';
+  const daysWithReceived = dailyCounts.filter(c => c > 0).length;
+  const dailyAverage = daysWithReceived > 0 ? (totalDashboardReceived / daysWithReceived).toFixed(2) : '0';
   const withdrawalRate = totalDashboardReceived > 0 ? Math.round((totalDashboardWithdrawn / totalDashboardReceived) * 100) : 0;
 
   const handleTelegramNotify = async (pkg: Package) => {
@@ -1100,9 +1101,9 @@ export default function EncomendasPage() {
 
                       {/* Gráfico Responsivo */}
                       <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
-                        <div className="min-w-[700px] h-64 flex flex-col justify-end relative pt-6 pr-2">
+                        <div className="min-w-[700px] h-64 flex flex-col justify-between relative pt-6 pr-2">
                           {/* Linhas de Guia no fundo */}
-                          <div className="absolute inset-x-0 top-6 bottom-8 flex flex-col justify-between pointer-events-none text-[8px] font-black text-slate-400 tracking-tighter">
+                          <div className="absolute inset-x-0 top-6 bottom-10 flex flex-col justify-between pointer-events-none text-[8px] font-black text-slate-400 tracking-tighter">
                             <div className="border-t border-dashed border-slate-200/80 w-full pt-1 flex justify-between">
                               <span>Máximo: {Math.max(...dailyCounts, 0)}</span>
                             </div>
@@ -1111,13 +1112,13 @@ export default function EncomendasPage() {
                             <div className="border-t border-dashed border-slate-200/60 w-full pt-1"></div>
                           </div>
 
-                          {/* Barras */}
-                          <div className="flex items-end justify-between h-48 relative z-10 px-2">
+                          {/* Barras em Área com Altura de 100% */}
+                          <div className="flex items-end justify-between h-44 relative z-10 px-2">
                             {dailyCounts.map((count, index) => {
                               const dayNum = index + 1;
                               const barHeightPercent = (count / maxDailyCount) * 100;
                               return (
-                                <div key={dayNum} className="flex flex-col items-center flex-1 group relative">
+                                <div key={dayNum} className="h-full flex flex-col justify-end items-center flex-1 group relative">
                                   {/* Tooltip Hover */}
                                   <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[9px] font-black py-1.5 px-2.5 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-xl whitespace-nowrap z-30 flex flex-col items-center">
                                     <span>{dayNum} de {MONTHS.find(m => m.val === dashboardMonth)?.name}</span>
@@ -1132,20 +1133,26 @@ export default function EncomendasPage() {
                                         ? 'bg-gradient-to-t from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 shadow-sm shadow-indigo-100' 
                                         : 'bg-slate-200/60'
                                     }`}
-                                    style={{ height: `${count > 0 ? Math.max(barHeightPercent, 6) : 3}%` }}
+                                    style={{ height: `${count > 0 ? Math.max(barHeightPercent, 8) : 4}%` }}
                                   >
                                     {count > 0 && (
                                       <div className="absolute inset-x-0 top-0 h-1 bg-white/20"></div>
                                     )}
                                   </div>
-
-                                  {/* Dia da Legenda */}
-                                  <span className="text-[9px] font-black text-slate-400 mt-2 group-hover:text-slate-700 transition-colors">
-                                    {dayNum}
-                                  </span>
                                 </div>
                               );
                             })}
+                          </div>
+
+                          {/* Legenda do Eixo X (Dias) */}
+                          <div className="flex justify-between items-center h-6 border-t border-slate-200 px-2 mt-2">
+                            {dailyCounts.map((_, index) => (
+                              <div key={index} className="flex-1 text-center">
+                                <span className="text-[9px] font-black text-slate-400">
+                                  {index + 1}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
