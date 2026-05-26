@@ -18,7 +18,12 @@ import {
   Calendar,
   X,
   FileDown,
-  Send
+  Send,
+  LayoutDashboard,
+  BarChart3,
+  TrendingUp,
+  PieChart,
+  AlertCircle
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 import * as XLSX from 'xlsx';
@@ -66,6 +71,31 @@ export default function EncomendasPage() {
   const [saving, setSaving] = useState(false);
   const [notifiedPackages, setNotifiedPackages] = useState<Set<string>>(new Set());
   const [notifyingPackage, setNotifyingPackage] = useState<string | null>(null);
+  
+  // Estados do Dashboard
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [dashboardMonth, setDashboardMonth] = useState((new Date().getMonth() + 1).toString());
+  const [dashboardYear, setDashboardYear] = useState(new Date().getFullYear().toString());
+  const [dashboardPackages, setDashboardPackages] = useState<Package[]>([]);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+
+  const fetchDashboardData = useCallback(async () => {
+    if (!isDashboardOpen) return;
+    try {
+      setDashboardLoading(true);
+      const res = await fetch(`/api/encomendas?month=${dashboardMonth}&year=${dashboardYear}`);
+      const data = await res.json();
+      if (Array.isArray(data)) setDashboardPackages(data);
+    } catch (error) {
+      console.error('Erro ao buscar dados do painel:', error);
+    } finally {
+      setDashboardLoading(false);
+    }
+  }, [isDashboardOpen, dashboardMonth, dashboardYear]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('RECEBIDO PORTARIA');
@@ -217,6 +247,40 @@ export default function EncomendasPage() {
   const isStaff = currentUser?.role === 'SINDICO' || currentUser?.role === 'PORTEIRO' || currentUser?.role === 'SUPER_ADMIN';
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
 
+  // Cálculos do Dashboard
+  const daysInMonth = new Date(parseInt(dashboardYear), parseInt(dashboardMonth), 0).getDate();
+  const dailyCounts = Array.from({ length: daysInMonth }, () => 0);
+  const typeCounts: Record<string, number> = { Caixa: 0, Envelope: 0, Pacote: 0, Delivery: 0, Outros: 0 };
+  const sizeCounts: Record<string, number> = { pequena: 0, média: 0, grande: 0 };
+
+  let totalDashboardReceived = 0;
+  let totalDashboardWithdrawn = 0;
+  let totalDashboardPending = 0;
+
+  dashboardPackages.forEach(p => {
+    totalDashboardReceived++;
+    if (p.status === 'RETIRADO') {
+      totalDashboardWithdrawn++;
+    } else {
+      totalDashboardPending++;
+    }
+
+    const typeKey = Object.keys(typeCounts).find(k => k.toLowerCase() === p.type?.toLowerCase()) || 'Outros';
+    typeCounts[typeKey]++;
+
+    const sizeKey = Object.keys(sizeCounts).find(k => k.toLowerCase() === p.size?.toLowerCase()) || 'média';
+    sizeCounts[sizeKey]++;
+
+    const day = new Date(p.receivedAt).getDate();
+    if (day >= 1 && day <= daysInMonth) {
+      dailyCounts[day - 1]++;
+    }
+  });
+
+  const maxDailyCount = Math.max(...dailyCounts, 1);
+  const dailyAverage = totalDashboardReceived > 0 ? (totalDashboardReceived / daysInMonth).toFixed(2) : '0';
+  const withdrawalRate = totalDashboardReceived > 0 ? Math.round((totalDashboardWithdrawn / totalDashboardReceived) * 100) : 0;
+
   const handleTelegramNotify = async (pkg: Package) => {
     setNotifyingPackage(pkg.id);
     try {
@@ -251,6 +315,14 @@ export default function EncomendasPage() {
           <p className="text-slate-500 font-medium">Controle de encomendas e correspondências do condomínio.</p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
+          {isAdmin && (
+            <button 
+              onClick={() => setIsDashboardOpen(true)}
+              className="flex-1 md:flex-none bg-blue-50 text-blue-600 hover:bg-blue-100 px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all border border-blue-100 active:scale-95"
+            >
+              <LayoutDashboard size={20} /> Painel Estatístico
+            </button>
+          )}
           {isAdmin && (
             <button 
               onClick={exportToExcel}
@@ -894,6 +966,266 @@ export default function EncomendasPage() {
                   </button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dashboard */}
+      {isDashboardOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-slate-50 rounded-[2.5rem] shadow-2xl w-full max-w-5xl p-6 sm:p-10 animate-in zoom-in-95 duration-200 my-auto max-h-[95vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-slate-200/80 pb-6">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                  <LayoutDashboard className="text-blue-600" size={28} /> Dashboard de Recebimentos
+                </h2>
+                <p className="text-slate-500 font-medium text-xs">Estatísticas e análise operacional de mercadorias no condomínio.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0">
+                {/* Filtro de Mês */}
+                <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex-1 sm:flex-none">
+                  <Calendar size={14} className="text-slate-400 ml-1" />
+                  <select 
+                    className="bg-transparent border-none focus:ring-0 text-xs font-black text-slate-700 pr-8"
+                    value={dashboardMonth}
+                    onChange={(e) => setDashboardMonth(e.target.value)}
+                  >
+                    {MONTHS.map(m => <option key={m.val} value={m.val}>{m.name.toUpperCase()}</option>)}
+                  </select>
+                </div>
+
+                {/* Filtro de Ano */}
+                <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex-1 sm:flex-none">
+                  <Calendar size={14} className="text-slate-400 ml-1" />
+                  <select 
+                    className="bg-transparent border-none focus:ring-0 text-xs font-black text-slate-700 pr-8"
+                    value={dashboardYear}
+                    onChange={(e) => setDashboardYear(e.target.value)}
+                  >
+                    {Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString()).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Botão Fechar */}
+                <button 
+                  onClick={() => setIsDashboardOpen(false)} 
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 shrink-0"
+                  title="Fechar Painel"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo do Dashboard */}
+            {dashboardLoading ? (
+              <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-4">
+                <Clock className="animate-spin text-blue-600" size={40} />
+                <p className="font-bold text-sm uppercase tracking-wider">Carregando estatísticas...</p>
+              </div>
+            ) : (
+              <>
+                {/* Cards de Resumo */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  {/* Total Recebidas */}
+                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0 border border-blue-100">
+                      <PackageIcon size={22} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Recebidas</p>
+                      <h4 className="text-2xl font-black text-slate-800 leading-none">{totalDashboardReceived}</h4>
+                      <span className="text-[9px] font-bold text-slate-400 block mt-1 uppercase">No período</span>
+                    </div>
+                  </div>
+
+                  {/* Total Retiradas */}
+                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0 border border-emerald-100">
+                      <CheckCircle2 size={22} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Entregues</p>
+                      <h4 className="text-2xl font-black text-slate-800 leading-none">{totalDashboardWithdrawn}</h4>
+                      <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100/50 px-1.5 py-0.5 rounded-md mt-1 inline-block uppercase tracking-tighter">
+                        {withdrawalRate}% de baixas
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Total Pendentes */}
+                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shrink-0 border border-amber-100">
+                      <Clock size={22} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Na Portaria</p>
+                      <h4 className="text-2xl font-black text-slate-800 leading-none">{totalDashboardPending}</h4>
+                      <span className="text-[9px] font-bold text-slate-400 block mt-1 uppercase">Pendente</span>
+                    </div>
+                  </div>
+
+                  {/* Média Diária */}
+                  <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0 border border-indigo-100">
+                      <TrendingUp size={22} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Média Diária</p>
+                      <h4 className="text-2xl font-black text-slate-800 leading-none">{dailyAverage}</h4>
+                      <span className="text-[9px] font-bold text-slate-400 block mt-1 uppercase">Pacotes / dia</span>
+                    </div>
+                  </div>
+                </div>
+
+                {totalDashboardReceived > 0 ? (
+                  <>
+                    {/* Gráfico Diário */}
+                    <div className="bg-white p-6 rounded-3xl border border-slate-150 shadow-sm">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <BarChart3 className="text-blue-600" size={18} /> Fluxo Diário de Recebimento
+                          </h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Quantidade de encomendas recebidas por dia do mês</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                          <span className="w-3 h-3 bg-blue-600 rounded-sm"></span> Recebidos
+                        </div>
+                      </div>
+
+                      {/* Gráfico Responsivo */}
+                      <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
+                        <div className="min-w-[700px] h-64 flex flex-col justify-end relative pt-6 pr-2">
+                          {/* Linhas de Guia no fundo */}
+                          <div className="absolute inset-x-0 top-6 bottom-8 flex flex-col justify-between pointer-events-none text-[8px] font-black text-slate-400 tracking-tighter">
+                            <div className="border-t border-dashed border-slate-200/80 w-full pt-1 flex justify-between">
+                              <span>Máximo: {Math.max(...dailyCounts, 0)}</span>
+                            </div>
+                            <div className="border-t border-dashed border-slate-200/60 w-full pt-1"></div>
+                            <div className="border-t border-dashed border-slate-200/60 w-full pt-1"></div>
+                            <div className="border-t border-dashed border-slate-200/60 w-full pt-1"></div>
+                          </div>
+
+                          {/* Barras */}
+                          <div className="flex items-end justify-between h-48 relative z-10 px-2">
+                            {dailyCounts.map((count, index) => {
+                              const dayNum = index + 1;
+                              const barHeightPercent = (count / maxDailyCount) * 100;
+                              return (
+                                <div key={dayNum} className="flex flex-col items-center flex-1 group relative">
+                                  {/* Tooltip Hover */}
+                                  <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[9px] font-black py-1.5 px-2.5 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-xl whitespace-nowrap z-30 flex flex-col items-center">
+                                    <span>{dayNum} de {MONTHS.find(m => m.val === dashboardMonth)?.name}</span>
+                                    <span className="text-blue-300 uppercase tracking-tighter mt-0.5">{count} {count === 1 ? 'encomenda' : 'encomendas'}</span>
+                                    <div className="w-1.5 h-1.5 bg-slate-900 rotate-45 mt-1 -mb-1"></div>
+                                  </div>
+
+                                  {/* Barra Física */}
+                                  <div 
+                                    className={`w-3.5 sm:w-4 rounded-t-md transition-all duration-500 ease-out relative overflow-hidden group-hover:scale-x-115 cursor-pointer ${
+                                      count > 0 
+                                        ? 'bg-gradient-to-t from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 shadow-sm shadow-indigo-100' 
+                                        : 'bg-slate-200/60'
+                                    }`}
+                                    style={{ height: `${count > 0 ? Math.max(barHeightPercent, 6) : 3}%` }}
+                                  >
+                                    {count > 0 && (
+                                      <div className="absolute inset-x-0 top-0 h-1 bg-white/20"></div>
+                                    )}
+                                  </div>
+
+                                  {/* Dia da Legenda */}
+                                  <span className="text-[9px] font-black text-slate-400 mt-2 group-hover:text-slate-700 transition-colors">
+                                    {dayNum}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Distribuições (Tipos e Tamanhos) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                      {/* Por Tipo */}
+                      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-6">
+                          <PieChart className="text-blue-600" size={18} /> Classificação por Tipo
+                        </h4>
+                        <div className="space-y-4">
+                          {Object.entries(typeCounts).map(([type, count]) => {
+                            const pct = totalDashboardReceived > 0 ? Math.round((count / totalDashboardReceived) * 100) : 0;
+                            return (
+                              <div key={type} className="space-y-1.5">
+                                <div className="flex justify-between text-xs font-bold text-slate-600 uppercase tracking-tight">
+                                  <span>{type}</span>
+                                  <span className="text-slate-400 font-medium">{count} ({pct}%)</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                  <div 
+                                    className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out" 
+                                    style={{ width: `${pct}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Por Tamanho */}
+                      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-6">
+                          <PieChart className="text-blue-600" size={18} /> Dimensões dos Volumes
+                        </h4>
+                        <div className="space-y-4">
+                          {Object.entries(sizeCounts).map(([size, count]) => {
+                            const pct = totalDashboardReceived > 0 ? Math.round((count / totalDashboardReceived) * 100) : 0;
+                            const displayLabel = size === 'pequena' ? 'Pequeno' : size === 'média' ? 'Médio' : 'Grande';
+                            return (
+                              <div key={size} className="space-y-1.5">
+                                <div className="flex justify-between text-xs font-bold text-slate-600 uppercase tracking-tight">
+                                  <span>{displayLabel}</span>
+                                  <span className="text-slate-400 font-medium">{count} ({pct}%)</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                  <div 
+                                    className="bg-indigo-500 h-full rounded-full transition-all duration-500 ease-out" 
+                                    style={{ width: `${pct}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Estado Vazio */
+                  <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-16 text-center shadow-sm col-span-2">
+                    <AlertCircle size={40} className="mx-auto text-slate-300 mb-3" />
+                    <p className="text-slate-400 font-bold text-sm uppercase tracking-wide">Nenhuma encomenda registrada neste período.</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Rodapé do Modal */}
+            <div className="flex justify-end pt-8 mt-8 border-t border-slate-200">
+              <button 
+                type="button" 
+                onClick={() => setIsDashboardOpen(false)} 
+                className="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest active:scale-95 shadow-md shadow-slate-200"
+              >
+                Fechar Painel
+              </button>
             </div>
           </div>
         </div>
