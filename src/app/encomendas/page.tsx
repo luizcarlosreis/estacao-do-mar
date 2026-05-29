@@ -1101,9 +1101,9 @@ export default function EncomendasPage() {
 
                       {/* Gráfico Responsivo */}
                       <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
-                        <div className="min-w-[700px] h-64 flex flex-col justify-between relative pt-6 pr-2">
+                        <div className="min-w-[700px] h-64 flex flex-col justify-between relative pt-12 pr-2">
                           {/* Linhas de Guia no fundo */}
-                          <div className="absolute inset-x-0 top-6 bottom-10 flex flex-col justify-between pointer-events-none text-[8px] font-black text-slate-400 tracking-tighter">
+                          <div className="absolute inset-x-0 top-12 bottom-10 flex flex-col justify-between pointer-events-none text-[8px] font-black text-slate-400 tracking-tighter">
                             <div className="border-t border-dashed border-slate-200/80 w-full pt-1 flex justify-between">
                               <span>Máximo: {Math.max(...dailyCounts, 0)}</span>
                             </div>
@@ -1113,7 +1113,7 @@ export default function EncomendasPage() {
                           </div>
 
                           {/* Barras em Área com Altura de 100% */}
-                          <div className="flex items-end justify-between h-44 relative z-10 px-2">
+                          <div className="flex items-end justify-between h-36 relative z-10 px-2">
                             {dailyCounts.map((count, index) => {
                               const dayNum = index + 1;
                               const barHeightPercent = (count / maxDailyCount) * 100;
