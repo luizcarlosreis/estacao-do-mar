@@ -1120,11 +1120,13 @@ export default function EncomendasPage() {
                               return (
                                 <div key={dayNum} className="h-full flex flex-col justify-end items-center flex-1 group relative">
                                   {/* Tooltip Hover */}
-                                  <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[9px] font-black py-1.5 px-2.5 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-xl whitespace-nowrap z-30 flex flex-col items-center">
-                                    <span>{dayNum} de {MONTHS.find(m => m.val === dashboardMonth)?.name}</span>
-                                    <span className="text-blue-300 uppercase tracking-tighter mt-0.5">{count} {count === 1 ? 'encomenda' : 'encomendas'}</span>
-                                    <div className="w-1.5 h-1.5 bg-slate-900 rotate-45 mt-1 -mb-1"></div>
-                                  </div>
+                                  {count > 0 && (
+                                    <div className="absolute bottom-full mb-2 bg-slate-900 text-white text-[9px] font-black py-1.5 px-2.5 rounded-lg opacity-0 invisible pointer-events-none group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl whitespace-nowrap z-30 flex flex-col items-center">
+                                      <span>{dayNum} de {MONTHS.find(m => m.val === dashboardMonth)?.name}</span>
+                                      <span className="text-blue-300 uppercase tracking-tighter mt-0.5">{count} {count === 1 ? 'encomenda' : 'encomendas'}</span>
+                                      <div className="w-1.5 h-1.5 bg-slate-900 rotate-45 mt-1 -mb-1"></div>
+                                    </div>
+                                  )}
 
                                   {/* Barra Física */}
                                   <div 
