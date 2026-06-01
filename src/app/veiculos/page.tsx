@@ -34,6 +34,13 @@ type Vehicle = {
   unit?: Unit;
 };
 
+const typeLabels: Record<Vehicle['type'], string> = {
+  CARRO: 'CARRO',
+  MOTO: 'MOTO',
+  UTILITARIO: 'UTILITÁRIO',
+  BICICLETA: 'BICICLETA'
+};
+
 
 
 export default function VeiculosPage() {
@@ -258,7 +265,9 @@ export default function VeiculosPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1 mb-0.5">
                             <Hash size={9} className="text-slate-400" />
-                            <span className="text-sm font-black text-slate-800 tracking-widest uppercase truncate">{v.plate}</span>
+                            <span className="text-sm font-black text-slate-800 tracking-widest uppercase truncate">
+                              {v.plate} ({typeLabels[v.type] || v.type})
+                            </span>
                           </div>
                           <h3 className="text-[9px] font-bold text-slate-600 uppercase truncate leading-tight">{v.model}</h3>
                           <p className="text-[8px] text-slate-400 font-black uppercase truncate">{v.color}</p>
