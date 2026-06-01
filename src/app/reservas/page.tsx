@@ -314,6 +314,7 @@ export default function ReservasPage() {
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
   const isZeladoria = currentUser?.role === 'ZELADORIA';
   const isPorteiro = currentUser?.role === 'PORTEIRO';
+  const isReadOnlyReservation = isZeladoria || isPorteiro;
   const isReadOnlyGuest = isAdmin || isZeladoria || isPorteiro;
   const isMorador = currentUser?.role === 'MORADOR';
 
@@ -331,7 +332,7 @@ export default function ReservasPage() {
           </h1>
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
-        {!isReadOnlyGuest && (
+        {!isReadOnlyReservation && (
           <button onClick={openCreate}
             className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
             <Plus size={18} /> Nova Reserva
@@ -525,8 +526,13 @@ export default function ReservasPage() {
                 {/* Apartamento */}
                 <div>
                   <label className={lbl}>Apartamento *</label>
-                  <select required className={`${inp} bg-slate-50 cursor-not-allowed`} value={formData.unitId}
-                    disabled={true}>
+                  <select 
+                    required 
+                    className={`${inp} ${!isAdmin ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
+                    value={formData.unitId}
+                    disabled={!isAdmin}
+                    onChange={e => setFormData({ ...formData, unitId: e.target.value })}
+                  >
                     <option value="">Selecione o apartamento</option>
                     {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
                   </select>
@@ -535,8 +541,8 @@ export default function ReservasPage() {
                 {/* Data */}
                 <div>
                   <label className={lbl}>Data da Reserva *</label>
-                  <input required type="date" className={`${inp} ${(isMorador && isEditMode) || isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
-                    readOnly={(isMorador && isEditMode) || isReadOnlyGuest}
+                  <input required type="date" className={`${inp} ${(isMorador && isEditMode) || isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
+                    readOnly={(isMorador && isEditMode) || isReadOnlyReservation}
                     value={formData.date} 
                     onChange={e => {
                       if (isDateBlocked(e.target.value, formData.id)) {
@@ -557,26 +563,26 @@ export default function ReservasPage() {
                   <label className={lbl}>Nome completo *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                    <input required type="text" className={`${inp} pl-10 ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="NOME DO SOLICITANTE"
+                    <input required type="text" className={`${inp} pl-10 ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyReservation} placeholder="NOME DO SOLICITANTE"
                       value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value.toUpperCase() })} />
                   </div>
                 </div>
                 <div>
                   <label className={lbl}>CPF</label>
-                  <input type="text" className={`${inp} ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="000.000.000-00"
+                  <input type="text" className={`${inp} ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyReservation} placeholder="000.000.000-00"
                     value={formData.cpf} onChange={e => setFormData({ ...formData, cpf: e.target.value })} />
                 </div>
                 <div>
                   <label className={lbl}>RG</label>
-                  <input type="text" className={`${inp} ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="RG"
+                  <input type="text" className={`${inp} ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyReservation} placeholder="RG"
                     value={formData.rg} onChange={e => setFormData({ ...formData, rg: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <label className={lbl}>Telefone para Contato</label>
                   <div className="flex gap-2">
-                    <input type="text" className={`${inp} w-20 ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="DDD"
+                    <input type="text" className={`${inp} w-20 ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyReservation} placeholder="DDD"
                       value={formData.ddd} onChange={e => setFormData({ ...formData, ddd: e.target.value })} />
-                    <input type="text" className={`${inp} ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="NÚMERO"
+                    <input type="text" className={`${inp} ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyReservation} placeholder="NÚMERO"
                       value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                   </div>
                 </div>
@@ -585,7 +591,7 @@ export default function ReservasPage() {
               {/* Observações do Solicitante */}
               <div className="pt-4 border-t border-slate-100">
                 <label className={lbl}>Observações do Solicitante</label>
-                <textarea rows={2} className={`${inp} resize-none ${isReadOnlyGuest ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyGuest} placeholder="INFORMAÇÕES ADICIONAIS..."
+                <textarea rows={2} className={`${inp} resize-none ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} readOnly={isReadOnlyReservation} placeholder="INFORMAÇÕES ADICIONAIS..."
                   value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
               </div>
 
