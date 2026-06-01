@@ -373,7 +373,8 @@ export default function ReservasPage() {
                 { letter: 'H', text: 'Mobiliário incluso: 5 conjuntos de madeira, mesas de 2,20m e 2,00m, banquetas, aparador, pufs e fraldário.' },
                 { letter: 'I', text: 'Disponível: 5 conjuntos de plástico. Proibido remanejar móveis de outras áreas.' },
                 { letter: 'J', text: 'Empresas terceiras devem ser avisadas previamente à portaria.' },
-                { letter: 'K', text: 'Após a aprovação da reserva for efetivada, preencher a lista de convidados no portal.' }
+                { letter: 'K', text: 'Após a aprovação da reserva for efetivada, preencher a lista de convidados no portal.' },
+                { letter: 'L', text: 'Taxa de utilização do salão de festas: R$ 150,00. (Art. 46 do RI) e aprovação em assembleia de 18/03/2023.' }
               ].map((item) => (
                 <div key={item.letter} className="flex gap-3 text-[11px] leading-relaxed">
                   <span className="font-black text-blue-600 shrink-0">{item.letter}.</span>
