@@ -24,10 +24,15 @@ export async function GET(req: NextRequest) {
       data: { isArchived: true }
     });
 
-    const where: any = { isArchived: false };
+    const where: any = {};
     
-    if (category && category !== 'ALL') {
-      where.category = category;
+    if (category === 'EXPIRADO') {
+      where.isArchived = true;
+    } else {
+      where.isArchived = false;
+      if (category && category !== 'ALL') {
+        where.category = category;
+      }
     }
     
     if (search) {

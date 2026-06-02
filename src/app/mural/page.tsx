@@ -169,7 +169,7 @@ export default function MuralPage() {
           />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-          {['ALL', 'AVISO', 'PENSAMENTO', 'CLASSIFICADO'].map((cat) => (
+          {['ALL', 'AVISO', 'PENSAMENTO', 'CLASSIFICADO', 'EXPIRADO'].map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
@@ -179,7 +179,7 @@ export default function MuralPage() {
                 : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
               }`}
             >
-              {cat === 'ALL' ? 'Todos' : categoryMap[cat as keyof typeof categoryMap].label}
+              {cat === 'ALL' ? 'Todos' : cat === 'EXPIRADO' ? 'Expirados' : categoryMap[cat as keyof typeof categoryMap].label}
             </button>
           ))}
         </div>
@@ -223,6 +223,12 @@ export default function MuralPage() {
                       {categoryMap[post.category as keyof typeof categoryMap].label}
                     </span>
                     
+                    {post.isArchived && (
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-500 border border-slate-200">
+                        Expirado
+                      </span>
+                    )}
+                    
                     {(user?.id === post.userId || user?.role === 'SUPER_ADMIN') && (
                       <div className="flex gap-1">
                         <button onClick={() => handleRenew(post.id)} title="Renovar por 30 dias" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors">
@@ -265,7 +271,7 @@ export default function MuralPage() {
                   </button>
                   <div className="ml-auto text-[10px] text-slate-400 flex items-center gap-1.5 font-bold uppercase tracking-widest">
                     <Calendar size={12} />
-                    Expira em {new Date(post.expiresAt).toLocaleDateString('pt-BR')}
+                    {post.isArchived ? 'Expirou em' : 'Expira em'} {new Date(post.expiresAt).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
               </div>
