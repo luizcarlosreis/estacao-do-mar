@@ -21,16 +21,42 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ message: 'Sem permissão' }, { status: 403 });
     }
 
-    // Lógica de renovação: seta nova expiração para 30 dias a partir de agora
-    const newExpiresAt = new Date();
-    newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+    // Tenta ler o corpo da requisição para verificar se é alteração ou renovação
+    let body: any = null;
+    try {
+      body = await req.json();
+    } catch (e) {
+      // Corpo vazio
+    }
+
+    let updatedData: any = {};
+
+    if (body && (body.title || body.description || body.category)) {
+      // Lógica de alteração/edição de campos
+      updatedData = {
+        title: body.title,
+        description: body.description,
+        category: body.category,
+        price: body.price ? parseFloat(body.price) : null
+      };
+
+      if (body.expiresAt && payload.role === 'SUPER_ADMIN') {
+        const [year, month, day] = body.expiresAt.split('-').map(Number);
+        updatedData.expiresAt = new Date(Date.UTC(year, month - 1, day, 23, 59, 59) + (3 * 60 * 60 * 1000));
+      }
+    } else {
+      // Lógica de renovação simples
+      const newExpiresAt = new Date();
+      newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+      updatedData = {
+        expiresAt: newExpiresAt,
+        isArchived: false
+      };
+    }
 
     const updated = await prisma.post.update({
       where: { id },
-      data: {
-        expiresAt: newExpiresAt,
-        isArchived: false
-      }
+      data: updatedData
     });
 
     return NextResponse.json(updated);

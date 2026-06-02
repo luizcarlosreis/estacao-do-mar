@@ -6,6 +6,7 @@ import {
   Lightbulb, 
   Tag, 
   Plus, 
+  Edit2,
   MessageCircle, 
   Heart, 
   Search, 
@@ -38,8 +39,10 @@ export default function MuralPage() {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Modal de Criação
+  // Modal de Criação / Edição
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [newPost, setNewPost] = useState({
     title: '',
     description: '',
@@ -80,16 +83,41 @@ export default function MuralPage() {
     fetchPosts();
   }, [categoryFilter]);
 
-  const handleCreatePost = async (e: React.FormEvent) => {
+  const openEditModal = (post: any) => {
+    setIsEditMode(true);
+    setEditingPostId(post.id);
+    setNewPost({
+      title: post.title,
+      description: post.description,
+      category: post.category,
+      price: post.price ? String(post.price) : '',
+      expiresAt: post.expiresAt ? new Date(post.expiresAt).toISOString().split('T')[0] : ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setIsEditMode(false);
+    setEditingPostId(null);
+    setNewPost({ title: '', description: '', category: 'AVISO', price: '', expiresAt: '' });
+    setIsModalOpen(true);
+  };
+
+  const handleSavePost = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
+      const url = isEditMode ? `/api/posts/${editingPostId}` : '/api/posts';
+      const method = isEditMode ? 'PATCH' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPost)
       });
       if (res.ok) {
         setIsModalOpen(false);
+        setIsEditMode(false);
+        setEditingPostId(null);
         setNewPost({ title: '', description: '', category: 'AVISO', price: '', expiresAt: '' });
         fetchPosts();
       }
@@ -148,7 +176,7 @@ export default function MuralPage() {
           <p className="text-slate-500 mt-1">Comunicados, interações e classificados do Estação do Mar.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openCreateModal}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-100 active:scale-95 self-start md:self-center"
         >
           <Plus size={20} /> Novo Post
@@ -231,6 +259,9 @@ export default function MuralPage() {
                     
                     {(user?.id === post.userId || user?.role === 'SUPER_ADMIN') && (
                       <div className="flex gap-1">
+                        <button onClick={() => openEditModal(post)} title="Editar" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors">
+                          <Edit2 size={16} />
+                        </button>
                         <button onClick={() => handleRenew(post.id)} title="Renovar por 30 dias" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors">
                           <RefreshCw size={16} />
                         </button>
@@ -325,13 +356,13 @@ export default function MuralPage() {
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
             <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <Megaphone size={20} /> Criar Publicação
+                <Megaphone size={20} /> {isEditMode ? 'Editar Publicação' : 'Criar Publicação'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
                 <X size={28} />
               </button>
             </div>
-            <form onSubmit={handleCreatePost} className="p-6 space-y-6">
+            <form onSubmit={handleSavePost} className="p-6 space-y-6">
               <div className="flex gap-3">
                 {Object.entries(categoryMap).map(([key, value]) => (
                   <button
@@ -424,7 +455,7 @@ export default function MuralPage() {
                   type="submit"
                   className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
                 >
-                  Publicar no Mural
+                  {isEditMode ? 'Salvar Alterações' : 'Publicar no Mural'}
                 </button>
               </div>
             </form>
