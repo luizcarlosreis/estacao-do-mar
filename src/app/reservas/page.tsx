@@ -252,7 +252,9 @@ export default function ReservasPage() {
       unitId: currentUser?.unitId || '',
       name: currentUser?.name?.toUpperCase() || '',
       cpf: currentUser?.cpf || '',
-      rg: currentUser?.rg || ''
+      rg: currentUser?.rg || '',
+      ddd: currentUser?.ddd || '',
+      phone: currentUser?.phone || ''
     });
     setIsEditMode(false);
     setIsModalOpen(true);
