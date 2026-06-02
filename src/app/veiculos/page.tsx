@@ -43,7 +43,7 @@ const typeLabels: Record<Vehicle['type'], string> = {
 
 const typeColors: Record<Vehicle['type'], string> = {
   CARRO: 'text-blue-600',
-  MOTO: 'text-purple-600',
+  MOTO: 'text-red-600',
   UTILITARIO: 'text-amber-600',
   BICICLETA: 'text-green-600'
 };
