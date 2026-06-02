@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { cpf, name, email, password, unitId, ddd, phone } = body;
+    const { cpf, name, email, password, unitId, ddd, phone, rg } = body;
 
     if (!cpf || cpf.trim() === '') {
       return NextResponse.json(
@@ -84,6 +84,7 @@ export async function POST(request: Request) {
         cpf,
         name: name.toUpperCase(),
         email: email || null,
+        rg: rg || null,
         password: hashedPassword,
         role: 'MORADOR',
         unitId: unitId || null,

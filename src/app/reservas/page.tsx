@@ -250,7 +250,9 @@ export default function ReservasPage() {
     setFormData({ 
       ...emptyForm, 
       unitId: currentUser?.unitId || '',
-      name: currentUser?.name?.toUpperCase() || ''
+      name: currentUser?.name?.toUpperCase() || '',
+      cpf: currentUser?.cpf || '',
+      rg: currentUser?.rg || ''
     });
     setIsEditMode(false);
     setIsModalOpen(true);

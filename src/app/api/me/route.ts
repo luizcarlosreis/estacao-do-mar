@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
         email: true,
         unitId: true,
         cpf: true,
+        rg: true,
         telegramChatId: true,
         telegramLinkToken: true
       }

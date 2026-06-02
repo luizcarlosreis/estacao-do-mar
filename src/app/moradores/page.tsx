@@ -34,6 +34,7 @@ type Morador = {
   cpf: string;
   name: string;
   email?: string;
+  rg?: string;
   role: string;
   unitId?: string;
   unit?: Unit;
@@ -68,7 +69,7 @@ export default function MoradoresPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true });
+  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '' });
 
   const API_URL = '/api/moradores';
   const UNIDADES_URL = '/api/unidades';
@@ -177,7 +178,8 @@ export default function MoradoresPage() {
       ddd: m.ddd || '',
       phone: m.phone || '',
       residentType: m.residentType || 'MORADOR',
-      isActive: m.isActive !== undefined ? m.isActive : true
+      isActive: m.isActive !== undefined ? m.isActive : true,
+      rg: m.rg || ''
     });
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -185,7 +187,7 @@ export default function MoradoresPage() {
 
   const openCreateModal = () => {
     setSelectedMorador(null);
-    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true });
+    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '' });
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -357,7 +359,8 @@ export default function MoradoresPage() {
                             <h3 className="text-[10px] font-black text-slate-800 uppercase truncate leading-tight mb-0.5">{m.name}</h3>
                             {m.email && <p className="text-[9px] text-slate-500 truncate mb-1 lowercase">{m.email}</p>}
                             <div className="flex items-center gap-2 flex-wrap">
-                               <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
+                              <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
+                              {m.rg && <span className="text-[8px] text-slate-400 font-black uppercase"> · RG: {m.rg}</span>}
                                {m.phone && <span className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1"><Phone size={12} /> {m.ddd ? `(${m.ddd}) ` : ''}{m.phone}</span>}
                                <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
                                  m.residentType === 'VISITA FREQUENTE' 
@@ -462,25 +465,36 @@ export default function MoradoresPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 pr-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome Completo</label>
+                <input 
+                  type="text" required 
+                  placeholder="EX: JOÃO DA SILVA"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 uppercase"
+                  value={formData.name} 
+                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">CPF (Apenas Números)</label>
                   <input 
-                    type="text" required disabled={isEditMode}
-                    placeholder="000.000.000-00"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 disabled:opacity-50"
-                    value={formData.cpf} 
-                    onChange={(e) => setFormData({...formData, cpf: e.target.value})} 
+                     type="text" required disabled={isEditMode}
+                     placeholder="000.000.000-00"
+                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 disabled:opacity-50"
+                     value={formData.cpf} 
+                     onChange={(e) => setFormData({...formData, cpf: e.target.value})} 
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome Completo</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">RG</label>
                   <input 
-                    type="text" required 
-                    placeholder="EX: JOÃO DA SILVA"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 uppercase"
-                    value={formData.name} 
-                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                    type="text" 
+                    placeholder="EX: 12.345.678-9"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                    value={formData.rg} 
+                    onChange={(e) => setFormData({...formData, rg: e.target.value})} 
                   />
                 </div>
               </div>
