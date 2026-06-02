@@ -41,6 +41,13 @@ const typeLabels: Record<Vehicle['type'], string> = {
   BICICLETA: 'BICICLETA'
 };
 
+const typeColors: Record<Vehicle['type'], string> = {
+  CARRO: 'text-blue-600',
+  MOTO: 'text-purple-600',
+  UTILITARIO: 'text-amber-600',
+  BICICLETA: 'text-green-600'
+};
+
 
 
 export default function VeiculosPage() {
@@ -49,6 +56,7 @@ export default function VeiculosPage() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -167,11 +175,15 @@ export default function VeiculosPage() {
     }
   };
 
-  const filteredVeiculos = veiculos.filter(v => 
-    v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (v.unit && (v.unit.number.includes(searchTerm) || v.unit.block.toLowerCase().includes(searchTerm.toLowerCase())))
-  );
+  const filteredVeiculos = veiculos.filter(v => {
+    const matchesSearch = v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (v.unit && (v.unit.number.includes(searchTerm) || v.unit.block.toLowerCase().includes(searchTerm.toLowerCase())));
+      
+    const matchesType = filterType ? v.type === filterType : true;
+    
+    return matchesSearch && matchesType;
+  });
 
   const groupedVeiculos: Record<string, { unit: Unit, vehicles: Vehicle[] }> = {};
   
@@ -212,7 +224,7 @@ export default function VeiculosPage() {
             </p>
           </div>
           
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
             <div className="relative flex-1 md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
               <input 
@@ -223,6 +235,27 @@ export default function VeiculosPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+
+            <div className="relative">
+              <select
+                value={filterType}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-black uppercase focus:ring-2 focus:ring-blue-500/20 outline-none transition-all shadow-sm cursor-pointer text-slate-700 appearance-none min-w-[130px]"
+              >
+                <option value="">TODOS OS TIPOS</option>
+                <option value="CARRO">CARRO</option>
+                <option value="MOTO">MOTO</option>
+                <option value="UTILITARIO">UTILITÁRIO</option>
+                <option value="BICICLETA">BICICLETA</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronRight size={12} className="rotate-90" />
+              </div>
+            </div>
+
             <button 
               onClick={openCreateModal}
               className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
@@ -263,10 +296,13 @@ export default function VeiculosPage() {
                     {group.vehicles.map(v => (
                       <div key={v.id} className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 group/veh relative hover:border-blue-200 transition-all flex items-center justify-between gap-3 overflow-hidden">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1 mb-0.5">
+                          <div className="flex items-center gap-1 mb-0.5 flex-wrap">
                             <Hash size={9} className="text-slate-400" />
                             <span className="text-sm font-black text-slate-800 tracking-widest uppercase truncate">
-                              {v.plate} ({typeLabels[v.type] || v.type})
+                              {v.plate}
+                            </span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ml-1.5 ${typeColors[v.type] || 'text-slate-500'}`}>
+                              ({typeLabels[v.type] || v.type})
                             </span>
                           </div>
                           <h3 className="text-[9px] font-bold text-slate-600 uppercase truncate leading-tight">{v.model}</h3>
