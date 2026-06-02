@@ -165,7 +165,7 @@ export default function ReservasPage() {
         // Vou disparar na criação.
         if (!isEditMode) {
           try {
-            const doc = createReservationPDF(savedData);
+            const doc = createReservationPDF(savedData, currentUser?.email);
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             
             await fetch('/api/send-authorization-email', { // Reutilizando a mesma rota para luiz.carlos.reis@gmail.com
@@ -269,7 +269,7 @@ export default function ReservasPage() {
     setIsModalOpen(true);
   };
 
-  const createReservationPDF = (r: Reservation) => {
+  const createReservationPDF = (r: Reservation, requesterEmail?: string) => {
     const doc = new jsPDF();
     doc.setFontSize(20);
     doc.setTextColor(37, 99, 235);
@@ -285,6 +285,7 @@ export default function ReservasPage() {
         ['CPF:', r.cpf || '—'],
         ['RG:', r.rg || '—'],
         ['Telefone:', r.ddd ? `(${r.ddd}) ${r.phone}` : (r.phone || '—')],
+        ['E-mail:', requesterEmail || '—'],
         ['Data Reservada:', formatDate(r.date)],
         ['Status:', r.status],
         ['Observações:', r.notes || '—']

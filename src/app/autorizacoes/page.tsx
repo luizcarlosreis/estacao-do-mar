@@ -139,7 +139,7 @@ export default function AutorizacoesPage() {
         // Gerar e enviar PDF por e-mail
         try {
           // O objeto savedData retornado pela API já contém o 'unit' com os 'residents'
-          const doc = createAuthorizationPDF(savedData);
+          const doc = createAuthorizationPDF(savedData, currentUser?.email);
           const pdfBase64 = doc.output('datauristring').split(',')[1];
           
           console.log('Frontend: Iniciando disparo de e-mail automático...');
@@ -224,7 +224,7 @@ export default function AutorizacoesPage() {
   const updateCompanion = (i: number, field: keyof Companion, val: string) =>
     setCompanions(companions.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
 
-  const createAuthorizationPDF = (a: Authorization) => {
+  const createAuthorizationPDF = (a: Authorization, requesterEmail?: string) => {
     const doc = new jsPDF();
     
     // Configurações do Cabeçalho
@@ -247,11 +247,12 @@ export default function AutorizacoesPage() {
       doc.setTextColor(37, 99, 235);
       doc.text('Dados do Solicitante (Proprietário/Residente)', 14, 45);
       
+      const emailToShow = requesterEmail || requester.email || '—';
       const ownerBody = [
         ['Nome:', requester.name],
         ['Unidade:', a.unit ? `${a.unit.number} - ${a.unit.block}` : '—'],
         ['Telefone:', requester.ddd ? `(${requester.ddd}) ${requester.phone}` : (requester.phone || '—')],
-        ['E-mail:', requester.email || '—']
+        ['E-mail:', emailToShow]
       ];
 
       autoTable(doc, {
@@ -378,7 +379,7 @@ export default function AutorizacoesPage() {
   };
 
   const generatePDF = (a: Authorization) => {
-    const doc = createAuthorizationPDF(a);
+    const doc = createAuthorizationPDF(a, currentUser?.email);
     doc.save(`Autorizacao_${a.name.replace(/\s+/g, '_')}.pdf`);
   };
 
