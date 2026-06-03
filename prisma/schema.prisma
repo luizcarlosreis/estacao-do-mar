@@ -146,6 +146,7 @@ model BallroomReservation {
   adminNotes      String?   // Observação do administrador
   status          String    @default("SOLICITADO") // SOLICITADO, EFETIVADO, CANCELADO
   requesterCpf    String?
+  keyPickupTime   String?   // Hora que pretende retirar a chave
   guests          BallroomGuest[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

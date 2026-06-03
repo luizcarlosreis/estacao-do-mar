@@ -42,11 +42,13 @@ type Reservation = {
   status: 'SOLICITADO' | 'EFETIVADO' | 'CANCELADO';
   requesterCpf: string;
   guests?: BallroomGuest[];
+  keyPickupTime?: string;
 };
 
 const emptyForm = {
   id: '', unitId: '', name: '', rg: '', cpf: '', ddd: '', phone: '',
-  date: '', notes: '', adminNotes: '', status: 'SOLICITADO' as Reservation['status']
+  date: '', notes: '', adminNotes: '', status: 'SOLICITADO' as Reservation['status'],
+  keyPickupTime: ''
 };
 
 const statusStyle = {
@@ -254,7 +256,8 @@ export default function ReservasPage() {
       cpf: currentUser?.cpf || '',
       rg: currentUser?.rg || '',
       ddd: currentUser?.ddd || '',
-      phone: currentUser?.phone || ''
+      phone: currentUser?.phone || '',
+      keyPickupTime: ''
     });
     setIsEditMode(false);
     setIsModalOpen(true);
@@ -267,7 +270,8 @@ export default function ReservasPage() {
       date: r.date.split('T')[0],
       notes: r.notes || '',
       adminNotes: r.adminNotes || '',
-      status: r.status
+      status: r.status,
+      keyPickupTime: r.keyPickupTime || ''
     });
     setIsEditMode(true);
     setIsModalOpen(true);
@@ -291,6 +295,7 @@ export default function ReservasPage() {
         ['Telefone:', r.ddd ? `(${r.ddd}) ${r.phone}` : (r.phone || '—')],
         ['E-mail:', requesterEmail || '—'],
         ['Data Reservada:', formatDate(r.date)],
+        ['Retirada da Chave:', r.keyPickupTime ? `${r.keyPickupTime} hs` : '—'],
         ['Status:', r.status],
         ['Observações:', r.notes || '—']
       ],
@@ -451,6 +456,7 @@ export default function ReservasPage() {
               <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
                 <th className="p-5">Apartamento</th>
                 <th className="p-5">Data</th>
+                <th className="p-5">Retirada Chave</th>
                 <th className="p-5">Solicitante</th>
                 <th className="p-5">Telefone</th>
                 <th className="p-5">Status</th>
@@ -459,9 +465,9 @@ export default function ReservasPage() {
             </thead>
             <tbody className="text-slate-700">
               {loading ? (
-                <tr><td colSpan={6} className="p-10 text-center animate-pulse text-[10px] font-black text-slate-300 uppercase">Carregando...</td></tr>
+                <tr><td colSpan={7} className="p-10 text-center animate-pulse text-[10px] font-black text-slate-300 uppercase">Carregando...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="p-10 text-center text-[10px] font-black text-slate-300 uppercase">Nenhuma solicitação encontrada</td></tr>
+                <tr><td colSpan={7} className="p-10 text-center text-[10px] font-black text-slate-300 uppercase">Nenhuma solicitação encontrada</td></tr>
               ) : filtered.map(r => (
                 <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/30 transition group">
                   <td className="p-5">
@@ -470,6 +476,7 @@ export default function ReservasPage() {
                     </span>
                   </td>
                   <td className="p-5 font-black text-slate-800 text-xs">{formatDate(r.date)}</td>
+                  <td className="p-5 text-xs text-slate-600 font-semibold">{r.keyPickupTime || '—'}</td>
                   <td className="p-5 font-bold text-slate-600 text-xs uppercase">{r.name}</td>
                   <td className="p-5">
                     <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
@@ -562,6 +569,39 @@ export default function ReservasPage() {
                     <p className="text-[10px] text-red-500 font-bold mt-1 uppercase">Atenção: Esta data já possui reserva!</p>
                   )}
                 </div>
+              </div>
+
+              {/* Retirada da Chave */}
+              <div className="pt-4 border-t border-slate-100">
+                <label className={lbl}>Hora para Retirada da Chave *</label>
+                <select
+                  required
+                  className={`${inp} ${isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`}
+                  disabled={isReadOnlyReservation}
+                  value={formData.keyPickupTime || ''}
+                  onChange={e => setFormData({ ...formData, keyPickupTime: e.target.value })}
+                >
+                  <option value="">Selecione o horário</option>
+                  <option value="11:00">11:00</option>
+                  <option value="11:30">11:30</option>
+                  <option value="12:00">12:00</option>
+                  <option value="12:30">12:30</option>
+                  <option value="13:00">13:00</option>
+                  <option value="13:30">13:30</option>
+                  <option value="14:00">14:00</option>
+                  <option value="14:30">14:30</option>
+                  <option value="15:00">15:00</option>
+                  <option value="15:30">15:30</option>
+                  <option value="16:00">16:00</option>
+                  <option value="16:30">16:30</option>
+                  <option value="17:00">17:00</option>
+                  <option value="17:30">17:30</option>
+                  <option value="18:00">18:00</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-2 flex items-start gap-1">
+                  <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                  Esta informação é importante para que se possa organizar a limpeza e disponibilização do salão de festas.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">

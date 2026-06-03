@@ -15,6 +15,7 @@ export async function PUT(
       data: {
         status: body.status,
         adminNotes: body.adminNotes,
+        keyPickupTime: body.keyPickupTime,
       },
     });
 
