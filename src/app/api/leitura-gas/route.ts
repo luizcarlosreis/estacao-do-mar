@@ -12,8 +12,66 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
+    const anual = searchParams.get('anual') === 'true';
     const monthStr = searchParams.get('month');
     const yearStr = searchParams.get('year');
+
+    if (anual) {
+      if (!yearStr) {
+        return NextResponse.json({ message: 'Ano é obrigatório para consulta anual' }, { status: 400 });
+      }
+      const year = parseInt(yearStr);
+      if (isNaN(year)) {
+        return NextResponse.json({ message: 'Ano inválido' }, { status: 400 });
+      }
+
+      const prisma = getPrisma();
+      const targetUnitId = role === 'MORADOR' ? (unitId || 'undefined') : (searchParams.get('unitId') || 'undefined');
+
+      const [readings, prices] = await Promise.all([
+        prisma.gasReading.findMany({
+          where: {
+            identifier: targetUnitId,
+            OR: [
+              { year },
+              { year: year - 1, month: 12 }
+            ]
+          },
+          orderBy: [
+            { year: 'asc' },
+            { month: 'asc' }
+          ]
+        }),
+        prisma.gasPrice.findMany({
+          where: {
+            year
+          },
+          orderBy: {
+            month: 'asc'
+          }
+        })
+      ]);
+
+      return NextResponse.json({
+        readings: readings.map(r => ({
+          month: r.month,
+          year: r.year,
+          value: r.value,
+          readAt: r.readAt
+        })),
+        prices: prices.map(p => ({
+          month: p.month,
+          year: p.year,
+          pricePerKilo: p.pricePerKilo
+        }))
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+    }
 
     if (!monthStr || !yearStr) {
       return NextResponse.json({ message: 'Mês e Ano são obrigatórios' }, { status: 400 });
