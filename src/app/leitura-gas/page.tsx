@@ -573,9 +573,35 @@ export default function GasReadingPage() {
             <div className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest inline-flex items-center gap-2 mb-3 border border-white/20">
               <Flame size={14} className="text-amber-300 animate-pulse" /> {isMorador ? 'Consumo Individual' : 'Leitura Predial'}
             </div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none mb-2">
-              {isMorador ? 'Histórico de Consumo de Gás' : 'Registro de Leitura do Gás'}
-            </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-3">
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none">
+                {isMorador ? 'Histórico de Consumo de Gás' : 'Registro de Leitura do Gás'}
+              </h1>
+              {isMorador && (
+                <div className="bg-white/10 backdrop-blur-md p-1 rounded-xl flex gap-1 border border-white/15 shrink-0 self-start sm:self-auto shadow-inner">
+                  <button
+                    onClick={() => setActiveTab('mensal')}
+                    className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                      activeTab === 'mensal'
+                        ? 'bg-white text-indigo-900 shadow-sm font-extrabold'
+                        : 'text-blue-100 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Mensal
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('comparativo')}
+                    className={`px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                      activeTab === 'comparativo'
+                        ? 'bg-white text-indigo-900 shadow-sm font-extrabold'
+                        : 'text-blue-100 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    Comparativo Anual
+                  </button>
+                </div>
+              )}
+            </div>
             <p className="text-blue-100 text-sm font-medium opacity-90 max-w-xl">
               {isMorador 
                 ? 'Consulte com facilidade as medições de consumo de gás do seu apartamento e acompanhe o histórico mensal.'
@@ -726,32 +752,6 @@ export default function GasReadingPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              {/* Barra de Abas do Morador */}
-              <div className="flex justify-center">
-                <div className="bg-slate-100 p-1.5 rounded-2xl flex gap-1 shadow-sm border border-slate-200/40 animate-pulse-subtle">
-                  <button
-                    onClick={() => setActiveTab('mensal')}
-                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                      activeTab === 'mensal'
-                        ? 'bg-white text-indigo-700 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-850'
-                    }`}
-                  >
-                    Demonstrativo Mensal
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('comparativo')}
-                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                      activeTab === 'comparativo'
-                        ? 'bg-white text-indigo-700 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-850'
-                    }`}
-                  >
-                    Comparativo Anual
-                  </button>
-                </div>
-              </div>
-
               {activeTab === 'mensal' ? (
                 /* ABA 1: DEMONSTRATIVO MENSAL (RECEITA MENSAL) */
                 <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-200">
