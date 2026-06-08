@@ -925,6 +925,16 @@ export default function GasReadingPage() {
                     </div>
                   ) : (() => {
                     // CÁLCULO DOS DADOS ANUAIS
+                    const formatReadDate = (dateVal: string | Date | null) => {
+                      if (!dateVal) return 'Sem leitura';
+                      const d = new Date(dateVal);
+                      if (isNaN(d.getTime())) return 'Sem leitura';
+                      const day = String(d.getUTCDate()).padStart(2, '0');
+                      const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                      const year = d.getUTCFullYear();
+                      return `${day}/${month}/${year}`;
+                    };
+
                     const calculatedMonths: CalculatedMonth[] = months.map(m => {
                       const monthVal = m.value;
                       const yearVal = parseInt(annualYear);
@@ -1257,23 +1267,32 @@ export default function GasReadingPage() {
                                   if (m.hasReading && idx > 0) {
                                     const mPrev = calculatedMonths[idx - 1];
                                     if (mPrev.hasReading) {
-                                      const diff = m.consumptionM3 - mPrev.consumptionM3;
-                                      if (diff > 0.001) {
+                                      const prevCons = mPrev.consumptionM3;
+                                      const curCons = m.consumptionM3;
+                                      
+                                      let percentDiff = 0;
+                                      if (prevCons > 0) {
+                                        percentDiff = ((curCons - prevCons) / prevCons) * 100;
+                                      } else if (curCons > 0) {
+                                        percentDiff = 100;
+                                      }
+
+                                      if (percentDiff > 0.01) {
                                         changeElement = (
                                           <span className="inline-flex items-center gap-1 text-rose-500 bg-rose-55 px-2 py-0.5 rounded-lg text-[10px] font-black shadow-inner-sm">
-                                            <TrendingUp size={10} /> +{diff.toFixed(2)}
+                                            <TrendingUp size={10} /> +{percentDiff.toFixed(1)}%
                                           </span>
                                         );
-                                      } else if (diff < -0.001) {
+                                      } else if (percentDiff < -0.01) {
                                         changeElement = (
                                           <span className="inline-flex items-center gap-1 text-emerald-500 bg-emerald-55 px-2 py-0.5 rounded-lg text-[10px] font-black shadow-inner-sm">
-                                            <TrendingDown size={10} /> {diff.toFixed(2)}
+                                            <TrendingDown size={10} /> {percentDiff.toFixed(1)}%
                                           </span>
                                         );
                                       } else {
                                         changeElement = (
                                           <span className="inline-flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg text-[10px]">
-                                            <Minus size={10} /> Estável
+                                            <Minus size={10} /> 0%
                                           </span>
                                         );
                                       }
@@ -1284,7 +1303,7 @@ export default function GasReadingPage() {
                                     <tr key={idx} className={`hover:bg-slate-50/50 transition-colors ${!m.hasReading ? 'opacity-40 bg-slate-50/20' : ''}`}>
                                       <td className="py-4 px-6 font-extrabold text-slate-800 uppercase tracking-tight">{m.label}</td>
                                       <td className="py-4 px-6 text-center text-[10px] text-slate-400">
-                                        {m.readAt ? new Date(m.readAt + 'T00:00:00').toLocaleDateString('pt-BR') : 'Sem leitura'}
+                                        {formatReadDate(m.readAt)}
                                       </td>
                                       <td className="py-4 px-6 text-right font-medium">
                                         {m.currentVal !== null ? `${m.currentVal.toFixed(3)}` : '—'}
