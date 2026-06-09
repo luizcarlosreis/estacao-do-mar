@@ -367,9 +367,10 @@ export default function ReservasPage() {
                 { letter: 'A', text: 'A pré-reserva será realizada no Portal do condomínio e posteriormente a administradora irá verificar se o proprietário do apartamento não possui débitos condominiais.' },
                 { letter: 'B', text: 'Móveis de grande porte não podem e não serão removidos pela equipe do condomínio (fogão, mesas, geladeira).' },
                 { letter: 'C', text: 'No caso de contratação de serviços de Buffet, não nos responsabilizamos por qualquer outro equipamento.' },
-                { letter: 'D', text: 'O condomínio não possui área de fumantes. Convidados devem permanecer na parte interna do salão.' },
-                { letter: 'E', text: 'Bebidas alcoólicas devem ser consumidas com bom senso e apenas na área interna.' },
-                { letter: 'F', text: 'É proibido fixar qualquer objeto nas paredes e no teto utilizando cola ou fitas.' }
+                { letter: 'D', text: 'O condomínio não possui área de fumantes.' },
+                { letter: 'E', text: 'Convidados devem permanecer na parte interna do salão.' },
+                { letter: 'F', text: 'Bebidas alcoólicas devem ser consumidas com bom senso e apenas na área interna.' },
+                { letter: 'G', text: 'É proibido fixar qualquer objeto nas paredes e no teto utilizando cola ou fitas.' }
               ].map((item) => (
                 <div key={item.letter} className="flex gap-3 text-[11px] leading-relaxed">
                   <span className="font-black text-blue-600 shrink-0">{item.letter}.</span>
@@ -379,12 +380,12 @@ export default function ReservasPage() {
             </div>
             <div className="space-y-3">
               {[
-                { letter: 'G', text: 'O salão de festas tem capacidade para 100 pessoas.' },
-                { letter: 'H', text: 'Mobiliário incluso: 5 conjuntos de mesas redondas de madeira com 4 cadeiras para cada mesa, mesas de 2,20m e 2,00m, banquetas, aparador, pufs e fraldário.' },
-                { letter: 'I', text: 'Disponível: 5 conjuntos de mesas de plástico com 4 cadeiras para cada mesa. Proibido remanejar móveis de outras áreas.' },
-                { letter: 'J', text: 'Empresas terceiras devem ser avisadas previamente à portaria.' },
-                { letter: 'K', text: 'Após a aprovação da reserva for efetivada, preencher a lista de convidados no portal.' },
-                { letter: 'L', text: 'Taxa de utilização do salão de festas: R$ 150,00. (Art. 46 do RI) e aprovação em assembleia de 18/03/2023.' }
+                { letter: 'H', text: 'O salão de festas tem capacidade para 100 pessoas.' },
+                { letter: 'I', text: 'Mobiliário incluso: 5 conjuntos de mesas redondas de madeira com 4 cadeiras para cada mesa, mesas de 2,20m e 2,00m, banquetas, aparador, pufs e fraldário.' },
+                { letter: 'J', text: 'Disponível: 5 conjuntos de mesas de plástico com 4 cadeiras para cada mesa. Proibido remanejar móveis de outras áreas.' },
+                { letter: 'K', text: 'Empresas terceiras devem ser avisadas previamente à portaria.' },
+                { letter: 'L', text: 'Após a aprovação da reserva for efetivada, preencher a lista de convidados no portal.' },
+                { letter: 'M', text: 'Taxa de utilização do salão de festas: R$ 150,00. (Art. 46 do RI) e conforme aprovação em assembleia de 18/03/2023.' }
               ].map((item) => (
                 <div key={item.letter} className="flex gap-3 text-[11px] leading-relaxed">
                   <span className="font-black text-blue-600 shrink-0">{item.letter}.</span>
