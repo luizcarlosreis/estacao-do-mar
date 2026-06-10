@@ -155,7 +155,7 @@ export default function TesteBoletoPage() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Estação do Mar</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-800 uppercase tracking-tight">
-              Central de Boletos
+              BOLETO (2a. via)
             </h1>
             <p className="text-slate-500 text-sm mt-1">
               Visualização e impressão de boletos diretamente do portal Winker
