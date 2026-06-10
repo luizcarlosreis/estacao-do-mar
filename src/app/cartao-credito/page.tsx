@@ -15,7 +15,8 @@ import {
   DollarSign, 
   AlertCircle,
   FileText,
-  Loader2
+  Loader2,
+  Edit2
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -54,6 +55,7 @@ const monthsList = [
 export default function CartaoCreditoPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
@@ -66,19 +68,39 @@ export default function CartaoCreditoPage() {
 
   // Form states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
+    id: '',
     date: now.toISOString().split('T')[0],
     provider: '',
     description: '',
     totalValue: '',
     isFinanced: false,
-    installmentsCount: '2'
+    installmentsCount: '2',
+    startMonth: now.getMonth() + 1,
+    startYear: now.getFullYear()
   });
 
   const yearsList = Array.from({ length: 5 }, (_, i) => now.getFullYear() - 2 + i);
 
+  const fetchInstallments = async () => {
+    setLoadingData(true);
+    try {
+      const res = await fetch(`/api/cartao-credito?month=${selectedMonth}&year=${selectedYear}`);
+      if (res.ok) {
+        const data = await res.json();
+        setInstallments(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar parcelas:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     fetch('/api/me')
       .then(res => res.ok ? res.json() : null)
@@ -97,34 +119,41 @@ export default function CartaoCreditoPage() {
 
   useEffect(() => {
     if (!loadingAuth && currentUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchInstallments();
     }
   }, [selectedMonth, selectedYear, loadingAuth, currentUser]);
 
-  const fetchInstallments = async () => {
-    setLoadingData(true);
-    try {
-      const res = await fetch(`/api/cartao-credito?month=${selectedMonth}&year=${selectedYear}`);
-      if (res.ok) {
-        const data = await res.json();
-        setInstallments(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar parcelas:', error);
-    } finally {
-      setLoadingData(false);
-    }
-  };
-
   const handleOpenAddModal = () => {
     setFormData({
+      id: '',
       date: now.toISOString().split('T')[0],
       provider: '',
       description: '',
       totalValue: '',
       isFinanced: false,
-      installmentsCount: '2'
+      installmentsCount: '2',
+      startMonth: selectedMonth,
+      startYear: selectedYear
     });
+    setIsEditMode(false);
+    setIsModalOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleOpenEditModal = (purchase: any) => {
+    setFormData({
+      id: purchase.id,
+      date: purchase.date.split('T')[0],
+      provider: purchase.provider,
+      description: purchase.description,
+      totalValue: purchase.totalValue.toString(),
+      isFinanced: purchase.isFinanced,
+      installmentsCount: purchase.installmentsCount.toString(),
+      startMonth: purchase.startMonth || selectedMonth,
+      startYear: purchase.startYear || selectedYear
+    });
+    setIsEditMode(true);
     setIsModalOpen(true);
   };
 
@@ -132,8 +161,12 @@ export default function CartaoCreditoPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/cartao-credito', {
-        method: 'POST',
+      const isEdit = !!formData.id;
+      const url = isEdit ? `/api/cartao-credito/${formData.id}` : '/api/cartao-credito';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           date: formData.date,
@@ -142,15 +175,15 @@ export default function CartaoCreditoPage() {
           totalValue: parseFloat(formData.totalValue),
           isFinanced: formData.isFinanced,
           installmentsCount: parseInt(formData.installmentsCount, 10),
-          startMonth: selectedMonth,
-          startYear: selectedYear
+          startMonth: formData.startMonth,
+          startYear: formData.startYear
         })
       });
 
       if (res.ok) {
         setIsModalOpen(false);
         fetchInstallments();
-        alert('Gasto registrado com sucesso!');
+        alert(isEdit ? 'Gasto atualizado com sucesso!' : 'Gasto registrado com sucesso!');
       } else {
         const err = await res.json();
         alert(`Erro: ${err.message}`);
@@ -299,7 +332,7 @@ export default function CartaoCreditoPage() {
         <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-16 text-center flex flex-col items-center justify-center">
           <AlertCircle size={40} className="text-slate-300 mb-3" />
           <p className="text-slate-500 font-bold">Nenhum gasto lançado para este mês.</p>
-          <p className="text-slate-400 text-xs mt-1">Utilize o botão "Lançar Compra" acima para registrar despesas.</p>
+          <p className="text-slate-400 text-xs mt-1">Utilize o botão &quot;Lançar Compra&quot; acima para registrar despesas.</p>
         </div>
       ) : (
         <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
@@ -338,13 +371,22 @@ export default function CartaoCreditoPage() {
                     <td className="py-4 px-6 text-right font-bold text-slate-900">{formatCurrency(item.value)}</td>
                     <td className="py-4 px-6 text-right text-slate-400">{formatCurrency(item.purchase.totalValue)}</td>
                     <td className="py-4 px-6 text-center">
-                      <button
-                        onClick={() => handleDelete(item.purchase.id, item.purchase.description)}
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                        title="Excluir Compra"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEditModal(item.purchase)}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="Editar Compra"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.purchase.id, item.purchase.description)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Excluir Compra"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -367,10 +409,10 @@ export default function CartaoCreditoPage() {
             <div className="bg-slate-900 p-6 text-white flex justify-between items-center">
               <div>
                 <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                  <CreditCard size={16} /> Lançar Compra no Cartão
+                  <CreditCard size={16} /> {isEditMode ? 'Editar Compra no Cartão' : 'Lançar Compra no Cartão'}
                 </h2>
                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">
-                  Registre um gasto para a fatura de {monthsList.find(m => m.value === selectedMonth)?.label} {selectedYear}
+                  {isEditMode ? 'Altere as informações do lançamento' : `Registre um gasto para a fatura de ${monthsList.find(m => m.value === selectedMonth)?.label} ${selectedYear}`}
                 </p>
               </div>
               <button 
@@ -476,7 +518,7 @@ export default function CartaoCreditoPage() {
                   disabled={saving}
                   className="flex-1 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-violet-600/10 disabled:opacity-50 transition-all"
                 >
-                  {saving ? 'Gravando...' : 'Lançar Compra'}
+                  {saving ? 'Gravando...' : isEditMode ? 'Atualizar Compra' : 'Lançar Compra'}
                 </button>
               </div>
             </form>
@@ -495,6 +537,7 @@ export default function CartaoCreditoPage() {
 }
 
 // X Close Icon helper component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function X(props: any) {
   return (
     <svg
