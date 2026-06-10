@@ -294,8 +294,11 @@ async function fetchAndScrapeBoletos(session: string) {
 
   await Promise.all(tasks);
 
-  // Ordenar boletos por vencimento decrescente
+  // Ordenar boletos por número de unidade (ordem natural) e depois por vencimento decrescente
   boletos.sort((a, b) => {
+    const unitCompare = a.unidadeNome.localeCompare(b.unidadeNome, undefined, { numeric: true, sensitivity: 'base' });
+    if (unitCompare !== 0) return unitCompare;
+
     const partsA = a.vencimento.split('/');
     const partsB = b.vencimento.split('/');
     const dateA = new Date(parseInt(partsA[2]), parseInt(partsA[1]) - 1, parseInt(partsA[0]));
