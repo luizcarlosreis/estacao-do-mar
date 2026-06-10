@@ -389,4 +389,35 @@ model GasPrice {
   @@unique([month, year])
 }
 
+model CreditCardPurchase {
+  id                String   @id @default(uuid())
+  date              DateTime // Data da Compra
+  provider          String   // Fornecedor / Prestador
+  description       String   // Descrição da Compra
+  totalValue        Float    // Valor total da Compra
+  isFinanced        Boolean  @default(false) // Se é financiada
+  installmentsCount Int      @default(1)     // Número de prestações
+  startMonth        Int      // Mês de início (1 a 12)
+  startYear         Int      // Ano de início
+  
+  installments      CreditCardInstallment[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model CreditCardInstallment {
+  id                String   @id @default(uuid())
+  purchaseId        String
+  purchase          CreditCardPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  month             Int      // Mês da fatura (1 a 12)
+  year              Int      // Ano da fatura
+  installmentNumber Int      // Número da prestação (ex: 1 de 3)
+  value             Float    // Valor desta prestação
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+
 

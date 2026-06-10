@@ -19,7 +19,8 @@ import {
   PhoneCall,
   Calendar,
   Package,
-  Flame
+  Flame,
+  CreditCard
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -76,6 +77,7 @@ export default function Home() {
     { title: 'Contatos Importantes', icon: <PhoneCall size={16} />, path: '/contatos', desc: 'Prestadores e emergência.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO'], color: 'text-blue-600', bg: 'bg-blue-50' },
     { title: 'Encomendas', icon: <Package size={16} />, path: '/encomendas', desc: 'Recebimento de mercadorias e avisos.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-orange-600', bg: 'bg-orange-50' },
     { title: 'Leitura de Gás', icon: <Flame size={16} />, path: '/leitura-gas', desc: user?.role === 'MORADOR' ? 'Consulte o histórico de consumo de gás da sua unidade.' : 'Registro da leitura mensal de gás.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'], color: 'text-red-500', bg: 'bg-red-50' },
+    { title: 'Cartão de Crédito', icon: <CreditCard size={16} />, path: '/cartao-credito', desc: 'Controle de gastos do cartão de crédito do condomínio.', roles: ['SUPER_ADMIN'], color: 'text-violet-600', bg: 'bg-violet-50' },
   ];
 
   const modules = user 

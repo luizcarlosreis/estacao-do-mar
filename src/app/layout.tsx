@@ -21,7 +21,8 @@ import {
   Calendar,
   X,
   Package as PackageIcon,
-  Flame
+  Flame,
+  CreditCard
 } from 'lucide-react';
 import './globals.css';
 
@@ -135,6 +136,7 @@ export default function RootLayout({
     { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
     { title: 'Encomendas', icon: <PackageIcon size={18} />, path: '/encomendas', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
     { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
+    { title: 'Cartão de Crédito', icon: <CreditCard size={18} />, path: '/cartao-credito', roles: ['SUPER_ADMIN'] },
   ];
 
   const rawMenuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];
