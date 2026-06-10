@@ -17,24 +17,38 @@ export default function TesteBoletoPage() {
   const [mounted, setMounted] = useState(false);
   const [boletos, setBoletos] = useState<Boleto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sessionRequired, setSessionRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Estados de formulário de login
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    fetchBoletos();
+    initializePage();
   }, []);
 
-  const fetchBoletos = async () => {
+  const initializePage = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // 1. Tentar carregar boletos diretamente (se já houver cookie)
       const res = await fetch('/api/teste-boleto');
       
-      if (res.status === 401 || res.status === 403) {
-        setError('Acesso negado. Apenas administradores do portal têm acesso a esta funcionalidade de teste de boleto.');
-        setLoading(false);
-        return;
+      if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        if (data.winkerSessionRequired) {
+          setSessionRequired(true);
+          // Buscar e-mail padrão do usuário logado no portal
+          fetchPortalEmail();
+          setLoading(false);
+          return;
+        }
       }
 
       if (!res.ok) {
@@ -44,8 +58,74 @@ export default function TesteBoletoPage() {
 
       const data = await res.json();
       setBoletos(data);
+      setSessionRequired(false);
     } catch (err: any) {
-      setError(err.message || 'Erro inesperado ao conectar com a Winker.');
+      setError(err.message || 'Erro inesperado.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPortalEmail = async () => {
+    try {
+      const res = await fetch('/api/me');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.user?.email) {
+          setEmail(data.user.email);
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao buscar e-mail do portal:', e);
+    }
+  };
+
+  const handleWinkerLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setFormError('Por favor, informe o e-mail e a senha.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setFormError(null);
+
+      const res = await fetch('/api/teste-boleto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Usuário ou senha incorretos na Winker.');
+      }
+
+      const data = await res.json();
+      setBoletos(data);
+      setSessionRequired(false);
+      setPassword(''); // Limpar campo de senha
+    } catch (err: any) {
+      setFormError(err.message || 'Falha na autenticação do Winker.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleWinkerLogout = async () => {
+    try {
+      setLoading(true);
+      await fetch('/api/teste-boleto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout' })
+      });
+      setBoletos([]);
+      setSessionRequired(true);
+      fetchPortalEmail();
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -78,23 +158,32 @@ export default function TesteBoletoPage() {
               Central de Boletos
             </h1>
             <p className="text-slate-500 text-sm mt-1">
-              Painel de testes para visualização e impressão de boletos (integração Winker)
+              Visualização e impressão de boletos diretamente do portal Winker
             </p>
           </div>
 
-          <button 
-            onClick={fetchBoletos}
-            disabled={loading}
-            className="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2.5 bg-slate-950 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800 disabled:opacity-50 transition shadow-md"
-          >
-            <svg className={`w-4.5 h-4.5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
-            </svg>
-            Atualizar
-          </button>
+          {!loading && !sessionRequired && (
+            <div className="flex items-center gap-2.5">
+              <button 
+                onClick={initializePage}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
+                </svg>
+                Atualizar
+              </button>
+              <button 
+                onClick={handleWinkerLogout}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-rose-200 text-rose-600 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-rose-50 transition"
+              >
+                Sair
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Loader / Esqueleto */}
+        {/* Loader de Inicialização */}
         {loading && (
           <div className="space-y-4">
             {[1, 2].map((i) => (
@@ -114,8 +203,76 @@ export default function TesteBoletoPage() {
           </div>
         )}
 
-        {/* Mensagem de Erro */}
-        {!loading && error && (
+        {/* Formulário de Login da Winker */}
+        {!loading && sessionRequired && (
+          <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-xl">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center p-3.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl mb-3">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+                Autenticação Winker
+              </h2>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-xs mx-auto">
+                Para carregar seus boletos, insira as credenciais do seu login no aplicativo Winker.
+              </p>
+            </div>
+
+            <form onSubmit={handleWinkerLogin} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">E-mail Winker</label>
+                <input 
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="exemplo@gmail.com"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:bg-white transition"
+                  disabled={submitting}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Senha</label>
+                <input 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:bg-white transition"
+                  disabled={submitting}
+                />
+              </div>
+
+              {formError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-semibold">
+                  {formError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-3.5 bg-indigo-650 bg-indigo-600 hover:bg-indigo-755 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider disabled:opacity-50 transition shadow-sm"
+              >
+                {submitting ? 'Autenticando...' : 'Carregar Boletos'}
+              </button>
+            </form>
+
+            <div className="mt-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] text-slate-400 leading-relaxed flex items-start gap-2.5">
+              <svg className="w-5 h-5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>
+                <strong>Aviso de Segurança:</strong> Seus dados de e-mail e senha são usados apenas na conexão direta e segura com a Winker. O portal Estação do Mar não armazena ou registra suas senhas no banco de dados.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Mensagem de Erro Geral */}
+        {!loading && !sessionRequired && error && (
           <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 shadow-sm text-center">
             <div className="inline-flex items-center justify-center p-3 rounded-full bg-rose-100 text-rose-600 mb-3">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -123,52 +280,50 @@ export default function TesteBoletoPage() {
               </svg>
             </div>
             <h3 className="text-base font-bold text-slate-800 uppercase tracking-tight mb-2">
-              Não foi possível carregar os boletos
+              Erro de conexão
             </h3>
             <p className="text-slate-600 text-sm leading-relaxed max-w-md mx-auto mb-6">
               {error}
             </p>
-            <div className="flex items-center justify-center gap-3">
-              <button 
-                onClick={fetchBoletos}
-                className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition"
-              >
-                Tentar Novamente
-              </button>
-              <Link href="/" className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-550 hover:bg-slate-50 transition">
-                Ir ao Painel Principal
-              </Link>
-            </div>
+            <button 
+              onClick={initializePage}
+              className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition"
+            >
+              Tentar Novamente
+            </button>
           </div>
         )}
 
-        {/* Sem boletos */}
-        {!loading && !error && boletos.length === 0 && (
-          <div className="bg-white border border-slate-200 rounded-3xl p-10 shadow-sm text-center">
+        {/* Sem boletos após logado */}
+        {!loading && !sessionRequired && !error && boletos.length === 0 && (
+          <div className="bg-white border border-slate-200 rounded-3xl p-10 shadow-sm text-center animate-fadeIn">
             <div className="inline-flex items-center justify-center p-4 rounded-full bg-slate-50 text-slate-400 mb-4 border border-slate-100">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">
-              Tudo em dia!
+              Nenhum boleto encontrado
             </h3>
             <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
-              Nenhum boleto pendente ou aberto foi encontrado para as unidades configuradas neste período.
+              Não encontramos nenhuma fatura pendente nos últimos meses para as unidades vinculadas ao seu usuário do Winker.
             </p>
-            <Link href="/" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-950 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition">
-              Voltar ao Painel
-            </Link>
+            <button 
+              onClick={handleWinkerLogout}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-slate-950 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition"
+            >
+              Entrar com Outra Conta
+            </button>
           </div>
         )}
 
         {/* Lista de Boletos */}
-        {!loading && !error && boletos.length > 0 && (
+        {!loading && !sessionRequired && !error && boletos.length > 0 && (
           <div className="space-y-6">
             {boletos.map((boleto) => (
               <div 
                 key={boleto.id} 
-                className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300"
+                className="bg-white border border-slate-200 hover:border-slate-350 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300"
               >
                 {/* Cabeçalho do Card */}
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
@@ -180,7 +335,7 @@ export default function TesteBoletoPage() {
                     </div>
                     <div>
                       <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">
-                        {boleto.unidadeNome}
+                        Unidade {boleto.unidadeNome}
                       </h3>
                       <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                         Referência: {boleto.referencia}
@@ -202,7 +357,7 @@ export default function TesteBoletoPage() {
                   </div>
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Valor Total</span>
-                    <span className="text-sm font-black text-indigo-600">{boleto.valor}</span>
+                    <span className="text-sm font-black text-indigo-650 text-indigo-600">{boleto.valor}</span>
                   </div>
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Identificador</span>
@@ -236,7 +391,7 @@ export default function TesteBoletoPage() {
                         ) : (
                           <>
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h5.586a1 1 0 01.707-.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             Copiar
                           </>

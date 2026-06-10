@@ -32,7 +32,7 @@ export default async function proxy(req: NextRequest) {
       if (role !== 'SUPER_ADMIN') {
         // ZELADORIA (usando role SINDICO provisoriamente para evitar migrations): Apartamento, Moradores, Veículos, Autorizações, Manutençao, Tarefas e Leitura de Gás
         if (role === 'SINDICO') {
-          const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/manutencoes', '/tarefas', '/leitura-gas', '/colaboradores', '/api'];
+          const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/manutencoes', '/tarefas', '/leitura-gas', '/colaboradores', '/api', '/teste-boleto'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/', req.url));
           }
@@ -40,7 +40,7 @@ export default async function proxy(req: NextRequest) {
 
         // PORTARIA: Apartamento, Moradores, Veículos e Autorizações
         else if (role === 'PORTEIRO') {
-          const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/api'];
+          const allowedPaths = ['/', '/unidades', '/moradores', '/veiculos', '/autorizacoes', '/api', '/teste-boleto'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/', req.url));
           }
@@ -48,7 +48,7 @@ export default async function proxy(req: NextRequest) {
 
         // MORADORES: Moradores, Veículos, Autorizações e Leitura de Gás
         else if (role === 'MORADOR') {
-          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api'];
+          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api', '/teste-boleto'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
           }
@@ -56,7 +56,7 @@ export default async function proxy(req: NextRequest) {
 
         // ADMINISTRADORA: Moradores e Leitura de Gás
         else if (role === 'ADMINISTRADORA') {
-          const allowedPaths = ['/', '/moradores', '/leitura-gas', '/api'];
+          const allowedPaths = ['/', '/moradores', '/leitura-gas', '/api', '/teste-boleto'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/', req.url));
           }
