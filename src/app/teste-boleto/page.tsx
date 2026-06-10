@@ -6,15 +6,14 @@ import {
   FileText, 
   LayoutDashboard, 
   ChevronRight, 
-  ArrowLeft, 
+  ChevronLeft, 
   ExternalLink, 
   Download, 
-  Printer, 
   ShieldAlert, 
   Info,
   Calendar,
   Building,
-  Key
+  ShieldCheck
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 
@@ -88,7 +87,7 @@ export default function TesteBoletoPage() {
           Esta funcionalidade é exclusiva para testes do perfil de Administrador Principal (SUPER_ADMIN).
         </p>
         <Link href="/" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 transition">
-          <ArrowLeft size={14} /> Voltar ao Painel
+          <ChevronLeft size={14} /> Voltar ao Painel
         </Link>
       </div>
     );
@@ -104,7 +103,7 @@ export default function TesteBoletoPage() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-red-600 text-white rounded-xl shadow-lg shadow-red-100">
-              <Printer size={22} />
+              <FileText size={22} />
             </div>
             <div>
               <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
@@ -121,7 +120,7 @@ export default function TesteBoletoPage() {
         </div>
 
         <Link href="/" className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 font-black text-[10px] uppercase tracking-wider rounded-xl transition-all">
-          <ArrowLeft size={14} /> Voltar
+          <ChevronLeft size={14} /> Voltar
         </Link>
       </div>
 
@@ -235,7 +234,7 @@ export default function TesteBoletoPage() {
 
           <div className="mt-8 pt-4 border-t border-slate-100 space-y-4">
             <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex gap-2.5 text-[10px] text-emerald-800 font-semibold leading-relaxed">
-              <Key className="text-emerald-600 shrink-0 mt-0.5" size={14} />
+              <ShieldCheck className="text-emerald-600 shrink-0 mt-0.5" size={14} />
               <span>
                 <strong>Automação Completa:</strong> Não há necessidade de estar logado no navegador. O servidor resolve o token e consome o endpoint `billing/{id}/download`.
               </span>
