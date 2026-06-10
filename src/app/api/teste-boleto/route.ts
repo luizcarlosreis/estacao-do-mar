@@ -22,64 +22,157 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const idBoleto = searchParams.get('idBoleto');
 
-  if (!idBoleto) {
-    return NextResponse.json({ message: 'O ID do boleto é obrigatório para o download via API' }, { status: 400 });
-  }
-
   try {
-    // 2. Autenticação na API da Winker
-    const loginUrl = 'https://api.winker.com.br/v1/auth/login';
+    // 2. Autenticação na Intranet da Winker (Yii2 form-based login)
+    const loginUrl = 'https://app.winker.com.br/intra/default/login';
+    const form = new URLSearchParams();
+    form.append('LoginForm[username]', 'luiz.carlos.reis@gmail.com');
+    form.append('LoginForm[password]', '280173');
+
     const loginRes = await fetch(loginUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
-      body: JSON.stringify({
-        username: 'luiz.carlos.reis@gmail.com',
-        password: '280173',
-        key: '1298309864872831'
-      })
+      body: form.toString(),
+      redirect: 'manual'
     });
 
-    if (!loginRes.ok) {
-      const errText = await loginRes.text();
-      return NextResponse.json({ message: `Erro ao logar na Winker: ${errText}` }, { status: 500 });
-    }
-
-    const { token: winkerToken } = await loginRes.json();
-
-    // 3. Efetuar o download do boleto via API da Winker
-    const downloadUrl = `https://api.winker.com.br/v1/billing/${idBoleto}/download`;
-    const downloadRes = await fetch(downloadUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': winkerToken
+    const cookies: string[] = [];
+    loginRes.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        cookies.push(value.split(';')[0]);
       }
     });
+    const cookieHeader = cookies.join('; ');
 
-    if (downloadRes.status === 404) {
-      return NextResponse.json({ message: `Boleto com ID "${idBoleto}" não foi encontrado no sistema da Winker.` }, { status: 404 });
+    if (!cookieHeader) {
+      return NextResponse.json({ message: 'Não foi possível obter o cookie de sessão da Winker' }, { status: 500 });
     }
 
-    if (!downloadRes.ok) {
-      const errText = await downloadRes.text();
-      return NextResponse.json({ message: `Erro ao baixar o boleto: ${errText}` }, { status: downloadRes.status });
-    }
+    // 3. Caso queira baixar um boleto específico
+    if (idBoleto) {
+      const downloadUrl = `https://app.winker.com.br/intra/meuCondominio/boleto/view/rateio/${idBoleto}`;
+      const downloadRes = await fetch(downloadUrl, {
+        method: 'GET',
+        headers: {
+          'Cookie': cookieHeader,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
 
-    const pdfBuffer = await downloadRes.arrayBuffer();
-
-    // Retornar o PDF binário diretamente
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="boleto_${idBoleto}.pdf"`
+      if (!downloadRes.ok) {
+        return NextResponse.json({ message: `Erro ao baixar boleto da Winker: ${downloadRes.statusText}` }, { status: downloadRes.status });
       }
+
+      const cType = downloadRes.headers.get('content-type') || '';
+      if (!cType.includes('pdf')) {
+        return NextResponse.json({ message: 'O boleto requisitado não retornou um PDF válido.' }, { status: 400 });
+      }
+
+      const pdfBuffer = await downloadRes.arrayBuffer();
+
+      return new NextResponse(pdfBuffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="boleto_${idBoleto}.pdf"`
+        }
+      });
+    }
+
+    // 4. Caso queira listar os boletos
+    const units = [
+      { id: '863361', name: 'Apartamento 83' },
+      { id: '863378', name: 'Garagem VG. 56' }
+    ];
+
+    const now = new Date();
+    const getYearMonthStr = (d: Date, offsetMonths: number) => {
+      const date = new Date(d.getFullYear(), d.getMonth() + offsetMonths, 1);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      return `${y}${m}`;
+    };
+
+    const months = [
+      getYearMonthStr(now, 1),  // Próximo mês
+      getYearMonthStr(now, 0),  // Mês atual
+      getYearMonthStr(now, -1), // Mês anterior
+      getYearMonthStr(now, -2)  // Dois meses atrás
+    ];
+
+    const divisionId = '35641';
+    const boletos: any[] = [];
+
+    const tasks = [];
+    for (const unit of units) {
+      for (const month of months) {
+        const url = `https://app.winker.com.br/intra/meuCondominio/boleto?dataRefRateio=${month}&idUnidade=${unit.id}&idDivisao=${divisionId}`;
+        
+        tasks.push((async () => {
+          try {
+            const res = await fetch(url, {
+              headers: {
+                'Cookie': cookieHeader,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              }
+            });
+            if (!res.ok) return;
+            const html = await res.text();
+            
+            const liRegex = /<li class="list-group-item">([\s\S]*?)<\/li>/g;
+            let match;
+            while ((match = liRegex.exec(html)) !== null) {
+              const liHtml = match[1];
+              if (liHtml.includes('view/rateio/')) {
+                const idMatch = liHtml.match(/view\/rateio\/(\d+)/);
+                const idB = idMatch ? idMatch[1] : null;
+
+                const dateMatch = liHtml.match(/(\d{2}\/\d{2}\/\d{4})/);
+                const vencimento = dateMatch ? dateMatch[1] : null;
+
+                const valorMatch = liHtml.match(/R\$\s*([\d,.]+)/);
+                const valor = valorMatch ? valorMatch[1] : null;
+
+                const barcodeMatch = liHtml.match(/copiarCodigoBarras\('(\d+)'/);
+                const linhaDigitavel = barcodeMatch ? barcodeMatch[1] : null;
+
+                if (idB && !boletos.some(b => b.id === idB)) {
+                  boletos.push({
+                    id: idB,
+                    unidadeId: unit.id,
+                    unidadeNome: unit.name,
+                    referencia: `${month.substring(4)}/${month.substring(0, 4)}`,
+                    vencimento,
+                    valor: `R$ ${valor}`,
+                    linhaDigitavel
+                  });
+                }
+              }
+            }
+          } catch (e: any) {
+            console.error(`Erro ao buscar mês ${month} para unidade ${unit.name}:`, e.message);
+          }
+        })());
+      }
+    }
+
+    await Promise.all(tasks);
+
+    // Ordenar boletos por vencimento decrescente
+    boletos.sort((a, b) => {
+      const partsA = a.vencimento.split('/');
+      const partsB = b.vencimento.split('/');
+      const dateA = new Date(parseInt(partsA[2]), parseInt(partsA[1]) - 1, parseInt(partsA[0]));
+      const dateB = new Date(parseInt(partsB[2]), parseInt(partsB[1]) - 1, parseInt(partsB[0]));
+      return dateB.getTime() - dateA.getTime();
     });
+
+    return NextResponse.json(boletos);
 
   } catch (error: any) {
-    console.error('Erro no download do boleto:', error);
+    console.error('Erro no processamento do boleto:', error);
     return NextResponse.json({ message: error.message || 'Erro interno no servidor' }, { status: 500 });
   }
 }
