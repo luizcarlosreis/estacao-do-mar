@@ -19,15 +19,23 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const dataToUpdate: any = {};
     if (updateData.title) dataToUpdate.title = updateData.title;
     if (updateData.description !== undefined) dataToUpdate.description = updateData.description;
-    if (updateData.status) dataToUpdate.status = updateData.status;
-    if (updateData.performedAt) {
+    
+    if (updateData.status) {
+      dataToUpdate.status = updateData.status;
+      if (updateData.status !== 'DONE') {
+        dataToUpdate.performedAt = null;
+      }
+    }
+    
+    if (updateData.status === 'DONE' && updateData.performedAt) {
       const [year, month, day] = updateData.performedAt.split('-').map(Number);
       dataToUpdate.performedAt = new Date(year, month - 1, day, 12, 0, 0);
     }
 
     if (updateData.attachmentUrl !== undefined) dataToUpdate.attachmentUrl = updateData.attachmentUrl;
     if (updateData.attachmentName !== undefined) dataToUpdate.attachmentName = updateData.attachmentName;
-    if (updateData.userId !== undefined) dataToUpdate.userId = updateData.userId;
+    if (updateData.userId !== undefined) dataToUpdate.userId = updateData.userId || null;
+    if (updateData.unitId !== undefined) dataToUpdate.unitId = updateData.unitId || null;
 
     console.log('Task update data:', dataToUpdate);
 

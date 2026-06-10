@@ -87,6 +87,8 @@ export default function TarefasPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [unidades, setUnidades] = useState<any[]>([]);
+  const [usuarios, setUsuarios] = useState<any[]>([]);
   const [formData, setFormData] = useState({ 
     id: '', 
     title: '', 
@@ -94,7 +96,9 @@ export default function TarefasPage() {
     status: 'BACKLOG' as Task['status'], 
     performedAt: '',
     attachmentUrl: '',
-    attachmentName: ''
+    attachmentName: '',
+    userId: '',
+    unitId: ''
   });
 
   const API_URL = '/api/tarefas';
@@ -102,7 +106,31 @@ export default function TarefasPage() {
   useEffect(() => {
     setMounted(true);
     fetchTasks();
-    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => {
+      setCurrentUser(data?.user);
+      if (data?.user && data.user.role !== 'MORADOR') {
+        // Fetch units
+        fetch('/api/unidades')
+          .then(res => res.ok ? res.json() : [])
+          .then(uData => {
+            if (Array.isArray(uData)) {
+              const sorted = [...uData].sort((a, b) => 
+                a.number.localeCompare(b.number, undefined, { numeric: true })
+              );
+              setUnidades(sorted);
+            }
+          });
+        // Fetch admins and residents
+        Promise.all([
+          fetch('/api/usuarios').then(res => res.ok ? res.json() : []),
+          fetch('/api/moradores').then(res => res.ok ? res.json() : [])
+        ]).then(([admins, moradores]) => {
+          const combined = [...(Array.isArray(admins) ? admins : []), ...(Array.isArray(moradores) ? moradores : [])];
+          combined.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+          setUsuarios(combined);
+        });
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -160,17 +188,14 @@ export default function TarefasPage() {
       const payload: any = { 
         ...formData,
         title: formData.title.toUpperCase(),
-        description: formData.description?.toUpperCase() || ''
+        description: formData.description?.toUpperCase() || '',
+        userId: formData.userId || null,
+        unitId: formData.unitId || null
       };
 
-      if (!isEdit && currentUser) {
+      if (!isEdit && currentUser && currentUser.role === 'MORADOR') {
         payload.userId = currentUser.id;
         if (currentUser.unitId) payload.unitId = currentUser.unitId;
-      } else if (isEdit && currentUser && currentUser.role !== 'MORADOR') {
-        const taskObj = tasks.find(t => t.id === formData.id);
-        if (taskObj && !taskObj.user) {
-          payload.userId = currentUser.id;
-        }
       }
 
       if (!payload.performedAt) delete payload.performedAt;
@@ -213,7 +238,9 @@ export default function TarefasPage() {
       status: t.status, 
       performedAt: t.performedAt ? t.performedAt.split('T')[0] : '',
       attachmentUrl: t.attachmentUrl || '',
-      attachmentName: t.attachmentName || ''
+      attachmentName: t.attachmentName || '',
+      userId: t.user?.id || '',
+      unitId: t.unit?.id || ''
     });
     setIsModalOpen(true);
   };
@@ -419,7 +446,7 @@ export default function TarefasPage() {
             </div>
 
             <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', status: currentUser?.role === 'MORADOR' ? 'SOLICITADA_MORADOR' : 'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
+              onClick={() => { setFormData({id:'', title:'', description:'', status: currentUser?.role === 'MORADOR' ? 'SOLICITADA_MORADOR' : 'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:'', userId: currentUser?.role === 'MORADOR' ? currentUser.id : '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : ''}); setIsModalOpen(true); }}
               className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap w-full sm:w-auto justify-center"
             >
               <Plus size={16} /> {currentUser?.role === 'MORADOR' ? 'Solicitação de Reparos no Condomínio' : 'Nova Tarefa'}
@@ -795,6 +822,37 @@ export default function TarefasPage() {
                   onChange={(e) => setFormData({...formData, description: e.target.value})} 
                 />
               </div>
+
+              {currentUser?.role !== 'MORADOR' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Apartamento Vinculado</label>
+                    <select 
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none"
+                      value={formData.unitId} 
+                      onChange={(e) => setFormData({...formData, unitId: e.target.value})}
+                    >
+                      <option value="">NENHUM APARTAMENTO</option>
+                      {unidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Morador / Solicitante</label>
+                    <select 
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none"
+                      value={formData.userId} 
+                      onChange={(e) => setFormData({...formData, userId: e.target.value})}
+                    >
+                      <option value="">NENHUM USUÁRIO</option>
+                      {usuarios.map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({u.role === 'SUPER_ADMIN' ? 'ADMIN' : u.role === 'SINDICO' ? 'ZELADORIA' : u.role === 'PORTEIRO' ? 'PORTARIA' : 'MORADOR'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               {currentUser?.role !== 'MORADOR' && (
                 <div className="grid grid-cols-2 gap-4">
