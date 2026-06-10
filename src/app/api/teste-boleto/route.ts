@@ -181,14 +181,29 @@ async function fetchAndScrapeBoletos(session: string) {
 
   // 2. Descobrir Unidades
   const units: { id: string; name: string }[] = [];
-  const unidadeSelectRegex = /<select[^>]+id="Unidade_id_unidade"[^>]*>([\s\S]*?)<\/select>/;
-  const matchUnidade = html.match(unidadeSelectRegex);
-  if (matchUnidade) {
-    const optionRegex = /<option[^>]+value="([^"]+)"[^>]*>([^<]+)<\/option>/g;
-    let opt;
-    while ((opt = optionRegex.exec(matchUnidade[1])) !== null) {
-      if (opt[1]) {
-        units.push({ id: opt[1], name: opt[2].trim() });
+  const optionsMatch = html.match(/var UNIDADES_OPTIONS = ({[\s\S]*?});/);
+  if (optionsMatch) {
+    try {
+      const parsed = JSON.parse(optionsMatch[1]);
+      for (const [unitId, value] of Object.entries(parsed) as any) {
+        units.push({ id: unitId, name: value.nome });
+      }
+    } catch (e) {
+      console.error('Erro ao fazer parse de UNIDADES_OPTIONS:', e);
+    }
+  }
+
+  // Fallback caso não encontre no JS
+  if (units.length === 0) {
+    const unidadeSelectRegex = /<select[^>]+id="Unidade_id_unidade"[^>]*>([\s\S]*?)<\/select>/;
+    const matchUnidade = html.match(unidadeSelectRegex);
+    if (matchUnidade) {
+      const optionRegex = /<option[^>]+value="([^"]+)"[^>]*>([^<]+)<\/option>/g;
+      let opt;
+      while ((opt = optionRegex.exec(matchUnidade[1])) !== null) {
+        if (opt[1]) {
+          units.push({ id: opt[1], name: opt[2].trim() });
+        }
       }
     }
   }
