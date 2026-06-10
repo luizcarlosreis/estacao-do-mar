@@ -505,6 +505,35 @@ export default function CartaoCreditoPage() {
                 </div>
               )}
 
+              {isEditMode && !formData.isFinanced && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Mês de Referência (Fatura)</label>
+                    <select
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900/10 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                      value={formData.startMonth}
+                      onChange={(e) => setFormData({...formData, startMonth: parseInt(e.target.value, 10)})}
+                    >
+                      {monthsList.map(m => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Ano de Referência</label>
+                    <select
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900/10 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                      value={formData.startYear}
+                      onChange={(e) => setFormData({...formData, startYear: parseInt(e.target.value, 10)})}
+                    >
+                      {yearsList.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-6 border-t border-slate-100">
                 <button 
                   type="button" 
