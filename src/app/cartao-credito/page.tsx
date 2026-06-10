@@ -16,8 +16,10 @@ import {
   AlertCircle,
   FileText,
   Loader2,
-  Edit2
+  Edit2,
+  FileSpreadsheet
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { APP_VERSION } from '@/lib/version';
 
 type Installment = {
@@ -219,6 +221,58 @@ export default function CartaoCreditoPage() {
     }
   };
 
+  const exportToExcel = () => {
+    if (installments.length === 0) {
+      alert('Nenhum gasto lançado para este mês para exportar.');
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const exportedData: any[] = installments.map(item => {
+      const isFinanced = item.purchase.isFinanced;
+      return {
+        'Data Compra': formatDate(item.purchase.date),
+        'Fornecedor / Prestador': item.purchase.provider.toUpperCase(),
+        'Descrição': item.purchase.description.toUpperCase(),
+        'Forma de Pagamento': isFinanced ? 'Financiada' : 'À Vista',
+        'Parcela': isFinanced 
+          ? `${item.installmentNumber} / ${item.purchase.installmentsCount}`
+          : '1 / 1',
+        'Valor da Parcela (R$)': item.value,
+        'Valor Total da Compra (R$)': item.purchase.totalValue
+      };
+    });
+
+    // Add consolidated TOTAL row at the end
+    exportedData.push({
+      'Data Compra': 'TOTAL DA FATURA',
+      'Fornecedor / Prestador': '',
+      'Descrição': '',
+      'Forma de Pagamento': '',
+      'Parcela': '',
+      'Valor da Parcela (R$)': totalInvoice,
+      'Valor Total da Compra (R$)': ''
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Fatura Cartão');
+
+    const colWidths = [
+      { wch: 15 }, // Data Compra
+      { wch: 25 }, // Fornecedor / Prestador
+      { wch: 35 }, // Descrição
+      { wch: 20 }, // Forma de Pagamento
+      { wch: 10 }, // Parcela
+      { wch: 20 }, // Valor da Parcela (R$)
+      { wch: 25 }  // Valor Total da Compra (R$)
+    ];
+    ws['!cols'] = colWidths;
+
+    const monthLabel = monthsList.find(m => m.value === selectedMonth)?.label || selectedMonth.toString();
+    XLSX.writeFile(wb, `Fatura_Cartao_Credito_${monthLabel}_${selectedYear}.xlsx`);
+  };
+
   const formatCurrency = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
@@ -269,6 +323,12 @@ export default function CartaoCreditoPage() {
           >
             <TrendingUp size={16} /> Ver Dashboard Anual
           </Link>
+          <button
+            onClick={exportToExcel}
+            className="flex items-center gap-2 px-5 py-3.5 border border-emerald-200 hover:bg-emerald-50 text-emerald-700 font-black text-[11px] uppercase tracking-wider rounded-xl transition"
+          >
+            <FileSpreadsheet size={16} /> Exportar Excel
+          </button>
           <button 
             onClick={handleOpenAddModal}
             className="flex items-center gap-2 px-5 py-3.5 bg-violet-600 hover:bg-violet-750 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-violet-600/10 hover:shadow-xl hover:shadow-violet-600/20 active:scale-[0.98]"
