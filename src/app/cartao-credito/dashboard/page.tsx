@@ -51,7 +51,7 @@ export default function CartaoCreditoDashboardPage() {
     fetch('/api/me')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (!data || !data.user || data.user.role !== 'SUPER_ADMIN') {
+        if (!data || !data.user || !['SUPER_ADMIN', 'ADMINISTRADORA'].includes(data.user.role)) {
           router.push('/');
         } else {
           setCurrentUser(data.user);

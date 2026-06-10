@@ -107,7 +107,7 @@ export default function CartaoCreditoPage() {
     fetch('/api/me')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (!data || !data.user || data.user.role !== 'SUPER_ADMIN') {
+        if (!data || !data.user || !['SUPER_ADMIN', 'ADMINISTRADORA'].includes(data.user.role)) {
           router.push('/');
         } else {
           setCurrentUser(data.user);
@@ -329,12 +329,14 @@ export default function CartaoCreditoPage() {
           >
             <FileSpreadsheet size={16} /> Exportar Excel
           </button>
-          <button 
-            onClick={handleOpenAddModal}
-            className="flex items-center gap-2 px-5 py-3.5 bg-violet-600 hover:bg-violet-750 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-violet-600/10 hover:shadow-xl hover:shadow-violet-600/20 active:scale-[0.98]"
-          >
-            <Plus size={16} /> Lançar Compra
-          </button>
+          {currentUser?.role === 'SUPER_ADMIN' && (
+            <button 
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 px-5 py-3.5 bg-violet-600 hover:bg-violet-750 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-violet-600/10 hover:shadow-xl hover:shadow-violet-600/20 active:scale-[0.98]"
+            >
+              <Plus size={16} /> Lançar Compra
+            </button>
+          )}
         </div>
       </div>
 
@@ -407,7 +409,7 @@ export default function CartaoCreditoPage() {
                   <th className="py-4 px-6 text-center">Parcela</th>
                   <th className="py-4 px-6 text-right">Valor Parcela</th>
                   <th className="py-4 px-6 text-right">Valor Total Compra</th>
-                  <th className="py-4 px-6 text-center">Ações</th>
+                  {currentUser?.role === 'SUPER_ADMIN' && <th className="py-4 px-6 text-center">Ações</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-600">
@@ -430,24 +432,26 @@ export default function CartaoCreditoPage() {
                     </td>
                     <td className="py-4 px-6 text-right font-bold text-slate-900">{formatCurrency(item.value)}</td>
                     <td className="py-4 px-6 text-right text-slate-400">{formatCurrency(item.purchase.totalValue)}</td>
-                    <td className="py-4 px-6 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditModal(item.purchase)}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          title="Editar Compra"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.purchase.id, item.purchase.description)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="Excluir Compra"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+                    {currentUser?.role === 'SUPER_ADMIN' && (
+                      <td className="py-4 px-6 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditModal(item.purchase)}
+                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Editar Compra"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.purchase.id, item.purchase.description)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Excluir Compra"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
