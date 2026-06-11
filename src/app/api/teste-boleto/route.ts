@@ -222,8 +222,8 @@ async function fetchAndScrapeBoletos(session: string) {
     }
   }
 
-  // Pegar somente os 3 primeiros meses (mais recentes) para manter alta performance
-  const monthsToQuery = months.slice(0, 3);
+  // Pegar somente os 12 primeiros meses (mais recentes) para abranger o último ano
+  const monthsToQuery = months.slice(0, 12);
   if (monthsToQuery.length === 0) {
     // Fallback caso não ache
     const now = new Date();
@@ -272,6 +272,31 @@ async function fetchAndScrapeBoletos(session: string) {
               const barcodeMatch = liHtml.match(/copiarCodigoBarras\('(\d+)'/);
               const linhaDigitavel = barcodeMatch ? barcodeMatch[1] : null;
 
+              // Extrair status da cobrança
+              let status = 'Aberto';
+              const cleanLiHtml = liHtml.toLowerCase();
+              if (cleanLiHtml.includes('pago') || cleanLiHtml.includes('liquidado')) {
+                status = 'Pago';
+              } else if (cleanLiHtml.includes('vencido') || cleanLiHtml.includes('atraso')) {
+                status = 'Vencido';
+              } else {
+                // Fallback: se a data de vencimento passou e não está pago, marcar como Vencido
+                if (vencimento) {
+                  try {
+                    const parts = vencimento.split('/');
+                    const dueDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    dueDate.setHours(0, 0, 0, 0);
+                    if (dueDate < today) {
+                      status = 'Vencido';
+                    }
+                  } catch (e) {
+                    // Ignorar falhas na conversão da data
+                  }
+                }
+              }
+
               if (idB && !boletos.some(b => b.id === idB)) {
                 boletos.push({
                   id: idB,
@@ -280,7 +305,8 @@ async function fetchAndScrapeBoletos(session: string) {
                   referencia: `${month.substring(4)}/${month.substring(0, 4)}`,
                   vencimento,
                   valor: `R$ ${valor}`,
-                  linhaDigitavel
+                  linhaDigitavel,
+                  status
                 });
               }
             }

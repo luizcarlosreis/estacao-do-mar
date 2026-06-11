@@ -11,6 +11,7 @@ interface Boleto {
   vencimento: string;
   valor: string;
   linhaDigitavel: string | null;
+  status: string;
 }
 
 export default function TesteBoletoPage() {
@@ -343,10 +344,22 @@ export default function TesteBoletoPage() {
                     </div>
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold text-amber-700">
-                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping"></span>
-                    Aberto
-                  </span>
+                  {(boleto.status || 'Aberto') === 'Pago' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-xs font-bold text-emerald-700">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                      Pago
+                    </span>
+                  ) : (boleto.status || 'Aberto') === 'Vencido' ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-200 rounded-full text-xs font-bold text-rose-700">
+                      <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+                      Vencido
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold text-amber-700">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping"></span>
+                      Aberto
+                    </span>
+                  )}
                 </div>
 
                 {/* Grid de Informações Financeiras */}
