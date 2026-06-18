@@ -90,6 +90,7 @@ export default function ReservasPage() {
   // Dashboard Admin states
   const [dashYear, setDashYear] = useState<number>(new Date().getFullYear());
   const [dashMonth, setDashMonth] = useState<string>(String(new Date().getMonth() + 1));
+  const [isDashModalOpen, setIsDashModalOpen] = useState(false);
   // Guest list modal
   const [guestModalReservation, setGuestModalReservation] = useState<Reservation | null>(null);
   const [guestName, setGuestName] = useState('');
@@ -397,166 +398,199 @@ export default function ReservasPage() {
           </h1>
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
-        {!isReadOnlyReservation && (
-          <button onClick={openCreate}
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
-            <Plus size={18} /> Nova Reserva
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <button onClick={() => setIsDashModalOpen(true)}
+              className="bg-slate-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-slate-900 transition font-black shadow-lg shadow-slate-100 text-xs uppercase tracking-wider">
+              <BarChart3 size={18} /> Dashboard
+            </button>
+          )}
+          {!isReadOnlyReservation && (
+            <button onClick={openCreate}
+              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-black shadow-lg shadow-blue-100 text-xs uppercase tracking-wider">
+              <Plus size={18} /> Nova Reserva
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Dashboard Administrativo */}
-      {isAdmin && (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-            <div>
-              <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                <BarChart3 size={22} className="text-blue-600" />
-                DASHBOARD DE RESERVAS
+      {/* Dashboard Administrativo (Pop-up/Modal) */}
+      {isAdmin && isDashModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl my-6 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center rounded-t-3xl">
+              <h2 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                <BarChart3 size={18} /> Painel Estatístico / Dashboard
               </h2>
-              <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-0.5">Indicadores e Métricas do Salão de Festas</p>
+              <button onClick={() => setIsDashModalOpen(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+                <X size={24} />
+              </button>
             </div>
-            
-            {/* Filtros de Ano e Mês */}
-            <div className="flex items-center gap-3">
-              <div>
-                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Ano</label>
-                <select
-                  value={dashYear}
-                  onChange={e => setDashYear(Number(e.target.value))}
-                  className="p-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-bold"
-                >
-                  {availableYears.map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Mês</label>
-                <select
-                  value={dashMonth}
-                  onChange={e => setDashMonth(e.target.value)}
-                  className="p-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-bold"
-                >
-                  <option value="todos">Todos os Meses</option>
-                  <option value="1">Janeiro</option>
-                  <option value="2">Fevereiro</option>
-                  <option value="3">Março</option>
-                  <option value="4">Abril</option>
-                  <option value="5">Maio</option>
-                  <option value="6">Junho</option>
-                  <option value="7">Julho</option>
-                  <option value="8">Agosto</option>
-                  <option value="9">Setembro</option>
-                  <option value="10">Outubro</option>
-                  <option value="11">Novembro</option>
-                  <option value="12">Dezembro</option>
-                </select>
-              </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Indicadores Gerais & Financeiro */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Card Receitas */}
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 relative overflow-hidden">
-                <div className="absolute -right-4 -bottom-4 text-slate-200/50">
-                  <DollarSign size={80} />
+            {/* Content */}
+            <div className="p-8 space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-slate-100">
+                <div>
+                  <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                    <BarChart3 size={22} className="text-blue-600" />
+                    DASHBOARD DE RESERVAS
+                  </h3>
+                  <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-0.5">Indicadores e Métricas do Salão de Festas</p>
                 </div>
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Arrecadação da Taxa</h3>
-                <div className="space-y-3 relative z-10">
+                
+                {/* Filtros de Ano e Mês */}
+                <div className="flex items-center gap-3">
                   <div>
-                    <span className="text-[10px] font-bold text-emerald-600 block uppercase">Realizada (Efetivada)</span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xs font-black text-slate-400">R$</span>
-                      <span className="text-2xl font-black text-emerald-600">
-                        {revenueRealized.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-medium">{dashEfetivadas} reservas efetivadas</span>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Ano</label>
+                    <select
+                      value={dashYear}
+                      onChange={e => setDashYear(Number(e.target.value))}
+                      className="p-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-bold"
+                    >
+                      {availableYears.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <span className="text-[10px] font-bold text-amber-600 block uppercase">Prevista (Solicitada)</span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xs font-black text-slate-400">R$</span>
-                      <span className="text-lg font-black text-amber-600">
-                        {revenuePending.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-medium">{dashSolicitadas} reservas pendentes</span>
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Mês</label>
+                    <select
+                      value={dashMonth}
+                      onChange={e => setDashMonth(e.target.value)}
+                      className="p-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-700 font-bold"
+                    >
+                      <option value="todos">Todos os Meses</option>
+                      <option value="1">Janeiro</option>
+                      <option value="2">Fevereiro</option>
+                      <option value="3">Março</option>
+                      <option value="4">Abril</option>
+                      <option value="5">Maio</option>
+                      <option value="6">Junho</option>
+                      <option value="7">Julho</option>
+                      <option value="8">Agosto</option>
+                      <option value="9">Setembro</option>
+                      <option value="10">Outubro</option>
+                      <option value="11">Novembro</option>
+                      <option value="12">Dezembro</option>
+                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* Card Resumo Status */}
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Detalhamento de Reservas</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="flex items-center gap-1.5 font-bold text-slate-600">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      Efetivadas:
-                    </span>
-                    <span className="font-black text-slate-800">{dashEfetivadas}</span>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Indicadores Gerais & Financeiro */}
+                <div className="lg:col-span-1 space-y-6">
+                  {/* Card Receitas */}
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 relative overflow-hidden">
+                    <div className="absolute -right-4 -bottom-4 text-slate-200/50">
+                      <DollarSign size={80} />
+                    </div>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Arrecadação da Taxa</h3>
+                    <div className="space-y-3 relative z-10">
+                      <div>
+                        <span className="text-[10px] font-bold text-emerald-600 block uppercase">Realizada (Efetivada)</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xs font-black text-slate-400">R$</span>
+                          <span className="text-2xl font-black text-emerald-600">
+                            {revenueRealized.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">{dashEfetivadas} reservas efetivadas</span>
+                      </div>
+                      <div className="pt-2 border-t border-slate-200/60">
+                        <span className="text-[10px] font-bold text-amber-600 block uppercase">Prevista (Solicitada)</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xs font-black text-slate-400">R$</span>
+                          <span className="text-lg font-black text-amber-600">
+                            {revenuePending.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">{dashSolicitadas} reservas pendentes</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="flex items-center gap-1.5 font-bold text-slate-600">
-                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                      Solicitadas:
-                    </span>
-                    <span className="font-black text-slate-800">{dashSolicitadas}</span>
+
+                  {/* Card Resumo Status */}
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Detalhamento de Reservas</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="flex items-center gap-1.5 font-bold text-slate-600">
+                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                          Efetivadas:
+                        </span>
+                        <span className="font-black text-slate-800">{dashEfetivadas}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="flex items-center gap-1.5 font-bold text-slate-600">
+                          <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                          Solicitadas:
+                        </span>
+                        <span className="font-black text-slate-800">{dashSolicitadas}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="flex items-center gap-1.5 font-bold text-slate-600">
+                          <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                          Canceladas:
+                        </span>
+                        <span className="font-black text-slate-800">{dashCanceladas}</span>
+                      </div>
+                      <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                        <span className="font-black text-slate-700 uppercase">Total Geral:</span>
+                        <span className="font-black text-blue-600 text-sm">{dashTotal}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="flex items-center gap-1.5 font-bold text-slate-600">
-                      <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
-                      Canceladas:
-                    </span>
-                    <span className="font-black text-slate-800">{dashCanceladas}</span>
+                </div>
+
+                {/* Reservas por Apartamento */}
+                <div className="lg:col-span-2 bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade de Reservas por Apartamento</h3>
+                    <span className="text-[9px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">Ativas</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
-                    <span className="font-black text-slate-700 uppercase">Total Geral:</span>
-                    <span className="font-black text-blue-600 text-sm">{dashTotal}</span>
-                  </div>
+                  
+                  {apartmentBookings.length === 0 ? (
+                    <div className="h-48 flex items-center justify-center text-xs text-slate-400 italic">
+                      Nenhuma reserva ativa no período selecionado.
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                      {apartmentBookings.map((apt) => {
+                        const maxCount = apartmentBookings[0]?.count || 1;
+                        const percent = (apt.count / maxCount) * 100;
+                        return (
+                          <div key={apt.unit} className="space-y-1">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-black text-slate-700 flex items-center gap-1">
+                                <Building size={12} className="text-blue-500" /> App. {apt.unit}
+                              </span>
+                              <span className="font-black text-slate-800">{apt.count} {apt.count === 1 ? 'reserva' : 'reservas'}</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                              <div 
+                                className="bg-blue-600 h-full rounded-full transition-all duration-500" 
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Reservas por Apartamento */}
-            <div className="lg:col-span-2 bg-slate-50 rounded-2xl p-5 border border-slate-100">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade de Reservas por Apartamento</h3>
-                <span className="text-[9px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">Ativas</span>
-              </div>
-              
-              {apartmentBookings.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-xs text-slate-400 italic">
-                  Nenhuma reserva ativa no período selecionado.
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
-                  {apartmentBookings.map((apt) => {
-                    const maxCount = apartmentBookings[0]?.count || 1;
-                    const percent = (apt.count / maxCount) * 100;
-                    return (
-                      <div key={apt.unit} className="space-y-1">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-black text-slate-700 flex items-center gap-1">
-                            <Building size={12} className="text-blue-500" /> App. {apt.unit}
-                          </span>
-                          <span className="font-black text-slate-800">{apt.count} {apt.count === 1 ? 'reserva' : 'reservas'}</span>
-                        </div>
-                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div 
-                            className="bg-blue-600 h-full rounded-full transition-all duration-500" 
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setIsDashModalOpen(false)}
+                className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition text-[11px] font-black uppercase"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
