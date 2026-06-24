@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import * as XLSX from 'xlsx';
 
 interface Unit {
   id: string;
@@ -36,6 +37,9 @@ export default function TesteBoletoPage() {
   const [loadingBoletos, setLoadingBoletos] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  // Estados para consulta geral de atrasados
+  const [isAllOverdueMode, setIsAllOverdueMode] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -109,6 +113,7 @@ export default function TesteBoletoPage() {
     try {
       setLoadingBoletos(true);
       setError(null);
+      setIsAllOverdueMode(false); // Desmarca modo geral
       const res = await fetch(
         `/api/teste-boleto?idUnidade=${unit.id}&nomeUnidade=${encodeURIComponent(unit.name)}`
       );
@@ -125,7 +130,30 @@ export default function TesteBoletoPage() {
     }
   };
 
+  const fetchTodosAtrasados = async () => {
+    try {
+      setLoadingBoletos(true);
+      setError(null);
+      setIsAllOverdueMode(true);
+      setSelectedUnit(null); // Desmarca apartamento específico
+      setBoletos([]);
+      
+      const res = await fetch('/api/teste-boleto/atrasados');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Falha ao buscar faturas atrasadas do condomínio.');
+      }
+      const data = await res.json();
+      setBoletos(data);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar faturas atrasadas.');
+    } finally {
+      setLoadingBoletos(false);
+    }
+  };
+
   const handleUnitSelect = (unitId: string) => {
+    setIsAllOverdueMode(false);
     const unit = units.find(u => u.id === unitId);
     if (unit) {
       setSelectedUnit(unit);
@@ -140,6 +168,8 @@ export default function TesteBoletoPage() {
   const handleRefresh = () => {
     if (user?.role === 'MORADOR') {
       fetchBoletosForMorador();
+    } else if (isAllOverdueMode) {
+      fetchTodosAtrasados();
     } else if (user?.role === 'SUPER_ADMIN' && selectedUnit) {
       fetchBoletosForUnit(selectedUnit);
     } else if (user?.role === 'SUPER_ADMIN') {
@@ -155,17 +185,61 @@ export default function TesteBoletoPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const exportToExcel = () => {
+    if (boletos.length === 0) {
+      alert('Não há boletos para exportar.');
+      return;
+    }
+
+    const data = boletos.map(boleto => ({
+      'UNIDADE / APARTAMENTO': boleto.unidadeNome,
+      'REFERÊNCIA': boleto.referencia,
+      'VENCIMENTO': boleto.vencimento,
+      'VALOR ORIGINAL': boleto.valorOriginal,
+      'SITUAÇÃO': boleto.situacao,
+      'DATA PAGAMENTO': boleto.dataPagamento,
+      'VALOR PAGO': boleto.valorPago,
+      'NOSSO NÚMERO': boleto.nossoNumero,
+      'LINHA DIGITÁVEL': boleto.linhaDigitavel || '—'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Faturas');
+
+    // Auto-ajuste e dimensões das colunas
+    const colWidths = [
+      { wch: 22 }, // Unidade
+      { wch: 12 }, // Referência
+      { wch: 15 }, // Vencimento
+      { wch: 18 }, // Valor Original
+      { wch: 12 }, // Situação
+      { wch: 18 }, // Data Pagamento
+      { wch: 15 }, // Valor Pago
+      { wch: 20 }, // Nosso Número
+      { wch: 50 }  // Linha Digitável
+    ];
+    worksheet['!cols'] = colWidths;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const fileName = isAllOverdueMode 
+      ? `Boletos_Atrasados_Geral_${todayStr}.xlsx`
+      : `Boletos_Unidade_${selectedUnit?.name || 'Consulta'}_${todayStr}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+  };
+
   if (!mounted) return null;
 
   const isMorador = user?.role === 'MORADOR';
   const hasBoletos = boletos.length > 0;
-  const showRefreshButton = !loadingUser && !loadingBoletos && (isMorador || selectedUnit);
+  const showRefreshButton = !loadingUser && !loadingBoletos && (isMorador || selectedUnit || isAllOverdueMode);
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
       
       {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link href="/" className="inline-flex items-center justify-center p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition">
@@ -181,11 +255,60 @@ export default function TesteBoletoPage() {
           <p className="text-slate-500 text-sm mt-1">
             {isMorador 
               ? 'Consulte e visualize as faturas vinculadas à sua unidade de moradia' 
+              : isAllOverdueMode
+              ? 'Todos os boletos vencidos de todas as unidades do condomínio'
               : 'Painel administrativo para consulta de boletos e códigos de barras por unidade'}
           </p>
         </div>
 
-        {showRefreshButton && (
+        {/* Ações Administrativas no Topo */}
+        {!loadingUser && !error && user?.role === 'SUPER_ADMIN' && (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Botão Ver Todos Atrasados */}
+            <button
+              onClick={fetchTodosAtrasados}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm active:scale-95 border ${
+                isAllOverdueMode
+                  ? 'bg-amber-100 border-amber-300 text-amber-800'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              Ver Todos Atrasados
+            </button>
+
+            {/* Botão Exportar Excel */}
+            {hasBoletos && (
+              <button
+                onClick={exportToExcel}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Exportar Excel
+              </button>
+            )}
+
+            {/* Botão Atualizar */}
+            {showRefreshButton && (
+              <button 
+                onClick={handleRefresh}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition shadow-sm active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
+                </svg>
+                Atualizar
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Ações do Morador no Topo */}
+        {isMorador && showRefreshButton && (
           <div className="flex items-center gap-2.5">
             <button 
               onClick={handleRefresh}
@@ -274,8 +397,8 @@ export default function TesteBoletoPage() {
         </div>
       )}
 
-      {/* Estado Vazio - Nenhuma unidade selecionada (Apenas para ADMIN) */}
-      {!loadingUser && !loadingBoletos && !error && !isMorador && !selectedUnit && (
+      {/* Estado Vazio - Nenhuma unidade selecionada e fora do modo atrasados (Apenas para ADMIN) */}
+      {!loadingUser && !loadingBoletos && !error && !isMorador && !selectedUnit && !isAllOverdueMode && (
         <div className="bg-white border border-slate-200 rounded-[2rem] p-12 shadow-sm text-center">
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-indigo-50 text-indigo-500 mb-4 border border-indigo-100">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -286,13 +409,13 @@ export default function TesteBoletoPage() {
             Consulta de Faturas
           </h3>
           <p className="text-slate-500 text-sm max-w-sm mx-auto">
-            Por favor, selecione uma unidade no menu acima para carregar e listar os boletos correspondentes.
+            Por favor, selecione uma unidade no menu acima ou clique em "Ver Todos Atrasados" para listar as cobranças.
           </p>
         </div>
       )}
 
-      {/* Estado Vazio - Unidade Sem Boletos */}
-      {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit) && !hasBoletos && (
+      {/* Estado Vazio - Unidade/Portal Sem Boletos */}
+      {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit || isAllOverdueMode) && !hasBoletos && (
         <div className="bg-white border border-slate-200 rounded-[2rem] p-12 shadow-sm text-center">
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-slate-50 text-slate-400 mb-4 border border-slate-100">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -305,19 +428,24 @@ export default function TesteBoletoPage() {
           <p className="text-slate-500 text-sm max-w-sm mx-auto">
             {isMorador 
               ? 'Não encontramos faturas ou cobranças em aberto para o seu apartamento.' 
+              : isAllOverdueMode
+              ? 'Não foram encontradas cobranças com status de atraso em nenhuma unidade do condomínio.'
               : `Não foram encontradas cobranças ativas na API da Winker para a unidade ${selectedUnit?.name}.`}
           </p>
         </div>
       )}
 
       {/* Tabela de Boletos */}
-      {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit) && hasBoletos && (
+      {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit || isAllOverdueMode) && hasBoletos && (
         <div className="w-full max-w-full bg-white border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden">
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center w-16">PDF</th>
+                  {isAllOverdueMode && (
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Apartamento</th>
+                  )}
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Referência</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Vencimento</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor Original</th>
@@ -345,6 +473,13 @@ export default function TesteBoletoPage() {
                         </svg>
                       </a>
                     </td>
+
+                    {/* Apartamento / Unidade */}
+                    {isAllOverdueMode && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-600">
+                        Apto {boleto.unidadeNome}
+                      </td>
+                    )}
                     
                     {/* Referência */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
