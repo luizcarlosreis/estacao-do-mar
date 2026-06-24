@@ -14,11 +14,15 @@ interface Boleto {
   id: string;
   unidadeId: string;
   unidadeNome: string;
+  reference: string;
   referencia: string;
   vencimento: string;
-  valor: string;
+  valorOriginal: string;
+  situacao: string;
+  dataPagamento: string;
+  valorPago: string;
+  nossoNumero: string;
   linhaDigitavel: string | null;
-  status: string;
 }
 
 export default function BoletoTestePage() {
@@ -287,128 +291,121 @@ export default function BoletoTestePage() {
           </div>
         )}
 
-        {/* Lista de Boletos da Unidade Selecionada */}
+        {/* Lista de Boletos da Unidade Selecionada em Tabela */}
         {!loadingBoletos && selectedUnit && boletos.length > 0 && (
-          <div className="space-y-6">
-            {boletos.map((boleto) => (
-              <div 
-                key={boleto.id} 
-                className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300"
-              >
-                {/* Cabeçalho do Card */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">
-                        Unidade {boleto.unidadeNome}
-                      </h3>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        Referência: {boleto.referencia}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-bold ${
-                    boleto.status === 'Pago' 
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
-                      : boleto.status === 'Vencido'
-                      ? 'bg-rose-50 border-rose-200 text-rose-700'
-                      : 'bg-amber-50 border-amber-200 text-amber-700'
-                  }`}>
-                    {boleto.status !== 'Pago' && (
-                      <span className={`w-1.5 h-1.5 rounded-full animate-ping ${
-                        boleto.status === 'Vencido' ? 'bg-rose-500' : 'bg-amber-500'
-                      }`}></span>
-                    )}
-                    {boleto.status}
-                  </span>
-                </div>
-
-                {/* Grid de Informações Financeiras */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Vencimento</span>
-                    <span className="text-sm font-black text-slate-700">{boleto.vencimento}</span>
-                  </div>
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Valor Total</span>
-                    <span className="text-sm font-black text-indigo-600">{boleto.valor}</span>
-                  </div>
-                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Identificador</span>
-                    <span className="text-sm font-black text-slate-700">{boleto.id}</span>
-                  </div>
-                </div>
-
-                {/* Código de Barras / Linha Digitável */}
-                {boleto.linhaDigitavel && (
-                  <div className="mb-6">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Linha Digitável</span>
-                    <div className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-150 rounded-2xl">
-                      <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-600 truncate pr-2 select-all">
-                        {boleto.linhaDigitavel}
-                      </span>
-                      <button
-                        onClick={() => handleCopyBarcode(boleto.id, boleto.linhaDigitavel!)}
-                        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition ${
-                          copiedId === boleto.id
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        {copiedId === boleto.id ? (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Copiado
-                          </>
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center w-16">PDF</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Referência</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Vencimento</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor Original</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Situação</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Pagamento</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor Pago</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nosso Número</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Linha Digitável</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {boletos.map((boleto) => (
+                    <tr key={boleto.id} className="hover:bg-slate-50/70 transition-colors">
+                      {/* PDF download/view action button */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <a
+                          href={`/api/boleto-teste?idBoleto=${boleto.id}&idUnidade=${boleto.unidadeId}&reference=${boleto.reference}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Visualizar/Baixar PDF"
+                          className="inline-flex items-center justify-center p-2 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition border border-rose-100"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </a>
+                      </td>
+                      
+                      {/* Referência */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
+                        {boleto.referencia}
+                      </td>
+                      
+                      {/* Vencimento */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
+                        {boleto.vencimento}
+                      </td>
+                      
+                      {/* Valor Original */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
+                        {boleto.valorOriginal}
+                      </td>
+                      
+                      {/* Situação */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 border rounded-full text-xs font-bold ${
+                          boleto.situacao === 'Pago' 
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                            : boleto.situacao === 'Atrasado'
+                            ? 'bg-rose-50 border-rose-200 text-rose-700'
+                            : 'bg-amber-50 border-amber-200 text-amber-700'
+                        }`}>
+                          {boleto.situacao}
+                        </span>
+                      </td>
+                      
+                      {/* Data Pagamento */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">
+                        {boleto.dataPagamento}
+                      </td>
+                      
+                      {/* Valor Pago */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-700 font-bold">
+                        {boleto.valorPago}
+                      </td>
+                      
+                      {/* Nosso Número */}
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-semibold text-slate-600">
+                        {boleto.nossoNumero}
+                      </td>
+                      
+                      {/* Linha Digitável */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {boleto.linhaDigitavel ? (
+                          <div className="flex items-center gap-2 max-w-[200px]">
+                            <span className="text-[10px] font-mono font-bold text-slate-500 truncate select-all" title={boleto.linhaDigitavel}>
+                              {boleto.linhaDigitavel}
+                            </span>
+                            <button
+                              onClick={() => handleCopyBarcode(boleto.id, boleto.linhaDigitavel!)}
+                              className={`p-1 rounded-lg border transition ${
+                                copiedId === boleto.id
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                  : 'bg-white hover:bg-slate-50 text-slate-500 border-slate-200'
+                              }`}
+                              title="Copiar Código de Barras"
+                            >
+                              {copiedId === boleto.id ? (
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              ) : (
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h5.586a1 1 0 01.707-.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         ) : (
-                          <>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h5.586a1 1 0 01.707-.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Copiar
-                          </>
+                          <span className="text-xs text-slate-400">-</span>
                         )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Botões de Ação */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-                  <a
-                    href={`/api/boleto-teste?idBoleto=${boleto.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition shadow-sm"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Visualizar PDF
-                  </a>
-
-                  <a
-                    href={`/api/boleto-teste?idBoleto=${boleto.id}`}
-                    download={`boleto_${boleto.id}.pdf`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-2xl text-xs font-black uppercase tracking-wider hover:bg-slate-50 transition"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Baixar PDF
-                  </a>
-                </div>
-
-              </div>
-            ))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

@@ -31,51 +31,44 @@ export async function GET(req: NextRequest) {
   try {
     // 1. Download/Visualização de um boleto específico
     if (idBoleto) {
-      const downloadUrl = `https://api.winker.com.br/v1/billing/${idBoleto}/download`;
-      console.log(`[API] Solicitando download do boleto: ${downloadUrl}`);
+      const reference = searchParams.get('reference') || '';
+      const idUnidade = searchParams.get('idUnidade') || '';
+      const downloadUrl = `https://api.winker.com.br/v1/billing_unit/${idBoleto}/file?id_portal=10493&id_unit=${idUnidade}&reference=${reference}`;
+      console.log(`[API] Solicitando download do boleto via file endpoint: ${downloadUrl}`);
       const downloadRes = await fetch(downloadUrl, {
         method: 'GET',
         headers: {
           'Authorization': WINKER_API_TOKEN,
-          'Accept': 'application/json, application/pdf',
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
 
       if (!downloadRes.ok) {
-        console.error(`[API] Erro ao baixar boleto (Status: ${downloadRes.status}). Redirecionando para a intranet...`);
-        return NextResponse.redirect(`https://app.winker.com.br/intra/meuCondominio/boleto/view/rateio/${idBoleto}`);
+        console.error(`[API] Erro ao baixar boleto. Status: ${downloadRes.status}`);
+        return NextResponse.json(
+          { message: 'Erro ao baixar o boleto do Winker via API' },
+          { status: downloadRes.status }
+        );
       }
 
-      const contentType = downloadRes.headers.get('content-type') || '';
-      
-      // Se a API retornou JSON com a URL de redirecionamento para o PDF
-      if (contentType.includes('application/json')) {
-        const json = await downloadRes.json();
-        const pdfUrl = json.url || json.link || json.download_url;
-        if (pdfUrl) {
-          console.log(`[API] Redirecionando ou buscando PDF da URL: ${pdfUrl}`);
-          const pdfRes = await fetch(pdfUrl);
-          if (pdfRes.ok) {
-            const pdfBuffer = await pdfRes.arrayBuffer();
-            return new NextResponse(pdfBuffer, {
-              headers: {
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': `attachment; filename="boleto_${idBoleto}.pdf"`
-              }
-            });
-          }
+      const json = await downloadRes.json();
+      const pdfUrl = json.url || json.link || json.download_url;
+      if (pdfUrl) {
+        console.log(`[API] Buscando PDF da URL: ${pdfUrl}`);
+        const pdfRes = await fetch(pdfUrl);
+        if (pdfRes.ok) {
+          const pdfBuffer = await pdfRes.arrayBuffer();
+          return new NextResponse(pdfBuffer, {
+            headers: {
+              'Content-Type': 'application/pdf',
+              'Content-Disposition': `inline; filename="boleto_${idBoleto}.pdf"`
+            }
+          });
         }
       }
 
-      // Caso padrão: serve os dados binários do PDF diretamente
-      const pdfBuffer = await downloadRes.arrayBuffer();
-      return new NextResponse(pdfBuffer, {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="boleto_${idBoleto}.pdf"`
-        }
-      });
+      return NextResponse.json({ message: 'URL do PDF não encontrada na resposta' }, { status: 404 });
     }
 
     // 2. Listagem de boletos de uma unidade
@@ -114,7 +107,8 @@ export async function GET(req: NextRequest) {
     
     // Mapeador resiliente para padronizar os dados de boleto para o frontend
     const mappedBoletos = rawItems.map((item: any) => {
-      const id = String(item.id_billing_billet || item.id_billing_unit || item.id_unit_billing || item.id || item.id_cobranca || item.id_boleto || '');
+      const id = String(item.id_unit_billing || item.id_billing_unit || item.id || '');
+      const reference = String(item.reference || '');
       
       // Mapear referência (ex: "202604" -> "04/2026")
       let referencia = item.reference || item.referencia || item.mes_referencia || item.date_ref || '';
@@ -139,28 +133,25 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Mapear valor financeiro (ex: 404.62 -> "R$ 404,62")
-      const rawValor = item.amount || item.value || item.valor || item.valor_principal || item.price || 0;
-      let valor = '';
+      // Mapear valor original
+      const rawValor = item.value || item.amount || item.valor || item.valor_principal || 0;
+      let valorOriginal = '';
       if (typeof rawValor === 'string' && rawValor.includes('R$')) {
-        valor = rawValor;
+        valorOriginal = rawValor;
       } else {
         const numValor = parseFloat(String(rawValor)) || 0;
-        valor = `R$ ${numValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        valorOriginal = `R$ ${numValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
 
-      // Linha Digitável
-      const linhaDigitavel = item.digitable_line || item.linha_digitavel || item.codigo_barras || item.barcode || null;
-
-      // Mapeamento de Status
-      const rawStatus = String(item.status || item.situacao || item.situation || '').toLowerCase();
-      let status = 'Aberto';
-      if (rawStatus.includes('paid') || rawStatus.includes('pago') || rawStatus.includes('liquid') || rawStatus.includes('quitar')) {
-        status = 'Pago';
+      // Mapeamento de Situação
+      const rawStatus = String(item.situation || item.status || item.situacao || '').toLowerCase();
+      let situacao = 'Aberto';
+      if (rawStatus.includes('paid') || rawStatus.includes('pago') || rawStatus.includes('liquid')) {
+        situacao = 'Pago';
       } else if (rawStatus.includes('expire') || rawStatus.includes('vencid') || rawStatus.includes('overdue') || rawStatus.includes('atraso')) {
-        status = 'Vencido';
+        situacao = 'Atrasado';
       } else {
-        // Se a data de vencimento passou e não está pago, assume Vencido
+        // Se a data de vencimento passou e não está pago, assume Atrasado
         if (vencimento) {
           try {
             const parts = vencimento.split('/');
@@ -169,21 +160,54 @@ export async function GET(req: NextRequest) {
             today.setHours(0, 0, 0, 0);
             dueDate.setHours(0, 0, 0, 0);
             if (dueDate < today) {
-              status = 'Vencido';
+              situacao = 'Atrasado';
             }
           } catch (e) {}
         }
       }
 
+      // Mapear data de pagamento
+      let dataPagamento = item.payment_date || item.data_pagamento || '';
+      if (dataPagamento && dataPagamento.includes('-')) {
+        const parts = dataPagamento.split('T')[0].split('-');
+        if (parts.length === 3) {
+          dataPagamento = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+      } else {
+        dataPagamento = '-';
+      }
+
+      // Mapear valor pago
+      const rawValorPago = item.amount_paid || item.valor_pago || '';
+      let valorPago = '-';
+      if (rawValorPago && parseFloat(String(rawValorPago)) > 0) {
+        if (typeof rawValorPago === 'string' && rawValorPago.includes('R$')) {
+          valorPago = rawValorPago;
+        } else {
+          const numValorPago = parseFloat(String(rawValorPago)) || 0;
+          valorPago = `R$ ${numValorPago.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+      }
+
+      // Nosso Número
+      const nossoNumero = item.our_number_formated || item.our_number || '-';
+
+      // Linha Digitável
+      const linhaDigitavel = item.digitable_line || item.linha_digitavel || item.codigo_barras || item.barcode || null;
+
       return {
         id,
         unidadeId: idUnidade,
         unidadeNome: nomeUnidade,
+        reference,
         referencia,
         vencimento,
-        valor,
-        linhaDigitavel,
-        status
+        valorOriginal,
+        situacao,
+        dataPagamento,
+        valorPago,
+        nossoNumero,
+        linhaDigitavel
       };
     });
 
