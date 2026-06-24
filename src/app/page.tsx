@@ -78,7 +78,6 @@ export default function Home() {
     { title: 'Encomendas', icon: <Package size={16} />, path: '/encomendas', desc: 'Recebimento de mercadorias e avisos.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR'], color: 'text-orange-600', bg: 'bg-orange-50' },
     { title: 'Leitura de Gás', icon: <Flame size={16} />, path: '/leitura-gas', desc: user?.role === 'MORADOR' ? 'Consulte o histórico de consumo de gás da sua unidade.' : 'Registro da leitura mensal de gás.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'], color: 'text-red-500', bg: 'bg-red-50' },
     { title: 'Cartão de Crédito', icon: <CreditCard size={16} />, path: '/cartao-credito', desc: 'Controle de gastos do cartão de crédito do condomínio.', roles: ['SUPER_ADMIN', 'ADMINISTRADORA'], color: 'text-violet-600', bg: 'bg-violet-50' },
-    { title: 'Boleto - Teste', icon: <FileText size={16} />, path: '/boleto-teste', desc: 'Teste e visualização de boletos por unidade.', roles: ['SUPER_ADMIN'], color: 'text-rose-600', bg: 'bg-rose-50' },
   ];
 
   const modules = user 

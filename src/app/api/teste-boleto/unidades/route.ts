@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-estacao-do-mar');
+const WINKER_API_TOKEN = '5c90521e-d469-4b39-b938-81ea1f4e9543';
 
 async function checkAuth(req: NextRequest) {
   const token = req.cookies.get('auth-token')?.value;
@@ -28,12 +29,11 @@ export async function GET(req: NextRequest) {
   }
 
   const url = 'https://api.winker.com.br/v1/portal/10493/unit';
-  const token = '5c90521e-d469-4b39-b938-81ea1f4e9543';
 
   try {
     const res = await fetch(url, {
       headers: {
-        'Authorization': token,
+        'Authorization': WINKER_API_TOKEN,
         'Accept': 'application/json'
       }
     });
