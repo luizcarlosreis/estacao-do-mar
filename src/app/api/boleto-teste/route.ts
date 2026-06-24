@@ -240,6 +240,21 @@ async function fetchAndScrapeBoletosForUnit(session: string, unitId: string, div
         if (!res.ok) return;
         const pageHtml = await res.text();
 
+        if (unitId === '863324') {
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const debugDir = 'c:\\EstacaoDoMar\\scratch';
+            if (!fs.existsSync(debugDir)) {
+              fs.mkdirSync(debugDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(debugDir, `debug_unit_${unitId}_month_${month}.html`), pageHtml);
+            console.log(`[DEBUG] Salvo HTML para unidade ${unitId} no mês ${month}`);
+          } catch (err: any) {
+            console.error('[DEBUG] Erro ao salvar HTML de depuração:', err.message);
+          }
+        }
+
         const liRegex = /<li class="list-group-item">([\s\S]*?)<\/li>/g;
         let match;
         while ((match = liRegex.exec(pageHtml)) !== null) {
