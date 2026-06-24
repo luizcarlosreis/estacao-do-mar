@@ -33,25 +33,11 @@ export default function BoletoTestePage() {
   const [loadingUnits, setLoadingUnits] = useState(true);
   const [loadingBoletos, setLoadingBoletos] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [unitSearch, setUnitSearch] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     fetchUnits();
-  }, []);
-
-  // Fechar o dropdown de busca ao clicar fora
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchUnits = async () => {
@@ -98,8 +84,6 @@ export default function BoletoTestePage() {
 
   const handleUnitSelect = (unit: Unit) => {
     setSelectedUnit(unit);
-    setUnitSearch(unit.name);
-    setDropdownOpen(false);
     setBoletos([]);
     fetchBoletosForUnit(unit);
   };
@@ -110,15 +94,13 @@ export default function BoletoTestePage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const filteredUnits = units.filter((unit) =>
-    unit.name.toLowerCase().includes(unitSearch.toLowerCase())
-  );
+  // Filtros de busca no cliente removidos
 
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         {/* Cabeçalho */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -171,70 +153,32 @@ export default function BoletoTestePage() {
           </div>
         )}
 
-        {/* Seleção de Unidades (Combobox Alfanumérico) */}
+        {/* Seleção de Unidades (Combo Box) */}
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm mb-6">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">
             Selecione a Unidade (Apartamento / Garagem)
           </label>
-          <div className="relative" ref={dropdownRef}>
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder={loadingUnits ? "Carregando unidades..." : "Digite o número ou sigla (ex: 11, VG.75)"}
-                value={unitSearch}
-                onChange={(e) => {
-                  setUnitSearch(e.target.value);
-                  setDropdownOpen(true);
-                  if (selectedUnit && selectedUnit.name !== e.target.value) {
-                    setSelectedUnit(null);
-                  }
-                }}
-                onFocus={() => setDropdownOpen(true)}
-                disabled={loadingUnits}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:bg-white transition"
-              />
-              {selectedUnit && (
-                <button
-                  onClick={() => {
-                    setSelectedUnit(null);
-                    setUnitSearch('');
-                    setBoletos([]);
-                  }}
-                  className="absolute right-3 p-1 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
-            {/* Lista Dropdown */}
-            {dropdownOpen && !loadingUnits && (
-              <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto">
-                {filteredUnits.length > 0 ? (
-                  filteredUnits.map((unit) => (
-                    <button
-                      key={unit.id}
-                      onClick={() => handleUnitSelect(unit)}
-                      className={`w-full text-left px-4 py-3 text-sm font-semibold hover:bg-slate-50 border-b border-slate-100 last:border-0 flex items-center justify-between transition ${
-                        selectedUnit?.id === unit.id ? 'bg-indigo-50/50 text-indigo-700' : 'text-slate-700'
-                      }`}
-                    >
-                      <span>Unidade {unit.name}</span>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 px-2 py-0.5 bg-slate-100 rounded-md">
-                        {unit.division}
-                      </span>
-                    </button>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-xs font-semibold text-slate-400">
-                    Nenhuma unidade encontrada para "{unitSearch}"
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <select
+            value={selectedUnit?.id || ''}
+            onChange={(e) => {
+              const unit = units.find(u => u.id === e.target.value);
+              if (unit) {
+                handleUnitSelect(unit);
+              } else {
+                setSelectedUnit(null);
+                setBoletos([]);
+              }
+            }}
+            disabled={loadingUnits}
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:bg-white transition cursor-pointer"
+          >
+            <option value="">Selecione uma unidade...</option>
+            {units.map((unit) => (
+              <option key={unit.id} value={unit.id}>
+                Unidade {unit.name} ({unit.division})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Loader de Carregamento de Boletos */}
