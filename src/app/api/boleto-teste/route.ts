@@ -37,16 +37,14 @@ export async function GET(req: NextRequest) {
         method: 'GET',
         headers: {
           'Authorization': WINKER_API_TOKEN,
-          'Accept': 'application/json, application/pdf'
+          'Accept': 'application/json, application/pdf',
+          'Content-Type': 'application/json'
         }
       });
 
       if (!downloadRes.ok) {
-        console.error(`[API] Erro ao baixar boleto. Status: ${downloadRes.status}`);
-        return NextResponse.json(
-          { message: 'Erro ao baixar o boleto do Winker via API' },
-          { status: downloadRes.status }
-        );
+        console.error(`[API] Erro ao baixar boleto (Status: ${downloadRes.status}). Redirecionando para a intranet...`);
+        return NextResponse.redirect(`https://app.winker.com.br/intra/meuCondominio/boleto/view/rateio/${idBoleto}`);
       }
 
       const contentType = downloadRes.headers.get('content-type') || '';
@@ -85,13 +83,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'ID da unidade é obrigatório para listagem.' }, { status: 400 });
     }
 
-    const billingUrl = `https://api.winker.com.br/v1/billing/1?id_unit=${idUnidade}`;
+    const billingUrl = `https://api.winker.com.br/v1/billing_unit?id_portal=10493&id_unit=${idUnidade}`;
     console.log(`[API] Buscando cobranças no endpoint: ${billingUrl}`);
     const billingRes = await fetch(billingUrl, {
       method: 'GET',
       headers: {
         'Authorization': WINKER_API_TOKEN,
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
 
@@ -115,11 +114,13 @@ export async function GET(req: NextRequest) {
     
     // Mapeador resiliente para padronizar os dados de boleto para o frontend
     const mappedBoletos = rawItems.map((item: any) => {
-      const id = String(item.id || item.id_billing || item.id_cobranca || item.id_boleto || '');
+      const id = String(item.id_billing_billet || item.id_billing_unit || item.id_unit_billing || item.id || item.id_cobranca || item.id_boleto || '');
       
-      // Mapear referência (ex: "2026-06" -> "06/2026")
+      // Mapear referência (ex: "202604" -> "04/2026")
       let referencia = item.reference || item.referencia || item.mes_referencia || item.date_ref || '';
-      if (referencia.includes('-')) {
+      if (item.month_reference && item.year_reference) {
+        referencia = `${item.month_reference}/${item.year_reference}`;
+      } else if (referencia.includes('-')) {
         const parts = referencia.split('-');
         if (parts.length >= 2) {
           referencia = `${parts[1]}/${parts[0]}`;
@@ -129,7 +130,7 @@ export async function GET(req: NextRequest) {
         referencia = `${referencia.substring(4)}/${referencia.substring(0, 4)}`;
       }
 
-      // Mapear data de vencimento (ex: "2026-06-20" -> "20/06/2026")
+      // Mapear data de vencimento (ex: "2026-06-20T15:47:15-0300" -> "20/06/2026")
       let vencimento = item.due_date || item.vencimento || item.data_vencimento || '';
       if (vencimento && vencimento.includes('-')) {
         const parts = vencimento.split('T')[0].split('-');
@@ -139,7 +140,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Mapear valor financeiro (ex: 404.62 -> "R$ 404,62")
-      const rawValor = item.amount || item.valor || item.valor_principal || item.price || 0;
+      const rawValor = item.amount || item.value || item.valor || item.valor_principal || item.price || 0;
       let valor = '';
       if (typeof rawValor === 'string' && rawValor.includes('R$')) {
         valor = rawValor;
@@ -152,7 +153,7 @@ export async function GET(req: NextRequest) {
       const linhaDigitavel = item.digitable_line || item.linha_digitavel || item.codigo_barras || item.barcode || null;
 
       // Mapeamento de Status
-      const rawStatus = String(item.status || item.situacao || '').toLowerCase();
+      const rawStatus = String(item.status || item.situacao || item.situation || '').toLowerCase();
       let status = 'Aberto';
       if (rawStatus.includes('paid') || rawStatus.includes('pago') || rawStatus.includes('liquid') || rawStatus.includes('quitar')) {
         status = 'Pago';
