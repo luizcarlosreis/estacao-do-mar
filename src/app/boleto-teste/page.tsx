@@ -28,24 +28,15 @@ export default function BoletoTestePage() {
   const [boletos, setBoletos] = useState<Boleto[]>([]);
   const [loadingUnits, setLoadingUnits] = useState(true);
   const [loadingBoletos, setLoadingBoletos] = useState(false);
-  const [sessionRequired, setSessionRequired] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unitSearch, setUnitSearch] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Estados de login do Winker
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [submittingLogin, setSubmittingLogin] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     fetchUnits();
-    // Tentar carregar um email padrão do portal
-    fetchPortalEmail();
   }, []);
 
   // Fechar o dropdown de busca ao clicar fora
@@ -58,20 +49,6 @@ export default function BoletoTestePage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const fetchPortalEmail = async () => {
-    try {
-      const res = await fetch('/api/me');
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.user?.email) {
-          setEmail(data.user.email);
-        }
-      }
-    } catch (e) {
-      console.error('Erro ao buscar email do portal:', e);
-    }
-  };
 
   const fetchUnits = async () => {
     try {
@@ -101,15 +78,6 @@ export default function BoletoTestePage() {
         `/api/boleto-teste?idUnidade=${unit.id}&idDivisao=${unit.idDivision}&nomeUnidade=${encodeURIComponent(unit.name)}`
       );
 
-      if (res.status === 401) {
-        const data = await res.json().catch(() => ({}));
-        if (data.winkerSessionRequired) {
-          setSessionRequired(true);
-          setLoadingBoletos(false);
-          return;
-        }
-      }
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Falha ao carregar os boletos desta unidade.');
@@ -117,62 +85,8 @@ export default function BoletoTestePage() {
 
       const data = await res.json();
       setBoletos(data);
-      setSessionRequired(false);
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar os boletos.');
-    } finally {
-      setLoadingBoletos(false);
-    }
-  };
-
-  const handleWinkerLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setLoginError('Por favor, informe o e-mail e a senha.');
-      return;
-    }
-
-    try {
-      setSubmittingLogin(true);
-      setLoginError(null);
-
-      const res = await fetch('/api/boleto-teste', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Usuário ou senha incorretos na Winker.');
-      }
-
-      setSessionRequired(false);
-      setPassword(''); // Limpar senha
-
-      // Se já tinha unidade selecionada, recarrega boletos dela
-      if (selectedUnit) {
-        fetchBoletosForUnit(selectedUnit);
-      }
-    } catch (err: any) {
-      setLoginError(err.message || 'Falha na autenticação do Winker.');
-    } finally {
-      setSubmittingLogin(false);
-    }
-  };
-
-  const handleWinkerLogout = async () => {
-    try {
-      setLoadingBoletos(true);
-      await fetch('/api/boleto-teste', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'logout' })
-      });
-      setBoletos([]);
-      setSessionRequired(true);
-    } catch (err) {
-      console.error(err);
     } finally {
       setLoadingBoletos(false);
     }
@@ -221,7 +135,7 @@ export default function BoletoTestePage() {
             </p>
           </div>
 
-          {!loadingBoletos && !sessionRequired && selectedUnit && (
+          {!loadingBoletos && selectedUnit && (
             <div className="flex items-center gap-2.5">
               <button 
                 onClick={() => fetchBoletosForUnit(selectedUnit)}
@@ -231,12 +145,6 @@ export default function BoletoTestePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
                 </svg>
                 Atualizar
-              </button>
-              <button 
-                onClick={handleWinkerLogout}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-rose-200 text-rose-600 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-rose-50 transition"
-              >
-                Desconectar Winker
               </button>
             </div>
           )}
@@ -325,65 +233,6 @@ export default function BoletoTestePage() {
           </div>
         </div>
 
-        {/* Formulário de Login da Winker se necessário */}
-        {!loadingBoletos && sessionRequired && (
-          <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-8 shadow-xl mb-6">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center p-3.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl mb-3">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-                Sessão Winker Requerida
-              </h2>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-xs mx-auto">
-                Administrador, faça login com sua conta Winker do condomínio para carregar e raspar os boletos.
-              </p>
-            </div>
-
-            <form onSubmit={handleWinkerLogin} className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">E-mail</label>
-                <input 
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@gmail.com"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:bg-white transition"
-                  disabled={submittingLogin}
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Senha</label>
-                <input 
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-indigo-500 focus:bg-white transition"
-                  disabled={submittingLogin}
-                />
-              </div>
-
-              {loginError && (
-                <div className="p-3.5 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-semibold">
-                  {loginError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={submittingLogin}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-wider disabled:opacity-50 transition shadow-sm"
-              >
-                {submittingLogin ? 'Autenticando...' : 'Iniciar Conexão Winker'}
-              </button>
-            </form>
-          </div>
-        )}
-
         {/* Loader de Carregamento de Boletos */}
         {loadingBoletos && (
           <div className="space-y-4">
@@ -405,7 +254,7 @@ export default function BoletoTestePage() {
         )}
 
         {/* Sem Boletos para Unidade Selecionada */}
-        {!loadingBoletos && !sessionRequired && selectedUnit && boletos.length === 0 && (
+        {!loadingBoletos && selectedUnit && boletos.length === 0 && (
           <div className="bg-white border border-slate-200 rounded-3xl p-10 shadow-sm text-center">
             <div className="inline-flex items-center justify-center p-4 rounded-full bg-slate-50 text-slate-400 mb-4 border border-slate-100">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -439,7 +288,7 @@ export default function BoletoTestePage() {
         )}
 
         {/* Lista de Boletos da Unidade Selecionada */}
-        {!loadingBoletos && !sessionRequired && selectedUnit && boletos.length > 0 && (
+        {!loadingBoletos && selectedUnit && boletos.length > 0 && (
           <div className="space-y-6">
             {boletos.map((boleto) => (
               <div 
@@ -466,7 +315,7 @@ export default function BoletoTestePage() {
 
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-full text-xs font-bold ${
                     boleto.status === 'Pago' 
-                      ? 'bg-emerald-50 border-emerald-250 border-emerald-200 text-emerald-700' 
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
                       : boleto.status === 'Vencido'
                       ? 'bg-rose-50 border-rose-200 text-rose-700'
                       : 'bg-amber-50 border-amber-200 text-amber-700'
