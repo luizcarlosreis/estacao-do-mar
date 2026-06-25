@@ -148,15 +148,19 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Ordenação decrescente por vencimento (mais recentes primeiro)
+    // Ordenação por unidade (apartamento) e referência
     mappedBoletos.sort((a: any, b: any) => {
-      if (!a.vencimento) return 1;
-      if (!b.vencimento) return -1;
-      const partsA = a.vencimento.split('/');
-      const partsB = b.vencimento.split('/');
-      const dateA = new Date(parseInt(partsA[2]), parseInt(partsA[1]) - 1, parseInt(partsA[0]));
-      const dateB = new Date(parseInt(partsB[2]), parseInt(partsB[1]) - 1, parseInt(partsB[0]));
-      return dateB.getTime() - dateA.getTime();
+      const unitA = a.unidadeNome || '';
+      const unitB = b.unidadeNome || '';
+      const unitCompare = unitA.localeCompare(unitB, undefined, { numeric: true, sensitivity: 'base' });
+      
+      if (unitCompare !== 0) {
+        return unitCompare;
+      }
+      
+      const refA = a.reference || '';
+      const refB = b.reference || '';
+      return refA.localeCompare(refB, undefined, { numeric: true });
     });
 
     return NextResponse.json(mappedBoletos);
