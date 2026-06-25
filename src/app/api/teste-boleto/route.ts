@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
   }
 
-  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
 
@@ -293,7 +293,7 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 403 });
   }
-  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
   return NextResponse.json({ success: true });

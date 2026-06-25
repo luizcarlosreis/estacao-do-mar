@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Permissão apenas para administradores
-  if (user.role !== 'SUPER_ADMIN') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
 

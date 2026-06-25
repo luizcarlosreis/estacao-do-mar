@@ -59,7 +59,7 @@ export default function TesteBoletoPage() {
 
       if (data.user.role === 'MORADOR') {
         fetchBoletosForMorador();
-      } else if (data.user.role === 'SUPER_ADMIN') {
+      } else if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'ADMINISTRADORA') {
         fetchUnits();
       } else {
         throw new Error('Acesso restrito para administradores e moradores.');
@@ -170,9 +170,9 @@ export default function TesteBoletoPage() {
       fetchBoletosForMorador();
     } else if (isAllOverdueMode) {
       fetchTodosAtrasados();
-    } else if (user?.role === 'SUPER_ADMIN' && selectedUnit) {
+    } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') && selectedUnit) {
       fetchBoletosForUnit(selectedUnit);
-    } else if (user?.role === 'SUPER_ADMIN') {
+    } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') {
       fetchUnits();
     } else {
       fetchUserProfile();
@@ -262,7 +262,7 @@ export default function TesteBoletoPage() {
         </div>
 
         {/* Ações Administrativas no Topo */}
-        {!loadingUser && !error && user?.role === 'SUPER_ADMIN' && (
+        {!loadingUser && !error && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') && (
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Botão Ver Todos Atrasados */}
             <button

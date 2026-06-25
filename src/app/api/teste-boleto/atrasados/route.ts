@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
   }
 
-  // Restringir acesso exclusivamente a SUPER_ADMIN
-  if (user.role !== 'SUPER_ADMIN') {
+  // Restringir acesso a SUPER_ADMIN e ADMINISTRADORA
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
 
