@@ -38,8 +38,10 @@ export default function TesteBoletoPage() {
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
-  // Estados para consulta geral de atrasados
+  // Estados para consulta geral de atrasados e dashboard
   const [isAllOverdueMode, setIsAllOverdueMode] = useState(false);
+  const [isDashboardMode, setIsDashboardMode] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -114,6 +116,7 @@ export default function TesteBoletoPage() {
       setLoadingBoletos(true);
       setError(null);
       setIsAllOverdueMode(false); // Desmarca modo geral
+      setIsDashboardMode(false); // Desmarca dashboard
       const res = await fetch(
         `/api/teste-boleto?idUnidade=${unit.id}&nomeUnidade=${encodeURIComponent(unit.name)}`
       );
@@ -135,6 +138,7 @@ export default function TesteBoletoPage() {
       setLoadingBoletos(true);
       setError(null);
       setIsAllOverdueMode(true);
+      setIsDashboardMode(false); // Desmarca dashboard
       setSelectedUnit(null); // Desmarca apartamento específico
       setBoletos([]);
       
@@ -152,8 +156,32 @@ export default function TesteBoletoPage() {
     }
   };
 
+  const fetchDashboard = async () => {
+    try {
+      setLoadingBoletos(true);
+      setError(null);
+      setIsDashboardMode(true);
+      setIsAllOverdueMode(false);
+      setSelectedUnit(null); // Desmarca apartamento específico
+      setBoletos([]);
+      
+      const res = await fetch('/api/teste-boleto/dashboard');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Falha ao buscar dados do dashboard.');
+      }
+      const data = await res.json();
+      setDashboardData(data);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar dashboard.');
+    } finally {
+      setLoadingBoletos(false);
+    }
+  };
+
   const handleUnitSelect = (unitId: string) => {
     setIsAllOverdueMode(false);
+    setIsDashboardMode(false); // Desmarca dashboard
     const unit = units.find(u => u.id === unitId);
     if (unit) {
       setSelectedUnit(unit);
@@ -170,6 +198,8 @@ export default function TesteBoletoPage() {
       fetchBoletosForMorador();
     } else if (isAllOverdueMode) {
       fetchTodosAtrasados();
+    } else if (isDashboardMode) {
+      fetchDashboard();
     } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') && selectedUnit) {
       fetchBoletosForUnit(selectedUnit);
     } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') {
@@ -233,7 +263,7 @@ export default function TesteBoletoPage() {
 
   const isMorador = user?.role === 'MORADOR';
   const hasBoletos = boletos.length > 0;
-  const showRefreshButton = !loadingUser && !loadingBoletos && (isMorador || selectedUnit || isAllOverdueMode);
+  const showRefreshButton = !loadingUser && !loadingBoletos && (isMorador || selectedUnit || isAllOverdueMode || isDashboardMode);
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
@@ -257,6 +287,8 @@ export default function TesteBoletoPage() {
               ? 'Consulte e visualize as faturas vinculadas à sua unidade de moradia' 
               : isAllOverdueMode
               ? 'Todos os boletos vencidos de todas as unidades do condomínio'
+              : isDashboardMode
+              ? 'Métricas mensais de arrecadação e inadimplência do condomínio'
               : 'Painel administrativo para consulta de boletos e códigos de barras por unidade'}
           </p>
         </div>
@@ -264,6 +296,21 @@ export default function TesteBoletoPage() {
         {/* Ações Administrativas no Topo */}
         {!loadingUser && !error && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') && (
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Botão Dashboard Mensal */}
+            <button
+              onClick={fetchDashboard}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm active:scale-95 border ${
+                isDashboardMode
+                  ? 'bg-indigo-100 border-indigo-300 text-indigo-800'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Dashboard Mensal
+            </button>
+
             {/* Botão Ver Todos Atrasados */}
             <button
               onClick={fetchTodosAtrasados}
@@ -398,7 +445,7 @@ export default function TesteBoletoPage() {
       )}
 
       {/* Estado Vazio - Nenhuma unidade selecionada e fora do modo atrasados (Apenas para ADMIN) */}
-      {!loadingUser && !loadingBoletos && !error && !isMorador && !selectedUnit && !isAllOverdueMode && (
+      {!loadingUser && !loadingBoletos && !error && !isMorador && !selectedUnit && !isAllOverdueMode && !isDashboardMode && (
         <div className="bg-white border border-slate-200 rounded-[2rem] p-12 shadow-sm text-center">
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-indigo-50 text-indigo-500 mb-4 border border-indigo-100">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -409,13 +456,13 @@ export default function TesteBoletoPage() {
             Consulta de Faturas
           </h3>
           <p className="text-slate-500 text-sm max-w-sm mx-auto">
-            Por favor, selecione uma unidade no menu acima ou clique em "Ver Todos Atrasados" para listar as cobranças.
+            Por favor, selecione uma unidade no menu acima, clique em "Ver Todos Atrasados" ou no "Dashboard Mensal" para ver as faturas.
           </p>
         </div>
       )}
 
       {/* Estado Vazio - Unidade/Portal Sem Boletos */}
-      {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit || isAllOverdueMode) && !hasBoletos && (
+      {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit || isAllOverdueMode) && !isDashboardMode && !hasBoletos && (
         <div className="bg-white border border-slate-200 rounded-[2rem] p-12 shadow-sm text-center">
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-slate-50 text-slate-400 mb-4 border border-slate-100">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -606,6 +653,171 @@ export default function TesteBoletoPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Dashboard Mensal */}
+      {!loadingUser && !loadingBoletos && !error && isDashboardMode && (
+        <div className="space-y-6 w-full">
+          {/* Cards de Resumo Geral */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card Arrecadado */}
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm flex items-center gap-4">
+              <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Arrecadado</span>
+                <span className="text-2xl font-black text-slate-800">
+                  {(() => {
+                    const total = dashboardData.reduce((acc, m) => acc + m.totalArrecadado, 0);
+                    return `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                  })()}
+                </span>
+                <span className="text-xs text-slate-500 block mt-0.5">
+                  {dashboardData.reduce((acc, m) => acc + m.countArrecadado, 0)} faturas pagas
+                </span>
+              </div>
+            </div>
+
+            {/* Card Atrasado */}
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm flex items-center gap-4">
+              <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Atrasado</span>
+                <span className="text-2xl font-black text-rose-700">
+                  {(() => {
+                    const total = dashboardData.reduce((acc, m) => acc + m.totalAtrasado, 0);
+                    return `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                  })()}
+                </span>
+                <span className="text-xs text-slate-500 block mt-0.5">
+                  {dashboardData.reduce((acc, m) => acc + m.countAtrasado, 0)} faturas inadimplentes
+                </span>
+              </div>
+            </div>
+
+            {/* Card Taxa de Inadimplência Média */}
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm flex items-center gap-4">
+              <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl border border-amber-100">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                </svg>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Inadimplência Média</span>
+                <span className="text-2xl font-black text-slate-800">
+                  {(() => {
+                    const totalArrecadado = dashboardData.reduce((acc, m) => acc + m.totalArrecadado, 0);
+                    const totalAtrasado = dashboardData.reduce((acc, m) => acc + m.totalAtrasado, 0);
+                    const totalGeral = totalArrecadado + totalAtrasado;
+                    const pct = totalGeral > 0 ? (totalAtrasado / totalGeral) * 100 : 0;
+                    return `${pct.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+                  })()}
+                </span>
+                <span className="text-xs text-slate-500 block mt-0.5">Proporção do valor total vencido</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabela Mensal */}
+          <div className="bg-white border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Evolução Mensal de Cobranças</h3>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{dashboardData.length} meses analisados</span>
+            </div>
+            
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mês/Ano</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Arrecadado</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Qtd. Pagos</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Atrasado</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Qtd. Atrasados</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Inadimplência</th>
+                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-1/4">Distribuição</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {dashboardData.map((m) => {
+                    const totalGeral = m.totalArrecadado + m.totalAtrasado;
+                    const pctAtrasado = totalGeral > 0 ? (m.totalAtrasado / totalGeral) * 100 : 0;
+                    const pctArrecadado = 100 - pctAtrasado;
+                    
+                    return (
+                      <tr key={m.key} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-600">
+                          {m.display}
+                        </td>
+                        
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-700">
+                          {`R$ ${m.totalArrecadado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                        </td>
+                        
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-semibold">
+                          {m.countArrecadado}
+                        </td>
+                        
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-rose-700">
+                          {`R$ ${m.totalAtrasado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                        </td>
+                        
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-semibold">
+                          {m.countAtrasado}
+                        </td>
+                        
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                            pctAtrasado === 0 
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                              : pctAtrasado < 10
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}>
+                            {`${pctAtrasado.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
+                          </span>
+                        </td>
+                        
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col gap-1">
+                            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden flex">
+                              {m.totalArrecadado > 0 && (
+                                <div 
+                                  className="bg-emerald-500 h-full" 
+                                  style={{ width: `${pctArrecadado}%` }} 
+                                  title={`Pago: ${pctArrecadado.toFixed(1)}%`}
+                                />
+                              )}
+                              {m.totalAtrasado > 0 && (
+                                <div 
+                                  className="bg-rose-500 h-full" 
+                                  style={{ width: `${pctAtrasado}%` }} 
+                                  title={`Atrasado: ${pctAtrasado.toFixed(1)}%`}
+                                />
+                              )}
+                            </div>
+                            <div className="flex justify-between text-[9px] text-slate-400 font-bold">
+                              <span>PAG: {pctArrecadado.toFixed(0)}%</span>
+                              <span>ATR: {pctAtrasado.toFixed(0)}%</span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
