@@ -246,6 +246,8 @@ export default function EncomendasPage() {
 
   const isStaff = currentUser?.role === 'SINDICO' || currentUser?.role === 'PORTEIRO' || currentUser?.role === 'SUPER_ADMIN';
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
+  const isStaffOrCouncil = isStaff || currentUser?.role === 'CONSELHO';
+  const isAdminOrCouncil = isAdmin || currentUser?.role === 'CONSELHO';
 
   // Cálculos do Dashboard
   const daysInMonth = new Date(parseInt(dashboardYear), parseInt(dashboardMonth), 0).getDate();
@@ -316,7 +318,7 @@ export default function EncomendasPage() {
           <p className="text-slate-500 font-medium">Controle de encomendas e correspondências do condomínio.</p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          {isAdmin && (
+          {isAdminOrCouncil && (
             <button 
               onClick={() => setIsDashboardOpen(true)}
               className="flex-1 md:flex-none bg-blue-50 text-blue-600 hover:bg-blue-100 px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all border border-blue-100 active:scale-95"
@@ -324,7 +326,7 @@ export default function EncomendasPage() {
               <LayoutDashboard size={20} /> Painel Estatístico
             </button>
           )}
-          {isAdmin && (
+          {isAdminOrCouncil && (
             <button 
               onClick={exportToExcel}
               className="flex-1 md:flex-none bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all border border-emerald-100 active:scale-95"
@@ -408,7 +410,7 @@ export default function EncomendasPage() {
             </select>
           </div>
 
-          {isStaff && (
+          {isStaffOrCouncil && (
             <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
               <Building size={16} className="text-slate-400 ml-2" />
               <select 
@@ -423,7 +425,7 @@ export default function EncomendasPage() {
           )}
         </div>
 
-        {isAdmin && (
+        {isAdminOrCouncil && (
           <div className="flex flex-wrap gap-4 items-center pt-2 border-t border-slate-50">
             <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
               <Calendar size={16} className="text-slate-400 ml-2" />

@@ -97,6 +97,8 @@ export default function TarefasPage() {
     attachmentName: ''
   });
 
+  const isReadOnlyTask = currentUser?.role === 'CONSELHO';
+
   const API_URL = '/api/tarefas';
 
   useEffect(() => {
@@ -418,12 +420,14 @@ export default function TarefasPage() {
               )}
             </div>
 
-            <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', status: currentUser?.role === 'MORADOR' ? 'SOLICITADA_MORADOR' : 'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
-              className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap w-full sm:w-auto justify-center"
-            >
-              <Plus size={16} /> {currentUser?.role === 'MORADOR' ? 'Solicitação de Reparos no Condomínio' : 'Nova Tarefa'}
-            </button>
+            {!isReadOnlyTask && (
+              <button 
+                onClick={() => { setFormData({id:'', title:'', description:'', status: currentUser?.role === 'MORADOR' ? 'SOLICITADA_MORADOR' : 'BACKLOG', performedAt:'', attachmentUrl:'', attachmentName:''}); setIsModalOpen(true); }}
+                className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap w-full sm:w-auto justify-center"
+              >
+                <Plus size={16} /> {currentUser?.role === 'MORADOR' ? 'Solicitação de Reparos no Condomínio' : 'Nova Tarefa'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -521,7 +525,7 @@ export default function TarefasPage() {
                                         <Download size={12} />
                                       </button>
                                     )}
-                                    {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
+                                    {!isReadOnlyTask && (task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
                                         className="p-1 text-slate-300 hover:text-rose-500 transition"
@@ -696,7 +700,7 @@ export default function TarefasPage() {
                             >
                               <Edit2 size={13} />
                             </button>
-                            {(task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
+                            {!isReadOnlyTask && (task.status === 'SOLICITADA_MORADOR' || currentUser?.role !== 'MORADOR') && (
                               <button 
                                 onClick={() => handleDelete(task.id)}
                                 className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg transition animate-in hover:scale-105 duration-100"
@@ -782,6 +786,7 @@ export default function TarefasPage() {
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[12px] font-bold text-slate-800 uppercase"
                   value={formData.title} 
                   onChange={(e) => setFormData({...formData, title: e.target.value})} 
+                  disabled={isReadOnlyTask}
                 />
               </div>
 
@@ -793,6 +798,7 @@ export default function TarefasPage() {
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-medium text-slate-700 uppercase"
                   value={formData.description} 
                   onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                  disabled={isReadOnlyTask}
                 />
               </div>
 
@@ -804,7 +810,7 @@ export default function TarefasPage() {
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none disabled:opacity-50"
                       value={formData.status} 
                       onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                      disabled={!formData.id}
+                      disabled={isReadOnlyTask || !formData.id}
                     >
                       <option value="SOLICITADA_MORADOR">SOLICITADA PELO MORADOR</option>
                       <option value="BACKLOG">BACKLOG</option>
@@ -821,6 +827,7 @@ export default function TarefasPage() {
                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-[11px] font-bold text-slate-700"
                         value={formData.performedAt} 
                         onChange={(e) => setFormData({...formData, performedAt: e.target.value})} 
+                        disabled={isReadOnlyTask}
                       />
                     </div>
                   )}
@@ -837,17 +844,33 @@ export default function TarefasPage() {
                     className="hidden" 
                     accept=".pdf,.jpg,.jpeg"
                     onChange={handleFileChange}
+                    disabled={isReadOnlyTask}
                   />
-                  <label 
-                    htmlFor="task-file"
-                    className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition bg-slate-50"
-                  >
-                    <Paperclip size={16} className={formData.attachmentUrl ? 'text-blue-600' : 'text-slate-400'} />
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
-                      {formData.attachmentName || 'Selecionar Arquivo'}
-                    </span>
-                  </label>
-                  {formData.attachmentUrl && (
+                  {isReadOnlyTask && formData.attachmentUrl ? (
+                    <a 
+                      href={formData.attachmentUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full border-2 border-slate-200 rounded-xl p-4 text-center hover:bg-slate-50 transition bg-slate-50 text-[10px] text-blue-600 font-bold uppercase"
+                    >
+                      <Download size={16} /> Baixar/Visualizar Anexo ({formData.attachmentName || 'Anexo'})
+                    </a>
+                  ) : isReadOnlyTask ? (
+                    <div className="w-full border-2 border-dashed border-slate-200 rounded-xl p-4 text-center bg-slate-50 text-[10px] text-slate-400 font-bold uppercase">
+                      Sem anexo
+                    </div>
+                  ) : (
+                    <label 
+                      htmlFor="task-file"
+                      className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition bg-slate-50"
+                    >
+                      <Paperclip size={16} className={formData.attachmentUrl ? 'text-blue-600' : 'text-slate-400'} />
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
+                        {formData.attachmentName || 'Selecionar Arquivo'}
+                      </span>
+                    </label>
+                  )}
+                  {formData.attachmentUrl && !isReadOnlyTask && (
                     <div className="flex justify-between items-center px-2">
                       <span className="text-[9px] text-blue-600 font-bold italic truncate max-w-[200px]">Arquivo carregado</span>
                       <button 
@@ -868,15 +891,17 @@ export default function TarefasPage() {
                   onClick={() => setIsModalOpen(false)} 
                   className="flex-1 py-3 border border-slate-200 rounded-xl text-[11px] font-black uppercase text-slate-500 hover:bg-slate-50 transition"
                 >
-                  Cancelar
+                  {isReadOnlyTask ? 'Fechar' : 'Cancelar'}
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={saving}
-                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50 transition-all"
-                >
-                  {saving ? 'Gravando...' : 'Salvar Tarefa'}
-                </button>
+                {!isReadOnlyTask && (
+                  <button 
+                    type="submit" 
+                    disabled={saving}
+                    className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50 transition-all"
+                  >
+                    {saving ? 'Gravando...' : 'Salvar Tarefa'}
+                  </button>
+                )}
               </div>
             </form>
           </div>

@@ -123,7 +123,7 @@ export default function RootLayout({
 
   const allMenuItems = [
     { title: 'Início', icon: <Home size={18} />, path: '/', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
-    { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'] },
+    { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'CONSELHO'] },
     { title: 'Moradores/Visitas', icon: <Users size={18} />, path: '/moradores', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
     { title: 'Vagas', icon: <Car size={18} />, path: '/vagas', roles: ['SUPER_ADMIN'] },
     { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
@@ -131,12 +131,12 @@ export default function RootLayout({
     { title: 'Salão de Festas', icon: <Calendar size={18} />, path: '/reservas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'PORTEIRO', 'CONSELHO'] },
     { title: 'Cadastro de Usuários', icon: <UserCog size={18} />, path: '/usuarios', roles: ['SUPER_ADMIN'] },
     { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores', roles: ['SUPER_ADMIN'] },
-    { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'SINDICO'] },
+    { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'SINDICO', 'CONSELHO'] },
     { title: (user?.role === 'MORADOR' || user?.role === 'CONSELHO') ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'] },
     { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
     { title: 'Encomendas', icon: <PackageIcon size={18} />, path: '/encomendas', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
     { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
-    { title: 'Cartão de Crédito', icon: <CreditCard size={18} />, path: '/cartao-credito', roles: ['SUPER_ADMIN', 'ADMINISTRADORA'] },
+    { title: 'Cartão de Crédito', icon: <CreditCard size={18} />, path: '/cartao-credito', roles: ['SUPER_ADMIN', 'ADMINISTRADORA', 'CONSELHO'] },
     { title: 'Boleto (2a. Via)', icon: <FileText size={18} />, path: '/teste-boleto', roles: ['SUPER_ADMIN', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
   ];
 

@@ -256,12 +256,14 @@ export default function VeiculosPage() {
               </div>
             </div>
 
-            <button 
-              onClick={openCreateModal}
-              className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
-            >
-              <Plus size={16} /> Novo Veículo
-            </button>
+            {currentUser?.role !== 'CONSELHO' && (
+              <button 
+                onClick={openCreateModal}
+                className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
+              >
+                <Plus size={16} /> Novo Veículo
+              </button>
+            )}
           </div>
         </div>
 
@@ -316,10 +318,12 @@ export default function VeiculosPage() {
                         </div>
 
                         {/* Ações Absolutas ao pairar */}
-                        <div className="absolute inset-y-0 right-0 bg-white/90 backdrop-blur-sm px-2 flex items-center gap-1 translate-x-full group-hover/veh:translate-x-0 transition-transform border-l border-slate-100 shadow-[-4px_0_15px_rgba(0,0,0,0.05)]">
-                          <button onClick={() => openEditModal(v)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={12} /></button>
-                          <button onClick={() => handleDelete(v.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={12} /></button>
-                        </div>
+                        {currentUser?.role !== 'CONSELHO' && (
+                          <div className="absolute inset-y-0 right-0 bg-white/90 backdrop-blur-sm px-2 flex items-center gap-1 translate-x-full group-hover/veh:translate-x-0 transition-transform border-l border-slate-100 shadow-[-4px_0_15px_rgba(0,0,0,0.05)]">
+                            <button onClick={() => openEditModal(v)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={12} /></button>
+                            <button onClick={() => handleDelete(v.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={12} /></button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

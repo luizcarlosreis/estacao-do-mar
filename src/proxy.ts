@@ -27,6 +27,28 @@ export default async function proxy(req: NextRequest) {
       const { payload } = await jwtVerify(token, JWT_SECRET);
       const role = payload.role as string;
 
+      // Bloquear requisições de escrita para o perfil Conselho
+      if (role === 'CONSELHO' && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        const readOnlyApiPaths = [
+          '/api/unidades',
+          '/api/autorizacoes',
+          '/api/teste-boleto',
+          '/api/cartao-credito',
+          '/api/contatos',
+          '/api/documentos',
+          '/api/encomendas',
+          '/api/leitura-gas',
+          '/api/manutencoes',
+          '/api/moradores',
+          '/api/reservas',
+          '/api/tarefas',
+          '/api/veiculos'
+        ];
+        if (readOnlyApiPaths.some(p => path.startsWith(p))) {
+          return NextResponse.json({ message: 'Acesso restrito a leitura para o perfil Conselho' }, { status: 403 });
+        }
+      }
+
       // Verificação de acessos (Autorização RBAC)
       
       if (role !== 'SUPER_ADMIN') {
@@ -54,9 +76,9 @@ export default async function proxy(req: NextRequest) {
           }
         }
 
-        // CONSELHO: Moradores, Veículos, Autorizações, Leitura de Gás, Mural, Encomendas, Reservas, Fale Síndico, Documentos
+        // CONSELHO: Consulta total (read-only) de Moradores, Veículos, Autorizações, Gás, Mural, Encomendas, Reservas, Fale Síndico, Documentos, Unidades, Manutenções, Contatos, Cartão de Crédito e Tarefas
         else if (role === 'CONSELHO') {
-          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api', '/teste-boleto', '/mural', '/encomendas', '/reservas', '/fale-sindico', '/documentos'];
+          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api', '/teste-boleto', '/mural', '/encomendas', '/reservas', '/fale-sindico', '/documentos', '/unidades', '/manutencoes', '/contatos', '/cartao-credito', '/tarefas'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
           }

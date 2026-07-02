@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   // 1. Resolver unidade caso o perfil seja MORADOR
   let userWinkerUnitId = '';
-  if (user.role === 'MORADOR' || user.role === 'CONSELHO') {
+  if (user.role === 'MORADOR') {
     try {
       const prisma = getPrisma();
       const dbUser = await prisma.user.findUnique({
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       const reference = searchParams.get('reference') || '';
       
       // Validação de segurança extra para morador
-      if (user.role === 'MORADOR' || user.role === 'CONSELHO') {
+      if (user.role === 'MORADOR') {
         const billingUrl = `https://api.winker.com.br/v1/billing_unit?id_portal=10493&id_unit=${idUnidade}`;
         const billingRes = await fetch(billingUrl, {
           method: 'GET',

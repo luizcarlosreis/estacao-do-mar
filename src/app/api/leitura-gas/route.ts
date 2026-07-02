@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       }
 
       const prisma = getPrisma();
-      const targetUnitId = (role === 'MORADOR' || role === 'CONSELHO') ? (unitId || 'undefined') : (searchParams.get('unitId') || 'undefined');
+      const targetUnitId = (role === 'MORADOR') ? (unitId || 'undefined') : (searchParams.get('unitId') || 'undefined');
 
       const [readings, prices] = await Promise.all([
         prisma.gasReading.findMany({
@@ -88,7 +88,7 @@ export async function GET(request: Request) {
     const prevYear = month === 1 ? year - 1 : year;
 
     const prisma = getPrisma();
-    const isMorador = role === 'MORADOR' || role === 'CONSELHO';
+    const isMorador = role === 'MORADOR';
 
     const [readings, prevReadings, gasPrice, prevGasPrice] = await Promise.all([
       prisma.gasReading.findMany({

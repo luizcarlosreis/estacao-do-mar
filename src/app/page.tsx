@@ -60,7 +60,7 @@ export default function Home() {
   }, []);
 
   const allModules = [
-    { title: 'Apartamentos', icon: <Building2 size={16} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'], color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Apartamentos', icon: <Building2 size={16} />, path: '/unidades', desc: 'Gestão de unidades e blocos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'CONSELHO'], color: 'text-blue-600', bg: 'bg-blue-50' },
     { title: 'Moradores / Visitas', icon: <Users size={16} />, path: '/moradores', desc: 'Cadastro de residentes e frequentes.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'], color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { title: 'Vagas de Garagem', icon: <Car size={16} />, path: '/vagas', desc: 'Controle de numeração de vagas.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-orange-600', bg: 'bg-orange-50' },
     { title: 'Veículos', icon: <Car size={16} />, path: '/veiculos', desc: 'Cadastro e vínculo de veículos.', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'], color: 'text-sky-600', bg: 'bg-sky-50' },
@@ -69,15 +69,15 @@ export default function Home() {
     { title: 'Cadastro de Usuários', icon: <UserCog size={16} />, path: '/usuarios', desc: 'Gerenciamento de usuários administrativos.', roles: ['SUPER_ADMIN'], color: 'text-purple-600', bg: 'bg-purple-50' },
     { title: 'Boleto (2a. via)', icon: <FileText size={16} />, path: '/teste-boleto', desc: 'Emissão de segunda via de boletos via Winker.', roles: ['SUPER_ADMIN', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'], color: 'text-rose-600', bg: 'bg-rose-50' },
     { title: 'Colaboradores', icon: <UserCog size={16} />, path: '/colaboradores', desc: 'Equipe de serviço e portaria.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-purple-600', bg: 'bg-purple-50' },
-    { title: 'Manutenções', icon: <Wrench size={16} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO'], color: 'text-rose-600', bg: 'bg-rose-50' },
+    { title: 'Manutenções', icon: <Wrench size={16} />, path: '/manutencoes', desc: 'Controle de manutenção predial.', roles: ['SUPER_ADMIN', 'SINDICO', 'CONSELHO'], color: 'text-rose-600', bg: 'bg-rose-50' },
     { title: (user?.role === 'MORADOR' || user?.role === 'CONSELHO') ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={16} />, path: '/tarefas', desc: (user?.role === 'MORADOR' || user?.role === 'CONSELHO') ? 'Solicitar manutenção.' : 'Backlog de atividades.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'], color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { title: 'Mural', icon: <Megaphone size={16} />, path: '/mural', desc: 'Avisos e comunicados.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR', 'CONSELHO'], color: 'text-pink-600', bg: 'bg-pink-50' },
     { title: 'Fale com o Síndico', icon: <MessageSquare size={16} />, path: '/fale-sindico', desc: 'Comunicação direta com a gestão.', roles: ['SUPER_ADMIN', 'MORADOR', 'CONSELHO'], color: 'text-amber-600', bg: 'bg-amber-50' },
     { title: 'Documentos Importantes', icon: <FileText size={16} />, path: '/documentos', desc: 'Regimentos e informativos.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'], color: 'text-slate-600', bg: 'bg-slate-50' },
-    { title: 'Contatos Importantes', icon: <PhoneCall size={16} />, path: '/contatos', desc: 'Prestadores e emergência.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO'], color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Contatos Importantes', icon: <PhoneCall size={16} />, path: '/contatos', desc: 'Prestadores e emergência.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'CONSELHO'], color: 'text-blue-600', bg: 'bg-blue-50' },
     { title: 'Encomendas', icon: <Package size={16} />, path: '/encomendas', desc: 'Recebimento de mercadorias e avisos.', roles: ['SUPER_ADMIN', 'SINDICO', 'PORTEIRO', 'MORADOR', 'CONSELHO'], color: 'text-orange-600', bg: 'bg-orange-50' },
     { title: 'Leitura de Gás', icon: <Flame size={16} />, path: '/leitura-gas', desc: (user?.role === 'MORADOR' || user?.role === 'CONSELHO') ? 'Consulte o histórico de consumo de gás da sua unidade.' : 'Registro da leitura mensal de gás.', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'], color: 'text-red-500', bg: 'bg-red-50' },
-    { title: 'Cartão de Crédito', icon: <CreditCard size={16} />, path: '/cartao-credito', desc: 'Controle de gastos do cartão de crédito do condomínio.', roles: ['SUPER_ADMIN', 'ADMINISTRADORA'], color: 'text-violet-600', bg: 'bg-violet-50' },
+    { title: 'Cartão de Crédito', icon: <CreditCard size={16} />, path: '/cartao-credito', desc: 'Controle de gastos do cartão de crédito do condomínio.', roles: ['SUPER_ADMIN', 'ADMINISTRADORA', 'CONSELHO'], color: 'text-violet-600', bg: 'bg-violet-50' },
   ];
 
   const modules = user 

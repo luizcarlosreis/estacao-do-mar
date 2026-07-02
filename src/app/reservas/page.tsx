@@ -331,8 +331,8 @@ export default function ReservasPage() {
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'SINDICO';
   const isZeladoria = currentUser?.role === 'ZELADORIA';
   const isPorteiro = currentUser?.role === 'PORTEIRO';
-  const isReadOnlyReservation = isZeladoria || isPorteiro;
-  const isReadOnlyGuest = isAdmin || isZeladoria || isPorteiro;
+  const isReadOnlyReservation = isZeladoria || isPorteiro || currentUser?.role === 'CONSELHO';
+  const isReadOnlyGuest = isAdmin || isZeladoria || isPorteiro || currentUser?.role === 'CONSELHO';
   const isMorador = currentUser?.role === 'MORADOR';
 
   // Dashboard calculations
@@ -918,7 +918,7 @@ export default function ReservasPage() {
                   className="px-6 py-3 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition text-[11px] font-black uppercase">
                   Fechar
                 </button>
-                {(!isZeladoria && !isPorteiro) && (
+                {(!isZeladoria && !isPorteiro && currentUser?.role !== 'CONSELHO') && (
                   <button type="submit" disabled={saving}
                     className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black uppercase shadow-lg shadow-blue-100 hover:bg-blue-700 transition disabled:opacity-60 text-[11px] tracking-wider">
                     {saving ? 'Gravando...' : isEditMode ? 'Salvar Alterações' : 'Confirmar Solicitação'}

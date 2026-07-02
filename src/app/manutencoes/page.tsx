@@ -18,6 +18,7 @@ export default function ManutencoesPage() {
   const [filterYear, setFilterYear] = useState('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [formData, setFormData] = useState({ 
     id: '', 
     title: '', 
@@ -31,6 +32,7 @@ export default function ManutencoesPage() {
 
   useEffect(() => {
     fetchMaintenances();
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, []);
 
   const formatDate = (dateStr: string) => {
@@ -160,12 +162,14 @@ export default function ManutencoesPage() {
               </select>
             </div>
 
-            <button 
-              onClick={() => { setFormData({id:'', title:'', description:'', observation:'', performedAt:'', nextMaintenanceAt:''}); setIsModalOpen(true); }}
-              className="w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
-            >
-              <Plus size={20} /> Registrar Manutenção
-            </button>
+            {currentUser?.role !== 'CONSELHO' && (
+              <button 
+                onClick={() => { setFormData({id:'', title:'', description:'', observation:'', performedAt:'', nextMaintenanceAt:''}); setIsModalOpen(true); }}
+                className="w-full md:w-auto bg-primary text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
+              >
+                <Plus size={20} /> Registrar Manutenção
+              </button>
+            )}
           </div>
         </div>
 
@@ -216,8 +220,12 @@ export default function ManutencoesPage() {
                       )}
                     </td>
                     <td className="p-4 flex justify-center gap-3">
-                      <button onClick={() => openEditModal(m)} className="text-primary hover:bg-primary hover:bg-opacity-10 p-2 rounded-full transition"><Edit2 size={18} /></button>
-                      <button onClick={() => handleDelete(m.id, m.title)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition"><Trash2 size={18} /></button>
+                      {currentUser?.role !== 'CONSELHO' && (
+                        <>
+                          <button onClick={() => openEditModal(m)} className="text-primary hover:bg-primary hover:bg-opacity-10 p-2 rounded-full transition"><Edit2 size={18} /></button>
+                          <button onClick={() => handleDelete(m.id, m.title)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition"><Trash2 size={18} /></button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 );

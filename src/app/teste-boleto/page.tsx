@@ -59,9 +59,9 @@ export default function TesteBoletoPage() {
       const data = await res.json();
       setUser(data.user);
 
-      if (data.user.role === 'MORADOR' || data.user.role === 'CONSELHO') {
+      if (data.user.role === 'MORADOR') {
         fetchBoletosForMorador();
-      } else if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'ADMINISTRADORA') {
+      } else if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'ADMINISTRADORA' || data.user.role === 'CONSELHO') {
         fetchUnits();
       } else {
         throw new Error('Acesso restrito para administradores e moradores.');
@@ -194,15 +194,15 @@ export default function TesteBoletoPage() {
   };
 
   const handleRefresh = () => {
-    if (user?.role === 'MORADOR' || user?.role === 'CONSELHO') {
+    if (user?.role === 'MORADOR') {
       fetchBoletosForMorador();
     } else if (isAllOverdueMode) {
       fetchTodosAtrasados();
     } else if (isDashboardMode) {
       fetchDashboard();
-    } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') && selectedUnit) {
+    } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && selectedUnit) {
       fetchBoletosForUnit(selectedUnit);
-    } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') {
+    } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') {
       fetchUnits();
     } else {
       fetchUserProfile();
@@ -261,7 +261,7 @@ export default function TesteBoletoPage() {
 
   if (!mounted) return null;
 
-  const isMorador = user?.role === 'MORADOR' || user?.role === 'CONSELHO';
+  const isMorador = user?.role === 'MORADOR';
   const hasBoletos = boletos.length > 0;
   const showRefreshButton = !loadingUser && !loadingBoletos && (isMorador || selectedUnit || isAllOverdueMode || isDashboardMode);
 

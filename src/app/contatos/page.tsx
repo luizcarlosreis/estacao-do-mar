@@ -211,12 +211,14 @@ export default function ContatosPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button 
-              onClick={openNewModal}
-              className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
-            >
-              <Plus size={16} /> Novo Contato
-            </button>
+            {currentUser?.role !== 'CONSELHO' && (
+              <button 
+                onClick={openNewModal}
+                className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition shadow-lg shadow-slate-200 text-[11px] font-black uppercase tracking-wider whitespace-nowrap"
+              >
+                <Plus size={16} /> Novo Contato
+              </button>
+            )}
           </div>
         </div>
 
@@ -238,14 +240,16 @@ export default function ContatosPage() {
                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                       <PhoneCall size={18} />
                     </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                      <button onClick={() => openEditModal(contact)} className="p-1 text-slate-300 hover:text-blue-600 transition">
-                        <Pencil size={12} />
-                      </button>
-                      <button onClick={() => handleDelete(contact.id)} className="p-1 text-slate-300 hover:text-rose-500 transition">
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
+                    {currentUser?.role !== 'CONSELHO' && (
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                        <button onClick={() => openEditModal(contact)} className="p-1 text-slate-300 hover:text-blue-600 transition">
+                          <Pencil size={12} />
+                        </button>
+                        <button onClick={() => handleDelete(contact.id)} className="p-1 text-slate-300 hover:text-rose-500 transition">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex-1">

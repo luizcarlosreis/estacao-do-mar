@@ -28,6 +28,7 @@ export default function UnidadesPage() {
   const [formData, setFormData] = useState({ id: '', number: '', block: '' });
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const itemsPerPage = 18;
 
   const fetchUnidades = useCallback(async () => {
@@ -53,6 +54,7 @@ export default function UnidadesPage() {
 
   useEffect(() => {
     fetchUnidades();
+    fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, [fetchUnidades]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,12 +114,14 @@ export default function UnidadesPage() {
           </h1>
           <p className="text-slate-500 font-medium">Gerencie as unidades e blocos do condomínio.</p>
         </div>
-        <button 
-          onClick={() => { setFormData({id:'', number:'', block:''}); setIsEditMode(false); setIsModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95"
-        >
-          <Plus size={20} /> Adicionar Unidade
-        </button>
+        {currentUser?.role !== 'CONSELHO' && (
+          <button 
+            onClick={() => { setFormData({id:'', number:'', block:''}); setIsEditMode(false); setIsModalOpen(true); }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95"
+          >
+            <Plus size={20} /> Adicionar Unidade
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -139,10 +143,12 @@ export default function UnidadesPage() {
                     <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">Apto {u.number}</h3>
                     <p className="text-blue-500 font-bold text-xs uppercase tracking-widest mt-1">MORADORES: {u.residents?.length || 0}</p>
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => { setFormData({id:u.id, number:u.number, block:u.block}); setIsEditMode(true); setIsModalOpen(true); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={18} /></button>
-                    <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
-                  </div>
+                  {currentUser?.role !== 'CONSELHO' && (
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={() => { setFormData({id:u.id, number:u.number, block:u.block}); setIsEditMode(true); setIsModalOpen(true); }} className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={18} /></button>
+                      <button onClick={() => handleDelete(u.id)} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-slate-50 flex-grow">

@@ -551,7 +551,7 @@ export default function GasReadingPage() {
   });
 
   const isMorador = currentUser?.role === 'MORADOR';
-  const isReadOnly = isMorador || currentUser?.role === 'ADMINISTRADORA';
+  const isReadOnly = isMorador || currentUser?.role === 'ADMINISTRADORA' || currentUser?.role === 'CONSELHO';
 
   const handleReload = () => {
     if (isMorador && activeTab === 'comparativo') {
