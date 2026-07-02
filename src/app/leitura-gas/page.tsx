@@ -698,6 +698,7 @@ export default function GasReadingPage() {
       )}
 
       {/* Barra de Filtros / Período */}
+      {activeTab !== 'dashboard-anual' && (
       <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-sm border border-slate-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-end">
         {/* Mês */}
         <div className="space-y-2">
@@ -782,6 +783,7 @@ export default function GasReadingPage() {
           )}
         </div>
       </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
