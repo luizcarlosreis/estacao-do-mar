@@ -294,7 +294,7 @@ export default function TesteBoletoPage() {
         </div>
 
         {/* Ações Administrativas no Topo */}
-        {!loadingUser && !error && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA') && (
+        {!loadingUser && !error && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && (
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Botão Dashboard Mensal */}
             <button
