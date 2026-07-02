@@ -26,6 +26,100 @@ export async function GET(request: Request) {
       }
 
       const prisma = getPrisma();
+      const isGeneral = searchParams.get('general') === 'true';
+
+      if (isGeneral) {
+        if (role !== 'SUPER_ADMIN' && role !== 'ADMINISTRADORA' && role !== 'CONSELHO') {
+          return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
+        }
+
+        const [readings, prices] = await Promise.all([
+          prisma.gasReading.findMany({
+            where: {
+              OR: [
+                { year },
+                { year: year - 1, month: 12 }
+              ]
+            }
+          }),
+          prisma.gasPrice.findMany({
+            where: {
+              year
+            },
+            orderBy: {
+              month: 'asc'
+            }
+          })
+        ]);
+
+        const readingsByUnit: Record<string, typeof readings> = {};
+        readings.forEach(r => {
+          if (!readingsByUnit[r.identifier]) {
+            readingsByUnit[r.identifier] = [];
+          }
+          readingsByUnit[r.identifier].push(r);
+        });
+
+        const monthlyTotals = Array.from({ length: 12 }, (_, idx) => {
+          const monthVal = idx + 1;
+          let totalM3 = 0;
+          let totalKilo = 0;
+          let countUnitsRead = 0;
+
+          Object.keys(readingsByUnit).forEach(unitId => {
+            const unitReadings = readingsByUnit[unitId];
+            const rCur = unitReadings.find(r => r.month === monthVal && r.year === year);
+            if (rCur && rCur.value !== null) {
+              countUnitsRead++;
+              let rPrevVal: number | null = null;
+              if (monthVal > 1) {
+                const rPrev = unitReadings.find(r => r.month === monthVal - 1 && r.year === year);
+                rPrevVal = rPrev ? rPrev.value : null;
+              } else {
+                const rPrev = unitReadings.find(r => r.month === 12 && r.year === year - 1);
+                rPrevVal = rPrev ? rPrev.value : null;
+              }
+
+              if (rPrevVal !== null) {
+                const diff = rCur.value - rPrevVal;
+                const m3 = diff >= 0 ? diff : 0;
+                totalM3 += m3;
+                totalKilo += m3 * 2.32;
+              }
+            }
+          });
+
+          const pCur = prices.find(p => p.month === monthVal && p.year === year);
+          const pricePerKilo = pCur ? pCur.pricePerKilo : null;
+          const cost = pricePerKilo !== null ? totalKilo * pricePerKilo : 0;
+
+          return {
+            month: monthVal,
+            year,
+            consumptionM3: totalM3,
+            consumptionKilo: totalKilo,
+            pricePerKilo,
+            cost,
+            countUnitsRead
+          };
+        });
+
+        return NextResponse.json({
+          monthlyTotals,
+          prices: prices.map(p => ({
+            month: p.month,
+            year: p.year,
+            pricePerKilo: p.pricePerKilo
+          }))
+        }, {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+      }
+
       const targetUnitId = (role === 'MORADOR') ? (unitId || 'undefined') : (searchParams.get('unitId') || 'undefined');
 
       const [readings, prices] = await Promise.all([
