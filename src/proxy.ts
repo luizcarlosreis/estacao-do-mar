@@ -76,9 +76,9 @@ export default async function proxy(req: NextRequest) {
           }
         }
 
-        // CONSELHO: Consulta total (read-only) de Moradores, Veículos, Autorizações, Gás, Mural, Encomendas, Reservas, Fale Síndico, Documentos, Unidades, Manutenções, Contatos, Cartão de Crédito e Tarefas
+        // CONSELHO: Consulta total (read-only) de Moradores, Veículos, Autorizações, Gás, Encomendas, Reservas, Documentos, Unidades, Manutenções, Contatos, Cartão de Crédito e Tarefas
         else if (role === 'CONSELHO') {
-          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api', '/teste-boleto', '/mural', '/encomendas', '/reservas', '/fale-sindico', '/documentos', '/unidades', '/manutencoes', '/contatos', '/cartao-credito', '/tarefas'];
+          const allowedPaths = ['/', '/moradores', '/veiculos', '/autorizacoes', '/leitura-gas', '/api', '/teste-boleto', '/encomendas', '/reservas', '/documentos', '/unidades', '/manutencoes', '/contatos', '/cartao-credito', '/tarefas'];
           if (!allowedPaths.some(p => path.startsWith(p) || path === '/')) {
             return NextResponse.redirect(new URL('/autorizacoes', req.url)); // ou '/'
           }

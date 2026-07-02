@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     if (!token) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
 
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (payload.role !== 'SUPER_ADMIN' && payload.role !== 'ADMINISTRADORA') {
+    if (payload.role !== 'SUPER_ADMIN' && payload.role !== 'ADMINISTRADORA' && payload.role !== 'CONSELHO') {
       return NextResponse.json({ message: 'Acesso restrito' }, { status: 403 });
     }
 

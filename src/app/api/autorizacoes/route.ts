@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma();
     
     const whereClause: any = {};
-    if (role === 'MORADOR' || role === 'CONSELHO') {
+    if (role === 'MORADOR') {
       if (unitId) {
         whereClause.unitId = unitId;
       } else {
