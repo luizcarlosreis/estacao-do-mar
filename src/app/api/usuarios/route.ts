@@ -14,18 +14,17 @@ export async function GET(request: Request) {
   const prisma = getPrisma();
   try {
     const users = await prisma.user.findMany({
-      where: {
-        role: {
-          in: ['SUPER_ADMIN', 'ADMINISTRADORA', 'SINDICO', 'PORTEIRO', 'CONSELHO']
-        }
-      },
       orderBy: {
         name: 'asc'
       }
     });
 
+    // Filtra em memória para evitar erros caso a role 'CONSELHO' ainda não exista no tipo Enum do banco físico
+    const administrativeRoles = ['SUPER_ADMIN', 'ADMINISTRADORA', 'SINDICO', 'PORTEIRO', 'CONSELHO'];
+    const filteredUsers = users.filter(user => administrativeRoles.includes(user.role));
+
     // Remover senhas do retorno
-    const safeUsers = users.map(({ password, ...user }) => user);
+    const safeUsers = filteredUsers.map(({ password, ...user }) => user);
     return NextResponse.json(safeUsers);
   } catch (error: any) {
     console.error('Erro ao buscar usuários:', error);
