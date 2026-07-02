@@ -19,6 +19,15 @@ export async function GET(request: NextRequest) {
 
     const prisma = getPrisma();
 
+    // Sincronizar o tipo Enum 'Role' do PostgreSQL para conter 'CONSELHO'
+    try {
+      console.log("Adding CONSELHO to Role enum...");
+      await prisma.$executeRawUnsafe(`ALTER TYPE "Role" ADD VALUE IF NOT EXISTS 'CONSELHO'`);
+      console.log("CONSELHO role added to DB enum successfully!");
+    } catch (enumErr: any) {
+      console.error("Error adding CONSELHO to Role enum:", enumErr.message);
+    }
+
     console.log("Running DDL query to create CreditCardPurchase and CreditCardInstallment tables...");
 
     // Create CreditCardPurchase table
