@@ -27,12 +27,12 @@ export async function GET(request: NextRequest) {
 
     console.log(`API Fale Síndico: Listando para o perfil [${role}]`);
     
-    if (!['SUPER_ADMIN', 'SINDICO', 'MORADOR'].includes(role || '')) {
+    if (!['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'].includes(role || '')) {
         console.warn(`API Fale Síndico: Acesso negado para o perfil [${role}]`);
         return NextResponse.json([]); 
     }
 
-    const where = role === 'MORADOR' ? { userId: userId as string } : {};
+    const where = (role === 'MORADOR' || role === 'CONSELHO') ? { userId: userId as string } : {};
 
     const messages = await prisma.syndicMessage.findMany({
       where,
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const userId = payload.id as string;
     const role = payload.role as string;
 
-    if (!['SUPER_ADMIN', 'SINDICO', 'MORADOR'].includes(role || '')) {
+    if (!['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'].includes(role || '')) {
         return NextResponse.json({ message: 'Sem permissão' }, { status: 403 });
     }
 

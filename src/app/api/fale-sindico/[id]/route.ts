@@ -44,7 +44,7 @@ export async function PATCH(
     const token = request.cookies.get('auth-token')?.value;
     if (!token) return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (payload.role === 'MORADOR') {
+    if (payload.role === 'MORADOR' || payload.role === 'CONSELHO') {
       return NextResponse.json({ message: 'Acesso negado para edição de status' }, { status: 403 });
     }
 
@@ -78,11 +78,11 @@ export async function DELETE(
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const role = payload.role as string;
 
-    if (!['SUPER_ADMIN', 'SINDICO', 'MORADOR'].includes(role)) {
+    if (!['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'].includes(role)) {
       return NextResponse.json({ message: 'Acesso negado para exclusão' }, { status: 403 });
     }
 
-    if (role === 'MORADOR') {
+    if (role === 'MORADOR' || role === 'CONSELHO') {
       const msg = await prisma.syndicMessage.findUnique({ where: { id } });
       if (!msg || msg.userId !== payload.id) {
         return NextResponse.json({ message: 'Você só pode excluir suas próprias mensagens' }, { status: 403 });

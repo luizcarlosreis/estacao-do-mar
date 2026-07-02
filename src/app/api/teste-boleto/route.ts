@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
   }
 
-  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA' && user.role !== 'CONSELHO') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
 
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   // 1. Resolver unidade caso o perfil seja MORADOR
   let userWinkerUnitId = '';
-  if (user.role === 'MORADOR') {
+  if (user.role === 'MORADOR' || user.role === 'CONSELHO') {
     try {
       const prisma = getPrisma();
       const dbUser = await prisma.user.findUnique({
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       const reference = searchParams.get('reference') || '';
       
       // Validação de segurança extra para morador
-      if (user.role === 'MORADOR') {
+      if (user.role === 'MORADOR' || user.role === 'CONSELHO') {
         const billingUrl = `https://api.winker.com.br/v1/billing_unit?id_portal=10493&id_unit=${idUnidade}`;
         const billingRes = await fetch(billingUrl, {
           method: 'GET',
@@ -293,7 +293,7 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 403 });
   }
-  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA' && user.role !== 'CONSELHO') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
   return NextResponse.json({ success: true });

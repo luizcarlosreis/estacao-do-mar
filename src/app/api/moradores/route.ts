@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   
   const whereClause: any = { role: 'MORADOR' };
   
-  if (role === 'MORADOR') {
+  if (role === 'MORADOR' || role === 'CONSELHO') {
     if (unitId) {
       whereClause.unitId = unitId;
     } else {

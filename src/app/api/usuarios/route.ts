@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const users = await prisma.user.findMany({
       where: {
         role: {
-          in: ['SUPER_ADMIN', 'ADMINISTRADORA', 'SINDICO', 'PORTEIRO']
+          in: ['SUPER_ADMIN', 'ADMINISTRADORA', 'SINDICO', 'PORTEIRO', 'CONSELHO']
         }
       },
       orderBy: {
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'O nome é obrigatório' }, { status: 400 });
     }
 
-    if (!role || !['ADMINISTRADORA', 'SINDICO', 'PORTEIRO'].includes(role)) {
+    if (!role || !['ADMINISTRADORA', 'SINDICO', 'PORTEIRO', 'CONSELHO'].includes(role)) {
       return NextResponse.json({ message: 'Perfil (Role) inválido' }, { status: 400 });
     }
 

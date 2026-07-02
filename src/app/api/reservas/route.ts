@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma();
 
     let whereClause: any = {};
-    if (role === 'MORADOR') {
+    if (role === 'MORADOR' || role === 'CONSELHO') {
       // Moradores veem apenas suas próprias reservas.
       // As datas bloqueadas de outros apartamentos são exibidas via
       // a seção "Datas já reservadas" no frontend (chips), usando

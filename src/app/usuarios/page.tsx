@@ -35,14 +35,16 @@ const roleLabels: Record<string, string> = {
   SUPER_ADMIN: 'Administrador',
   ADMINISTRADORA: 'Administradora',
   SINDICO: 'Zeladoria',
-  PORTEIRO: 'Portaria'
+  PORTEIRO: 'Portaria',
+  CONSELHO: 'Conselho'
 };
 
 const roleColors: Record<string, string> = {
   SUPER_ADMIN: 'bg-red-50 text-red-600 border-red-100',
   ADMINISTRADORA: 'bg-indigo-50 text-indigo-600 border-indigo-100',
   SINDICO: 'bg-amber-50 text-amber-600 border-amber-100',
-  PORTEIRO: 'bg-sky-50 text-sky-600 border-sky-100'
+  PORTEIRO: 'bg-sky-50 text-sky-600 border-sky-100',
+  CONSELHO: 'bg-emerald-50 text-emerald-600 border-emerald-100'
 };
 
 export default function UsuariosPage() {
@@ -449,6 +451,7 @@ export default function UsuariosPage() {
                     <option value="ADMINISTRADORA">Administradora</option>
                     <option value="SINDICO">Zeladoria</option>
                     <option value="PORTEIRO">Portaria</option>
+                    <option value="CONSELHO">Conselho</option>
                     {formData.cpf === 'Admin' && <option value="SUPER_ADMIN">Administrador</option>}
                   </select>
                 </div>

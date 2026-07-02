@@ -122,22 +122,22 @@ export default function RootLayout({
   }
 
   const allMenuItems = [
-    { title: 'Início', icon: <Home size={18} />, path: '/', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
+    { title: 'Início', icon: <Home size={18} />, path: '/', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
     { title: 'Apartamentos', icon: <Building2 size={18} />, path: '/unidades', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'] },
-    { title: 'Moradores/Visitas', icon: <Users size={18} />, path: '/moradores', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
+    { title: 'Moradores/Visitas', icon: <Users size={18} />, path: '/moradores', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
     { title: 'Vagas', icon: <Car size={18} />, path: '/vagas', roles: ['SUPER_ADMIN'] },
-    { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Salão de Festas', icon: <Calendar size={18} />, path: '/reservas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'PORTEIRO'] },
+    { title: 'Veículos', icon: <Car size={18} />, path: '/veiculos', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
+    { title: 'Autorizações', icon: <ShieldCheck size={18} />, path: '/autorizacoes', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
+    { title: 'Salão de Festas', icon: <Calendar size={18} />, path: '/reservas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'PORTEIRO', 'CONSELHO'] },
     { title: 'Cadastro de Usuários', icon: <UserCog size={18} />, path: '/usuarios', roles: ['SUPER_ADMIN'] },
     { title: 'Colaboradores', icon: <UserCog size={18} />, path: '/colaboradores', roles: ['SUPER_ADMIN'] },
     { title: 'Manutenções', icon: <Wrench size={18} />, path: '/manutencoes', roles: ['SUPER_ADMIN', 'SINDICO'] },
-    { title: user?.role === 'MORADOR' ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR'] },
-    { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Encomendas', icon: <PackageIcon size={18} />, path: '/encomendas', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR'] },
-    { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA'] },
+    { title: (user?.role === 'MORADOR' || user?.role === 'CONSELHO') ? 'Solicitação de Reparos' : 'Tarefas', icon: <ListTodo size={18} />, path: '/tarefas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'CONSELHO'] },
+    { title: 'Mural', icon: <Megaphone size={18} />, path: '/mural', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
+    { title: 'Encomendas', icon: <PackageIcon size={18} />, path: '/encomendas', roles: ['SUPER_ADMIN', 'PORTEIRO', 'SINDICO', 'MORADOR', 'CONSELHO'] },
+    { title: 'Leitura de Gás', icon: <Flame size={18} />, path: '/leitura-gas', roles: ['SUPER_ADMIN', 'SINDICO', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
     { title: 'Cartão de Crédito', icon: <CreditCard size={18} />, path: '/cartao-credito', roles: ['SUPER_ADMIN', 'ADMINISTRADORA'] },
-    { title: 'Boleto (2a. Via)', icon: <FileText size={18} />, path: '/teste-boleto', roles: ['SUPER_ADMIN', 'MORADOR', 'ADMINISTRADORA'] },
+    { title: 'Boleto (2a. Via)', icon: <FileText size={18} />, path: '/teste-boleto', roles: ['SUPER_ADMIN', 'MORADOR', 'ADMINISTRADORA', 'CONSELHO'] },
   ];
 
   const rawMenuItems = user ? allMenuItems.filter(item => item.roles.includes(user.role)) : [];
@@ -196,9 +196,9 @@ export default function RootLayout({
                           <p className="text-xs font-bold text-slate-700 truncate">{user?.name}</p>
                         </div>
                         
-                        {(user?.role === 'MORADOR' || user?.role === 'SUPER_ADMIN' || user?.role === 'SINDICO' || user?.role === 'ADMINISTRADORA') && (
+                        {(user?.role === 'MORADOR' || user?.role === 'SUPER_ADMIN' || user?.role === 'SINDICO' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && (
                           <>
-                            {user?.role === 'MORADOR' && (
+                            {(user?.role === 'MORADOR' || user?.role === 'CONSELHO') && (
                               <button onClick={openProfile} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                                 <User size={16} /> Meu Perfil
                               </button>

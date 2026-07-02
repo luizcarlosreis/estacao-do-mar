@@ -59,7 +59,7 @@ export default function TesteBoletoPage() {
       const data = await res.json();
       setUser(data.user);
 
-      if (data.user.role === 'MORADOR') {
+      if (data.user.role === 'MORADOR' || data.user.role === 'CONSELHO') {
         fetchBoletosForMorador();
       } else if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'ADMINISTRADORA') {
         fetchUnits();
@@ -194,7 +194,7 @@ export default function TesteBoletoPage() {
   };
 
   const handleRefresh = () => {
-    if (user?.role === 'MORADOR') {
+    if (user?.role === 'MORADOR' || user?.role === 'CONSELHO') {
       fetchBoletosForMorador();
     } else if (isAllOverdueMode) {
       fetchTodosAtrasados();
@@ -261,7 +261,7 @@ export default function TesteBoletoPage() {
 
   if (!mounted) return null;
 
-  const isMorador = user?.role === 'MORADOR';
+  const isMorador = user?.role === 'MORADOR' || user?.role === 'CONSELHO';
   const hasBoletos = boletos.length > 0;
   const showRefreshButton = !loadingUser && !loadingBoletos && (isMorador || selectedUnit || isAllOverdueMode || isDashboardMode);
 

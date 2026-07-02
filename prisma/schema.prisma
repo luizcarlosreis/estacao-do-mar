@@ -12,6 +12,7 @@ enum Role {
   PORTEIRO
   MORADOR
   ADMINISTRADORA
+  CONSELHO
 }
 
 enum EmployeeRole {
