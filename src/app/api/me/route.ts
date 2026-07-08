@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
         ddd: true,
         phone: true,
         phones: true,
+        birthDate: true,
         telegramChatId: true,
         telegramLinkToken: true
       }

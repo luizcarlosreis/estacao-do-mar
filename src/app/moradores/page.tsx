@@ -41,6 +41,7 @@ type Morador = {
   ddd?: string;
   phone?: string;
   phones?: string;
+  birthDate?: string;
   residentType?: string;
   isActive?: boolean;
   telegramChatId?: string;
@@ -83,7 +84,7 @@ export default function MoradoresPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '' });
+  const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '', birthDate: '' });
   const [phoneList, setPhoneList] = useState<{ ddd: string; phone: string }[]>([{ ddd: '', phone: '' }]);
 
   const API_URL = '/api/moradores';
@@ -198,7 +199,8 @@ export default function MoradoresPage() {
       phone: m.phone || '',
       residentType: m.residentType || 'MORADOR',
       isActive: m.isActive !== undefined ? m.isActive : true,
-      rg: m.rg || ''
+      rg: m.rg || '',
+      birthDate: m.birthDate ? m.birthDate.substring(0, 10) : ''
     });
     const parsed = parsePhones(m.phones, m.ddd, m.phone);
     setPhoneList(parsed.length > 0 ? parsed : [{ ddd: '', phone: '' }]);
@@ -208,7 +210,7 @@ export default function MoradoresPage() {
 
   const openCreateModal = () => {
     setSelectedMorador(null);
-    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '' });
+    setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '', birthDate: '' });
     setPhoneList([{ ddd: '', phone: '' }]);
     setIsEditMode(false);
     setIsModalOpen(true);
@@ -384,7 +386,8 @@ export default function MoradoresPage() {
                             {m.email && <p className="text-[9px] text-slate-500 truncate mb-1 lowercase">{m.email}</p>}
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
-                              {m.rg && <span className="text-[8px] text-slate-400 font-black uppercase"> · RG: {m.rg}</span>}
+                               {m.rg && <span className="text-[8px] text-slate-400 font-black uppercase"> · RG: {m.rg}</span>}
+                               {m.birthDate && <span className="text-[8px] text-slate-400 font-black uppercase"> · NASC: {new Date(m.birthDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>}
                                {parsePhones(m.phones, m.ddd, m.phone).map((p, idx) => p.phone && (
                                  <span key={idx} className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1">
                                    <Phone size={12} /> {p.ddd ? `(${p.ddd}) ` : ''}{p.phone}
@@ -537,6 +540,16 @@ export default function MoradoresPage() {
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
                   value={formData.email} 
                   onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Data de Nascimento (Opcional)</label>
+                <input 
+                  type="date" 
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                  value={formData.birthDate} 
+                  onChange={(e) => setFormData({...formData, birthDate: e.target.value})} 
                 />
               </div>
 

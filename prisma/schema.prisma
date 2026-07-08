@@ -59,6 +59,7 @@ model User {
   ddd       String?
   phone     String?
   phones    String?  @db.Text
+  birthDate DateTime?
   residentType String @default("MORADOR")
   isActive     Boolean @default(true)
   telegramChatId    String?  @unique

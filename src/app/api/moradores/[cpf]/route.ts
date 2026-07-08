@@ -15,6 +15,10 @@ export async function PATCH(request: Request, context: any) {
     if (body.name) {
       body.name = body.name.toUpperCase();
     }
+    if (body.hasOwnProperty('birthDate')) {
+      const bDate = body.birthDate;
+      body.birthDate = bDate && bDate.trim() !== '' ? new Date(bDate) : null;
+    }
     if (body.hasOwnProperty('phones')) {
       const phones = body.phones;
       body.phones = Array.isArray(phones) && phones.length > 0 ? JSON.stringify(phones) : null;
