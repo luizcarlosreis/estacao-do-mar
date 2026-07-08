@@ -37,6 +37,8 @@ const roleLabels: Record<string, string> = {
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({ units: 0, residents: 0 });
+  const [showBirthdayModal, setShowBirthdayModal] = useState(false);
+  const [birthdayEmployees, setBirthdayEmployees] = useState<any[]>([]);
 
   useEffect(() => {
     fetch('/api/me')
@@ -44,6 +46,36 @@ export default function Home() {
       .then(data => {
         if (data && data.user) {
           setUser(data.user);
+          
+          if (data.user.role === 'SUPER_ADMIN') {
+            const hasShown = sessionStorage.getItem('birthday_popup_shown');
+            if (!hasShown) {
+              fetch('/api/colaboradores')
+                .then(res => res.ok ? res.json() : [])
+                .then((colaboradores: any[]) => {
+                  if (Array.isArray(colaboradores)) {
+                    const currentMonth = new Date().getMonth();
+                    const currentMonthBdays = colaboradores.filter(emp => {
+                      if (!emp.birthDate) return false;
+                      const dateObj = new Date(emp.birthDate);
+                      return dateObj.getUTCMonth() === currentMonth;
+                    }).sort((a, b) => {
+                      const dayA = new Date(a.birthDate).getUTCDate();
+                      const dayB = new Date(b.birthDate).getUTCDate();
+                      return dayA - dayB;
+                    });
+
+                    if (currentMonthBdays.length > 0) {
+                      setBirthdayEmployees(currentMonthBdays);
+                      setShowBirthdayModal(true);
+                      sessionStorage.setItem('birthday_popup_shown', 'true');
+                    }
+                  }
+                })
+                .catch(e => console.error('Erro ao buscar colaboradores para aniversarios:', e));
+            }
+          }
+
           if (['SUPER_ADMIN', 'PORTEIRO', 'SINDICO'].includes(data.user.role)) {
             Promise.all([
               fetch('/api/unidades').then(res => res.ok ? res.json() : []),
@@ -165,11 +197,69 @@ export default function Home() {
       )}
 
       {/* Footer Version */}
+      {/* Footer Version */}
       <div className="mt-16 text-center pb-12">
         <span className="text-[10px] uppercase tracking-[0.3em] font-black px-4 py-2 rounded-full text-red-600 bg-white shadow-xl shadow-red-100/20 border border-red-50">
           ESTAÇÃO DO MAR • {APP_VERSION}
         </span>
       </div>
+
+      {/* Pop-up Aniversariantes do Mês */}
+      {showBirthdayModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200 border border-slate-100">
+            <div className="p-6 bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-center relative overflow-hidden">
+              <div className="absolute -top-10 -left-10 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+              <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+              
+              <div className="inline-flex p-3 bg-white/20 rounded-full mb-3 shadow-inner">
+                <Users size={32} className="text-white" />
+              </div>
+              <h2 className="text-lg font-black uppercase tracking-wider">
+                🎉 Aniversariantes do Mês!
+              </h2>
+              <p className="text-[10px] uppercase font-black tracking-widest text-emerald-100 opacity-90 mt-1">
+                Colaboradores festejando este mês
+              </p>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <p className="text-[11px] text-slate-500 font-semibold text-center uppercase tracking-wide">
+                Os seguintes colaboradores fazem aniversário no mês de {new Date().toLocaleDateString('pt-BR', { month: 'long' })}:
+              </p>
+              
+              <div className="max-h-[30vh] overflow-y-auto space-y-2 pr-1">
+                {birthdayEmployees.map((emp) => {
+                  const day = new Date(emp.birthDate).getUTCDate();
+                  const roleLabel = emp.role === 'PORTEIRO' ? 'PORTEIRO' : 
+                                    emp.role === 'ZELADOR' ? 'ZELADOR' : 
+                                    emp.role === 'LIMPEZA' ? 'AUX. LIMPEZA' : 
+                                    emp.role === 'MANUTENCAO' ? 'MANUTENÇÃO' : emp.role;
+                  return (
+                    <div key={emp.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-[11px] font-black text-slate-800 uppercase leading-tight">{emp.name}</h4>
+                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">{roleLabel}</p>
+                      </div>
+                      <div className="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-center min-w-[50px] shadow-sm">
+                        <p className="text-xs font-black leading-none">{day}</p>
+                        <p className="text-[7px] uppercase font-black tracking-wide mt-0.5">DIA</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <button 
+                onClick={() => setShowBirthdayModal(false)}
+                className="w-full py-3 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition shadow-lg shadow-slate-200"
+              >
+                Entendido e Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
