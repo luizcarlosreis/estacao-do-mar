@@ -487,7 +487,7 @@ export default function MoradoresPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in zoom-in duration-200 max-h-[90vh] flex flex-col">
             <div className="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0">
               <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                 <User size={18} /> {isEditMode ? 'Editar Morador' : 'Novo Morador'}
@@ -498,153 +498,161 @@ export default function MoradoresPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 pr-4">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome Completo</label>
-                <input 
-                  type="text" required 
-                  placeholder="EX: JOÃO DA SILVA"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 uppercase"
-                  value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">CPF (Apenas Números)</label>
-                  <input 
-                     type="text" required disabled={isEditMode}
-                     placeholder="000.000.000-00"
-                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 disabled:opacity-50"
-                     value={formData.cpf} 
-                     onChange={(e) => setFormData({...formData, cpf: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">RG</label>
-                  <input 
-                    type="text" 
-                    placeholder="EX: 12.345.678-9"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                    value={formData.rg} 
-                    onChange={(e) => setFormData({...formData, rg: e.target.value})} 
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">E-mail de Acesso</label>
-                <input 
-                  type="email" 
-                  placeholder="EX: JOAO@EMAIL.COM"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                  value={formData.email} 
-                  onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Data de Nascimento (Opcional)</label>
-                <input 
-                  type="date" 
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                  value={formData.birthDate} 
-                  onChange={(e) => setFormData({...formData, birthDate: e.target.value})} 
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Telefones de Contato</label>
-                {phoneList.map((p, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                {/* Coluna 1: Dados Pessoais */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nome Completo</label>
                     <input 
-                      type="text" 
-                      placeholder="DDD"
-                      className="w-16 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                      value={p.ddd} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setPhoneList(prev => prev.map((item, i) => i === idx ? { ...item, ddd: val } : item));
-                      }} 
+                      type="text" required 
+                      placeholder="EX: JOÃO DA SILVA"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 uppercase"
+                      value={formData.name} 
+                      onChange={(e) => setFormData({...formData, name: e.target.value})} 
                     />
-                    <input 
-                      type="text" 
-                      placeholder="99999-9999"
-                      className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                      value={p.phone} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setPhoneList(prev => prev.map((item, i) => i === idx ? { ...item, phone: val } : item));
-                      }} 
-                    />
-                    {phoneList.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setPhoneList(prev => prev.filter((_, i) => i !== idx))}
-                        className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setPhoneList(prev => [...prev, { ddd: '', phone: '' }])}
-                  className="py-2 px-3 border border-dashed border-slate-300 rounded-xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-50 transition flex items-center gap-1.5 w-fit"
-                >
-                  <Plus size={14} /> Adicionar Telefone
-                </button>
-              </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Senha (Opcional)</label>
-                <input 
-                  type="password"
-                  placeholder="DEIXE EM BRANCO PARA USAR 5 PRIMEIROS DÍGITOS DO CPF"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 placeholder:normal-case"
-                  value={formData.password} 
-                  onChange={(e) => setFormData({...formData, password: e.target.value})} 
-                />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">CPF (Apenas Números)</label>
+                      <input 
+                         type="text" required disabled={isEditMode}
+                         placeholder="000.000.000-00"
+                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 disabled:opacity-50"
+                         value={formData.cpf} 
+                         onChange={(e) => setFormData({...formData, cpf: e.target.value})} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">RG</label>
+                      <input 
+                        type="text" 
+                        placeholder="EX: 12.345.678-9"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                        value={formData.rg} 
+                        onChange={(e) => setFormData({...formData, rg: e.target.value})} 
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Cadastro</label>
-                  <select 
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
-                    value={formData.residentType} 
-                    onChange={(e) => setFormData({...formData, residentType: e.target.value})}
-                  >
-                    <option value="MORADOR">MORADOR</option>
-                    <option value="VISITA FREQUENTE">VISITA FREQUENTE</option>
-                    <option value="PROPRIETÁRIO NÃO RESIDENTE">PROPRIETÁRIO NÃO RESIDENTE</option>
-                  </select>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">E-mail de Acesso</label>
+                    <input 
+                      type="email" 
+                      placeholder="EX: JOAO@EMAIL.COM"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                      value={formData.email} 
+                      onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Data de Nascimento (Opcional)</label>
+                    <input 
+                      type="date" 
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                      value={formData.birthDate} 
+                      onChange={(e) => setFormData({...formData, birthDate: e.target.value})} 
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status</label>
-                  <select 
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
-                    value={formData.isActive ? 'true' : 'false'} 
-                    onChange={(e) => setFormData({...formData, isActive: e.target.value === 'true'})}
-                  >
-                    <option value="true">ATIVO</option>
-                    <option value="false">INATIVO</option>
-                  </select>
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Apartamento</label>
-                <select 
-                  disabled={currentUser?.role === 'MORADOR'}
-                  className={`w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none ${currentUser?.role === 'MORADOR' ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                  value={formData.unitId} 
-                  onChange={(e) => setFormData({...formData, unitId: e.target.value})}
-                >
-                  <option value="">NÃO VINCULAR APARTAMENTO</option>
-                  {displayUnidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
-                </select>
+                {/* Coluna 2: Telefones, Acesso & Sistema */}
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Telefones de Contato</label>
+                    {phoneList.map((p, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input 
+                          type="text" 
+                          placeholder="DDD"
+                          className="w-16 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                          value={p.ddd} 
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPhoneList(prev => prev.map((item, i) => i === idx ? { ...item, ddd: val } : item));
+                          }} 
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="99999-9999"
+                          className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                          value={p.phone} 
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPhoneList(prev => prev.map((item, i) => i === idx ? { ...item, phone: val } : item));
+                          }} 
+                        />
+                        {phoneList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setPhoneList(prev => prev.filter((_, i) => i !== idx))}
+                            className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setPhoneList(prev => [...prev, { ddd: '', phone: '' }])}
+                      className="py-2 px-3 border border-dashed border-slate-300 rounded-xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-50 transition flex items-center gap-1.5 w-fit"
+                    >
+                      <Plus size={14} /> Adicionar Telefone
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Senha (Opcional)</label>
+                    <input 
+                      type="password"
+                      placeholder="DEIXE EM BRANCO PARA USAR 5 PRIMEIROS DÍGITOS DO CPF"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800 placeholder:normal-case"
+                      value={formData.password} 
+                      onChange={(e) => setFormData({...formData, password: e.target.value})} 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Cadastro</label>
+                      <select 
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                        value={formData.residentType} 
+                        onChange={(e) => setFormData({...formData, residentType: e.target.value})}
+                      >
+                        <option value="MORADOR">MORADOR</option>
+                        <option value="VISITA FREQUENTE">VISITA FREQUENTE</option>
+                        <option value="PROPRIETÁRIO NÃO RESIDENTE">PROPRIETÁRIO NÃO RESIDENTE</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status</label>
+                      <select 
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 bg-slate-50 appearance-none"
+                        value={formData.isActive ? 'true' : 'false'} 
+                        onChange={(e) => setFormData({...formData, isActive: e.target.value === 'true'})}
+                      >
+                        <option value="true">ATIVO</option>
+                        <option value="false">INATIVO</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Apartamento</label>
+                    <select 
+                      disabled={currentUser?.role === 'MORADOR'}
+                      className={`w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-700 appearance-none ${currentUser?.role === 'MORADOR' ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                      value={formData.unitId} 
+                      onChange={(e) => setFormData({...formData, unitId: e.target.value})}
+                    >
+                      <option value="">NÃO VINCULAR APARTAMENTO</option>
+                      {displayUnidades.map(u => <option key={u.id} value={u.id}>{u.number} - {u.block}</option>)}
+                    </select>
+                  </div>
+                </div>
               </div>
 
               {ENABLE_TELEGRAM && isEditMode && selectedMorador && (
