@@ -188,7 +188,7 @@ export default function ColaboradoresPage() {
                   <input type="text" className="w-full p-2 border rounded" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Data de Nascimento</label>
+                  <label className="block text-sm font-medium mb-1">Data de Nascimento (Opcional)</label>
                   <input type="date" className="w-full p-2 border rounded" value={formData.birthDate} onChange={(e) => setFormData({...formData, birthDate: e.target.value})} />
                 </div>
               </div>
