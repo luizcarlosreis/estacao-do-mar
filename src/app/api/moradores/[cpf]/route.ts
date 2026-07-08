@@ -15,6 +15,12 @@ export async function PATCH(request: Request, context: any) {
     if (body.name) {
       body.name = body.name.toUpperCase();
     }
+    if (body.hasOwnProperty('phones')) {
+      const phones = body.phones;
+      body.phones = Array.isArray(phones) && phones.length > 0 ? JSON.stringify(phones) : null;
+      body.ddd = (Array.isArray(phones) && phones[0]?.ddd) || null;
+      body.phone = (Array.isArray(phones) && phones[0]?.phone) || null;
+    }
     const resident = await prisma.user.update({ where: { cpf: params.cpf }, data: body });
     return NextResponse.json(resident);
   } catch (error: any) {

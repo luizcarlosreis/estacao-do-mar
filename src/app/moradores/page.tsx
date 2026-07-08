@@ -40,13 +40,27 @@ type Morador = {
   unit?: Unit;
   ddd?: string;
   phone?: string;
+  phones?: string;
   residentType?: string;
   isActive?: boolean;
   telegramChatId?: string;
   telegramLinkToken?: string;
 };
 
-
+function parsePhones(phonesJson?: string, fallbackDdd?: string, fallbackPhone?: string): { ddd: string; phone: string }[] {
+  if (phonesJson) {
+    try {
+      const parsed = JSON.parse(phonesJson);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(p => ({ ddd: p.ddd || '', phone: p.phone || '' }));
+      }
+    } catch {}
+  }
+  if (fallbackPhone) {
+    return [{ ddd: fallbackDdd || '', phone: fallbackPhone }];
+  }
+  return [{ ddd: '', phone: '' }];
+}
 
 export default function MoradoresPage() {
   const ENABLE_TELEGRAM = false;
@@ -70,6 +84,7 @@ export default function MoradoresPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ cpf: '', name: '', email: '', password: '', unitId: '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '' });
+  const [phoneList, setPhoneList] = useState<{ ddd: string; phone: string }[]>([{ ddd: '', phone: '' }]);
 
   const API_URL = '/api/moradores';
   const UNIDADES_URL = '/api/unidades';
@@ -118,10 +133,14 @@ export default function MoradoresPage() {
       const url = isEditMode ? `${API_URL}/${formData.cpf}` : API_URL;
       const method = isEditMode ? 'PATCH' : 'POST';
       
+      const validPhones = phoneList.filter(p => p.phone.trim() !== '');
       const payload: any = { 
         ...formData,
         name: formData.name.toUpperCase(),
-        email: formData.email.toLowerCase()
+        email: formData.email.toLowerCase(),
+        phones: validPhones,
+        ddd: validPhones[0]?.ddd || '',
+        phone: validPhones[0]?.phone || ''
       };
       if (isEditMode && !payload.password) delete payload.password;
       if (!payload.unitId) payload.unitId = null;
@@ -181,6 +200,8 @@ export default function MoradoresPage() {
       isActive: m.isActive !== undefined ? m.isActive : true,
       rg: m.rg || ''
     });
+    const parsed = parsePhones(m.phones, m.ddd, m.phone);
+    setPhoneList(parsed.length > 0 ? parsed : [{ ddd: '', phone: '' }]);
     setIsEditMode(true);
     setIsModalOpen(true);
   };
@@ -188,6 +209,7 @@ export default function MoradoresPage() {
   const openCreateModal = () => {
     setSelectedMorador(null);
     setFormData({ cpf: '', name: '', email: '', password: '', unitId: currentUser?.role === 'MORADOR' ? (currentUser.unitId || '') : '', ddd: '', phone: '', residentType: 'MORADOR', isActive: true, rg: '' });
+    setPhoneList([{ ddd: '', phone: '' }]);
     setIsEditMode(false);
     setIsModalOpen(true);
   };
@@ -363,7 +385,11 @@ export default function MoradoresPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[8px] text-slate-400 font-black uppercase">{m.cpf}</span>
                               {m.rg && <span className="text-[8px] text-slate-400 font-black uppercase"> · RG: {m.rg}</span>}
-                               {m.phone && <span className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1"><Phone size={12} /> {m.ddd ? `(${m.ddd}) ` : ''}{m.phone}</span>}
+                               {parsePhones(m.phones, m.ddd, m.phone).map((p, idx) => p.phone && (
+                                 <span key={idx} className="text-[11px] text-emerald-600 font-black uppercase flex items-center gap-1">
+                                   <Phone size={12} /> {p.ddd ? `(${p.ddd}) ` : ''}{p.phone}
+                                 </span>
+                               ))}
                                <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider ${
                                  m.residentType === 'VISITA FREQUENTE' 
                                  ? 'bg-rose-100 text-rose-600' 
@@ -514,27 +540,48 @@ export default function MoradoresPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">DDD</label>
-                  <input 
-                    type="text" 
-                    placeholder="11"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                    value={formData.ddd} 
-                    onChange={(e) => setFormData({...formData, ddd: e.target.value})} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Telefone</label>
-                  <input 
-                    type="text" 
-                    placeholder="99999-9999"
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
-                    value={formData.phone} 
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                  />
-                </div>
+              <div className="space-y-3">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Telefones de Contato</label>
+                {phoneList.map((p, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input 
+                      type="text" 
+                      placeholder="DDD"
+                      className="w-16 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                      value={p.ddd} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPhoneList(prev => prev.map((item, i) => i === idx ? { ...item, ddd: val } : item));
+                      }} 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="99999-9999"
+                      className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none text-[11px] font-bold text-slate-800"
+                      value={p.phone} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPhoneList(prev => prev.map((item, i) => i === idx ? { ...item, phone: val } : item));
+                      }} 
+                    />
+                    {phoneList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setPhoneList(prev => prev.filter((_, i) => i !== idx))}
+                        className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPhoneList(prev => [...prev, { ddd: '', phone: '' }])}
+                  className="py-2 px-3 border border-dashed border-slate-300 rounded-xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-50 transition flex items-center gap-1.5 w-fit"
+                >
+                  <Plus size={14} /> Adicionar Telefone
+                </button>
               </div>
 
               <div>

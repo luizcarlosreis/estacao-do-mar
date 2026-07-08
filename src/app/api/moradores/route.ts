@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { cpf, name, email, password, unitId, ddd, phone, rg } = body;
+    const { cpf, name, email, password, unitId, ddd, phone, rg, phones } = body;
 
     if (!cpf || cpf.trim() === '') {
       return NextResponse.json(
@@ -88,8 +88,9 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: 'MORADOR',
         unitId: unitId || null,
-        ddd,
-        phone,
+        ddd: ddd || (phones && phones[0] ? phones[0].ddd : null),
+        phone: phone || (phones && phones[0] ? phones[0].phone : null),
+        phones: phones && Array.isArray(phones) && phones.length > 0 ? JSON.stringify(phones) : null,
         residentType: body.residentType || 'MORADOR',
         isActive: body.isActive !== undefined ? body.isActive : true,
         telegramLinkToken: randomUUID()

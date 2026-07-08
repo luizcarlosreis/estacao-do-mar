@@ -58,6 +58,7 @@ model User {
   unit      Unit?    @relation(fields: [unitId], references: [id])
   ddd       String?
   phone     String?
+  phones    String?  @db.Text
   residentType String @default("MORADOR")
   isActive     Boolean @default(true)
   telegramChatId    String?  @unique
