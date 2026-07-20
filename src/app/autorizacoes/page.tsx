@@ -531,7 +531,7 @@ export default function AutorizacoesPage() {
                           <Building size={14} /> {a.unit?.number} - {a.unit?.block}
                         </span>
                       </td>
-                      <td className="p-4 font-medium">
+                      <td className="p-4 font-medium text-xs whitespace-nowrap">
                         <div className="flex items-center gap-1.5 group justify-between">
                           <span>{a.name}</span>
                           <button
@@ -547,7 +547,7 @@ export default function AutorizacoesPage() {
                           </button>
                         </div>
                       </td>
-                      <td className="p-4 font-mono text-sm">
+                      <td className="p-4 font-mono text-xs whitespace-nowrap">
                         {a.cpf ? (
                           <div className="flex items-center gap-1.5 group justify-between">
                             <span>{a.cpf}</span>
@@ -567,7 +567,7 @@ export default function AutorizacoesPage() {
                           <span className="text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="p-4 text-sm">
+                      <td className="p-4 text-xs whitespace-nowrap">
                         {a.rg ? (
                           <div className="flex items-center gap-1.5 group justify-between">
                             <span>{a.rg}</span>
@@ -587,7 +587,7 @@ export default function AutorizacoesPage() {
                           <span className="text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="p-4 text-sm">
+                      <td className="p-4 text-xs whitespace-nowrap">
                         {formatDate(a.entryDate)} → {formatDate(a.exitDate)}
                       </td>
                       <td className="p-4">
