@@ -500,6 +500,7 @@ export default function AutorizacoesPage() {
                 <th className="p-4 font-semibold">Apartamento</th>
                 <th className="p-4 font-semibold">Pessoa Autorizada</th>
                 <th className="p-4 font-semibold">CPF</th>
+                <th className="p-4 font-semibold">RG</th>
                 <th className="p-4 font-semibold">Período</th>
                 <th className="p-4 font-semibold">Garagem</th>
                 <th className="p-4 font-semibold">Status</th>
@@ -508,9 +509,9 @@ export default function AutorizacoesPage() {
             </thead>
             <tbody className="text-slate-700">
               {loading ? (
-                <tr><td colSpan={7} className="p-10 text-center text-slate-400">Carregando...</td></tr>
+                <tr><td colSpan={8} className="p-10 text-center text-slate-400">Carregando...</td></tr>
               ) : paginated.length === 0 ? (
-                <tr><td colSpan={7} className="p-10 text-center text-slate-400">Nenhuma autorização cadastrada.</td></tr>
+                <tr><td colSpan={8} className="p-10 text-center text-slate-400">Nenhuma autorização cadastrada.</td></tr>
               ) : paginated.map(a => {
                 const status = getStatus(a.entryDate, a.exitDate);
                 const isExpanded = expandedRow === a.id;
@@ -524,6 +525,7 @@ export default function AutorizacoesPage() {
                       </td>
                       <td className="p-4 font-medium">{a.name}</td>
                       <td className="p-4 font-mono text-sm">{a.cpf}</td>
+                      <td className="p-4 text-sm">{a.rg || '—'}</td>
                       <td className="p-4 text-sm">
                         {formatDate(a.entryDate)} → {formatDate(a.exitDate)}
                       </td>
@@ -569,7 +571,7 @@ export default function AutorizacoesPage() {
                     </tr>
                     {isExpanded && a.companions.length > 0 && (
                       <tr key={`${a.id}-companions`} className="bg-blue-50/40 border-b border-slate-100">
-                        <td colSpan={7} className="px-8 py-3">
+                        <td colSpan={8} className="px-8 py-3">
                           <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Acompanhantes</p>
                           <div className="flex flex-wrap gap-3">
                             {a.companions.map((c, i) => (
