@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { APP_VERSION } from '@/lib/version';
@@ -84,6 +84,14 @@ export default function AutorizacoesPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 18;
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopy = (key: string, text: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   useEffect(() => { 
     fetchList(); 
@@ -523,9 +531,62 @@ export default function AutorizacoesPage() {
                           <Building size={14} /> {a.unit?.number} - {a.unit?.block}
                         </span>
                       </td>
-                      <td className="p-4 font-medium">{a.name}</td>
-                      <td className="p-4 font-mono text-sm">{a.cpf}</td>
-                      <td className="p-4 text-sm">{a.rg || '—'}</td>
+                      <td className="p-4 font-medium">
+                        <div className="flex items-center gap-1.5 group justify-between">
+                          <span>{a.name}</span>
+                          <button
+                            onClick={() => handleCopy(`${a.id}-name`, a.name)}
+                            className="text-slate-400 hover:text-blue-600 transition p-1 rounded hover:bg-slate-100 opacity-60 hover:opacity-100 flex-shrink-0"
+                            title="Copiar Nome"
+                          >
+                            {copiedKey === `${a.id}-name` ? (
+                              <Check size={13} className="text-emerald-600" />
+                            ) : (
+                              <Copy size={13} />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-4 font-mono text-sm">
+                        {a.cpf ? (
+                          <div className="flex items-center gap-1.5 group justify-between">
+                            <span>{a.cpf}</span>
+                            <button
+                              onClick={() => handleCopy(`${a.id}-cpf`, a.cpf)}
+                              className="text-slate-400 hover:text-blue-600 transition p-1 rounded hover:bg-slate-100 opacity-60 hover:opacity-100 flex-shrink-0"
+                              title="Copiar CPF"
+                            >
+                              {copiedKey === `${a.id}-cpf` ? (
+                                <Check size={13} className="text-emerald-600" />
+                              ) : (
+                                <Copy size={13} />
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-sm">
+                        {a.rg ? (
+                          <div className="flex items-center gap-1.5 group justify-between">
+                            <span>{a.rg}</span>
+                            <button
+                              onClick={() => handleCopy(`${a.id}-rg`, a.rg)}
+                              className="text-slate-400 hover:text-blue-600 transition p-1 rounded hover:bg-slate-100 opacity-60 hover:opacity-100 flex-shrink-0"
+                              title="Copiar RG"
+                            >
+                              {copiedKey === `${a.id}-rg` ? (
+                                <Check size={13} className="text-emerald-600" />
+                              ) : (
+                                <Copy size={13} />
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
                       <td className="p-4 text-sm">
                         {formatDate(a.entryDate)} → {formatDate(a.exitDate)}
                       </td>
