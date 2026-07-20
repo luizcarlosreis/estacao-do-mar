@@ -636,10 +636,53 @@ export default function AutorizacoesPage() {
                           <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Acompanhantes</p>
                           <div className="flex flex-wrap gap-3">
                             {a.companions.map((c, i) => (
-                              <div key={i} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm">
-                                <span className="font-medium text-slate-700">{c.name}</span>
-                                {c.cpf && <span className="text-slate-400 ml-2 font-mono text-xs">CPF: {c.cpf}</span>}
-                                {c.rg && <span className="text-slate-400 ml-2 text-xs">RG: {c.rg}</span>}
+                              <div key={i} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm flex items-center gap-x-3 gap-y-1.5 flex-wrap">
+                                <div className="flex items-center gap-1 group">
+                                  <span className="font-medium text-slate-700">{c.name}</span>
+                                  <button
+                                    onClick={() => handleCopy(`${a.id}-comp-${i}-name`, c.name)}
+                                    className="text-slate-400 hover:text-blue-600 transition p-0.5 rounded hover:bg-slate-100 opacity-60 hover:opacity-100"
+                                    title="Copiar Nome"
+                                  >
+                                    {copiedKey === `${a.id}-comp-${i}-name` ? (
+                                      <Check size={12} className="text-emerald-600" />
+                                    ) : (
+                                      <Copy size={12} />
+                                    )}
+                                  </button>
+                                </div>
+                                {c.cpf && (
+                                  <div className="flex items-center gap-1 group">
+                                    <span className="text-slate-400 font-mono text-xs">CPF: {c.cpf}</span>
+                                    <button
+                                      onClick={() => handleCopy(`${a.id}-comp-${i}-cpf`, c.cpf)}
+                                      className="text-slate-400 hover:text-blue-600 transition p-0.5 rounded hover:bg-slate-100 opacity-60 hover:opacity-100"
+                                      title="Copiar CPF"
+                                    >
+                                      {copiedKey === `${a.id}-comp-${i}-cpf` ? (
+                                        <Check size={12} className="text-emerald-600" />
+                                      ) : (
+                                        <Copy size={12} />
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                                {c.rg && (
+                                  <div className="flex items-center gap-1 group">
+                                    <span className="text-slate-400 text-xs">RG: {c.rg}</span>
+                                    <button
+                                      onClick={() => handleCopy(`${a.id}-comp-${i}-rg`, c.rg)}
+                                      className="text-slate-400 hover:text-blue-600 transition p-0.5 rounded hover:bg-slate-100 opacity-60 hover:opacity-100"
+                                      title="Copiar RG"
+                                    >
+                                      {copiedKey === `${a.id}-comp-${i}-rg` ? (
+                                        <Check size={12} className="text-emerald-600" />
+                                      ) : (
+                                        <Copy size={12} />
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
