@@ -237,7 +237,7 @@ export default function RootLayout({
           ))}
         </div>
 
-        <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container xl:mt-0">
+        <main className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 main-container xl:mt-0">
           {children}
         </main>
 

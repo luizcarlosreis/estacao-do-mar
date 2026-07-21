@@ -500,8 +500,8 @@ export default function AutorizacoesPage() {
       </div>
 
       {/* Tabela */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-100">
@@ -531,12 +531,12 @@ export default function AutorizacoesPage() {
                           <Building size={14} /> {a.unit?.number} - {a.unit?.block}
                         </span>
                       </td>
-                      <td className="p-4 font-medium text-xs whitespace-nowrap">
+                      <td className="p-4 font-medium text-xs min-w-[160px] max-w-[240px]">
                         <div className="flex items-center gap-1.5 group justify-between">
-                          <span>{a.name}</span>
+                          <span className="break-words">{a.name}</span>
                           <button
                             onClick={() => handleCopy(`${a.id}-name`, a.name)}
-                            className="text-slate-400 hover:text-blue-600 transition p-1 rounded hover:bg-slate-100 opacity-60 hover:opacity-100 flex-shrink-0"
+                            className="text-slate-400 hover:text-blue-600 transition p-1 rounded hover:bg-slate-100 opacity-60 hover:opacity-100 flex-shrink-0 self-start"
                             title="Copiar Nome"
                           >
                             {copiedKey === `${a.id}-name` ? (
