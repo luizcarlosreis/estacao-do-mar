@@ -872,14 +872,26 @@ export default function TarefasPage() {
                   )}
                   {formData.attachmentUrl && !isReadOnlyTask && (
                     <div className="flex justify-between items-center px-2">
-                      <span className="text-[9px] text-blue-600 font-bold italic truncate max-w-[200px]">Arquivo carregado</span>
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData(prev => ({ ...prev, attachmentUrl: '', attachmentName: '' }))}
-                        className="text-[9px] text-red-500 font-bold uppercase hover:underline"
-                      >
-                        Remover
-                      </button>
+                      <span className="text-[9px] text-blue-600 font-bold italic truncate max-w-[150px] sm:max-w-[200px]">
+                        Arquivo carregado
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          type="button" 
+                          onClick={() => downloadFile(formData.attachmentUrl!, formData.attachmentName || 'anexo')}
+                          className="text-[9px] text-blue-500 font-bold uppercase hover:underline flex items-center gap-1"
+                        >
+                          <Download size={10} /> Baixar
+                        </button>
+                        <span className="text-slate-200">|</span>
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData(prev => ({ ...prev, attachmentUrl: '', attachmentName: '' }))}
+                          className="text-[9px] text-red-500 font-bold uppercase hover:underline"
+                        >
+                          Remover
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
