@@ -439,12 +439,20 @@ export default function AutorizacoesPage() {
   const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Cálculos do Dashboard
-  const monthNum = parseInt(dashboardMonth);
   const yearNum = parseInt(dashboardYear);
 
   const dashboardFilteredAuths = list.filter(a => {
     if (!a.entryDate || !a.exitDate) return false;
-    return overlapsMonthYear(a.entryDate, a.exitDate, monthNum, yearNum);
+    if (dashboardMonth === 'todos') {
+      const startOfYear = new Date(yearNum, 0, 1);
+      const endOfYear = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+      const entryDate = new Date(a.entryDate);
+      const exitDate = new Date(a.exitDate);
+      return entryDate <= endOfYear && exitDate >= startOfYear;
+    } else {
+      const monthNum = parseInt(dashboardMonth);
+      return overlapsMonthYear(a.entryDate, a.exitDate, monthNum, yearNum);
+    }
   });
 
   const statsByUnit: Record<string, { unitName: string; count: number; people: number }> = {};
@@ -1032,6 +1040,7 @@ export default function AutorizacoesPage() {
                   value={dashboardMonth}
                   onChange={(e) => setDashboardMonth(e.target.value)}
                 >
+                  <option value="todos">Todos os meses</option>
                   {MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
                 </select>
 
@@ -1113,7 +1122,7 @@ export default function AutorizacoesPage() {
                       {dashboardStats.length === 0 ? (
                         <tr>
                           <td colSpan={3} className="p-8 text-center text-slate-400">
-                            Nenhum registro encontrado para {MONTHS.find(m => m.val === dashboardMonth)?.name} de {dashboardYear}.
+                            Nenhum registro encontrado para {dashboardMonth === 'todos' ? 'o ano' : MONTHS.find(m => m.val === dashboardMonth)?.name} de {dashboardYear}.
                           </td>
                         </tr>
                       ) : (
