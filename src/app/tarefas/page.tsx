@@ -557,23 +557,26 @@ export default function TarefasPage() {
                                   </div>
                                 )}
                                 
-                                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
-                                  <div className="flex items-center gap-3">
+                                <div className="flex flex-col gap-1.5 mt-3 pt-2 border-t border-slate-100">
+                                  <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase">
                                       <Calendar size={10} />
                                       {new Date(task.createdAt).toLocaleDateString('pt-BR')}
                                     </div>
                                     {task.attachmentUrl && (
-                                      <div className="flex items-center gap-1 text-[9px] text-blue-500 font-bold uppercase">
+                                      <div className="flex items-center gap-1 text-[9px] text-blue-600 font-bold uppercase bg-blue-50/50 px-1.5 py-0.5 rounded border border-blue-100/50">
                                         <Paperclip size={10} />
                                         ANEXO
                                       </div>
                                     )}
                                   </div>
                                   {task.status === 'DONE' && task.performedAt && (
-                                    <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
-                                      <CheckCircle2 size={10} />
-                                      {task.performedAt.split('T')[0].split('-').reverse().join('/')}
+                                    <div className="flex items-center justify-between w-full mt-0.5">
+                                      <span className="text-[9px] text-slate-400 font-bold uppercase">Concluída:</span>
+                                      <div className="text-[9px] text-emerald-600 font-black flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/30">
+                                        <CheckCircle2 size={10} />
+                                        {task.performedAt.split('T')[0].split('-').reverse().join('/')}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
