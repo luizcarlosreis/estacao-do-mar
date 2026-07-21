@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Building, ShieldCheck, Car, Users, ChevronDown, ChevronUp, FileText, Search, FileDown, ChevronLeft, ChevronRight, Copy, Check, LayoutDashboard } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { APP_VERSION } from '@/lib/version';
@@ -64,6 +64,33 @@ const statusStyle: Record<string, string> = {
 };
 const statusLabel: Record<string, string> = { ativo: 'Ativo', expirado: 'Expirado', aguardando: 'Aguardando' };
 
+const MONTHS = [
+  { val: '1', name: 'Janeiro' },
+  { val: '2', name: 'Fevereiro' },
+  { val: '3', name: 'Março' },
+  { val: '4', name: 'Abril' },
+  { val: '5', name: 'Maio' },
+  { val: '6', name: 'Junho' },
+  { val: '7', name: 'Julho' },
+  { val: '8', name: 'Agosto' },
+  { val: '9', name: 'Setembro' },
+  { val: '10', name: 'Outubro' },
+  { val: '11', name: 'Novembro' },
+  { val: '12', name: 'Dezembro' },
+];
+
+function overlapsMonthYear(entryStr: string | null, exitStr: string | null, month: number, year: number) {
+  if (!entryStr || !exitStr) return false;
+  
+  const startOfMonth = new Date(year, month - 1, 1);
+  const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+  
+  const entryDate = new Date(entryStr);
+  const exitDate = new Date(exitStr);
+  
+  return entryDate <= endOfMonth && exitDate >= startOfMonth;
+}
+
 export default function AutorizacoesPage() {
   const [list, setList] = useState<Authorization[]>([]);
   const [unidades, setUnidades] = useState<Unit[]>([]);
@@ -85,6 +112,11 @@ export default function AutorizacoesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 18;
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Estados do Dashboard
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [dashboardMonth, setDashboardMonth] = useState((new Date().getMonth() + 1).toString());
+  const [dashboardYear, setDashboardYear] = useState(new Date().getFullYear().toString());
 
   const handleCopy = (key: string, text: string) => {
     if (!text) return;
@@ -406,6 +438,41 @@ export default function AutorizacoesPage() {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // Cálculos do Dashboard
+  const monthNum = parseInt(dashboardMonth);
+  const yearNum = parseInt(dashboardYear);
+
+  const dashboardFilteredAuths = list.filter(a => {
+    if (!a.entryDate || !a.exitDate) return false;
+    return overlapsMonthYear(a.entryDate, a.exitDate, monthNum, yearNum);
+  });
+
+  const statsByUnit: Record<string, { unitName: string; count: number; people: number }> = {};
+
+  dashboardFilteredAuths.forEach(a => {
+    if (!a.unit) return;
+    const unitKey = a.unitId;
+    const unitName = `${a.unit.number} - ${a.unit.block}`;
+    const peopleCount = 1 + (a.companions?.length || 0);
+
+    if (!statsByUnit[unitKey]) {
+      statsByUnit[unitKey] = {
+        unitName,
+        count: 0,
+        people: 0,
+      };
+    }
+    statsByUnit[unitKey].count += 1;
+    statsByUnit[unitKey].people += peopleCount;
+  });
+
+  const dashboardStats = Object.values(statsByUnit).sort((a, b) => 
+    a.unitName.localeCompare(b.unitName, undefined, { numeric: true, sensitivity: 'base' })
+  );
+
+  const totalDashboardAuths = dashboardStats.reduce((sum, item) => sum + item.count, 0);
+  const totalDashboardPeople = dashboardStats.reduce((sum, item) => sum + item.people, 0);
+
   const inp = 'w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white';
   const lbl = 'block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1';
 
@@ -418,12 +485,20 @@ export default function AutorizacoesPage() {
           </h1>
           <p className="text-slate-500 text-sm mt-1">Controle de acesso por apartamento</p>
         </div>
-        {currentUser?.role !== 'PORTEIRO' && currentUser?.role !== 'CONSELHO' && (
-          <button onClick={openCreate}
-            className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
-            <Plus size={18} /> Nova Autorização
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'CONSELHO' || currentUser?.role === 'ADMINISTRADORA') && (
+            <button onClick={() => setIsDashboardOpen(true)}
+              className="bg-slate-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-slate-700 transition font-semibold shadow-md text-sm">
+              <LayoutDashboard size={18} /> Painel Estatístico
+            </button>
+          )}
+          {currentUser?.role !== 'PORTEIRO' && currentUser?.role !== 'CONSELHO' && (
+            <button onClick={openCreate}
+              className="bg-blue-600 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition font-semibold shadow-md shadow-blue-200 text-sm">
+              <Plus size={18} /> Nova Autorização
+            </button>
+          )}
+        </div>
       </div>
       
       {/* Regras e Check-in */}
@@ -937,6 +1012,137 @@ export default function AutorizacoesPage() {
                 )}
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Dashboard */}
+      {isDashboardOpen && (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'CONSELHO' || currentUser?.role === 'ADMINISTRADORA') && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-6 overflow-hidden animate-in zoom-in duration-200">
+            {/* Header */}
+            <div className="bg-slate-800 p-5 text-white flex justify-between items-center">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <LayoutDashboard size={20} /> Dashboard de Autorizações
+              </h2>
+              <div className="flex items-center gap-3">
+                {/* Filtro Mês */}
+                <select 
+                  className="bg-slate-700 text-white text-xs rounded-lg p-2 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={dashboardMonth}
+                  onChange={(e) => setDashboardMonth(e.target.value)}
+                >
+                  {MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
+                </select>
+
+                {/* Filtro Ano */}
+                <select 
+                  className="bg-slate-700 text-white text-xs rounded-lg p-2 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={dashboardYear}
+                  onChange={(e) => setDashboardYear(e.target.value)}
+                >
+                  {Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString()).map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+
+                <button onClick={() => setIsDashboardOpen(false)} className="hover:rotate-90 transition-transform p-1 hover:bg-slate-700 rounded" title="Fechar Dashboard">
+                  <X size={22} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Cards Informativos */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white shrink-0">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Autorizações</p>
+                    <h4 className="text-xl font-bold text-slate-800">{totalDashboardAuths}</h4>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center text-white shrink-0">
+                    <Users size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Pessoas</p>
+                    <h4 className="text-xl font-bold text-slate-800">{totalDashboardPeople}</h4>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center text-white shrink-0">
+                    <Building size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aptos Ativos</p>
+                    <h4 className="text-xl font-bold text-slate-800">{dashboardStats.length}</h4>
+                  </div>
+                </div>
+
+                <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shrink-0">
+                    <Users size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Média Pessoas/Apto</p>
+                    <h4 className="text-xl font-bold text-slate-800">
+                      {dashboardStats.length > 0 ? (totalDashboardPeople / dashboardStats.length).toFixed(1) : '0'}
+                    </h4>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabela do Dashboard */}
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <div className="max-h-[50vh] overflow-y-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide border-b border-slate-200">
+                        <th className="p-3.5 font-semibold">Apartamento</th>
+                        <th className="p-3.5 font-semibold text-center">Total de Autorizações</th>
+                        <th className="p-3.5 font-semibold text-center">Total de Pessoas (Reserva)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-slate-700 text-sm">
+                      {dashboardStats.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className="p-8 text-center text-slate-400">
+                            Nenhum registro encontrado para {MONTHS.find(m => m.val === dashboardMonth)?.name} de {dashboardYear}.
+                          </td>
+                        </tr>
+                      ) : (
+                        dashboardStats.map((item, idx) => (
+                          <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50 transition">
+                            <td className="p-3.5 font-medium flex items-center gap-2 text-blue-600">
+                              <Building size={14} /> {item.unitName}
+                            </td>
+                            <td className="p-3.5 text-center font-bold text-slate-700">{item.count}</td>
+                            <td className="p-3.5 text-center font-bold text-slate-700">{item.people}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    {dashboardStats.length > 0 && (
+                      <tfoot>
+                        <tr className="bg-slate-100 text-slate-800 text-sm font-bold border-t border-slate-350">
+                          <td className="p-3.5 flex items-center gap-2">
+                            Total Geral
+                          </td>
+                          <td className="p-3.5 text-center">{totalDashboardAuths}</td>
+                          <td className="p-3.5 text-center">{totalDashboardPeople}</td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
