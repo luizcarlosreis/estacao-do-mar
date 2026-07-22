@@ -617,10 +617,10 @@ export default function ReservasPage() {
                 { letter: 'E', text: 'Convidados devem permanecer na parte interna do salão.' },
                 { letter: 'F', text: 'Bebidas alcoólicas devem ser consumidas com bom senso e apenas na área interna.' },
                 { letter: 'G', text: 'É proibido fixar qualquer objeto nas paredes e no teto utilizando cola ou fitas.' }
-              ].map((item) => (
+              ].map((item: { letter: string; text: string; bold?: boolean }) => (
                 <div key={item.letter} className="flex gap-3 text-[11px] leading-relaxed">
                   <span className="font-black text-blue-600 shrink-0">{item.letter}.</span>
-                  <p className="text-slate-600 font-medium">{item.text}</p>
+                  <p className={`text-slate-600 ${item.bold ? 'font-bold text-slate-900' : 'font-medium'}`}>{item.text}</p>
                 </div>
               ))}
             </div>
@@ -631,11 +631,16 @@ export default function ReservasPage() {
                 { letter: 'J', text: 'Disponível: 5 conjuntos de mesas de plástico com 4 cadeiras para cada mesa. Proibido remanejar móveis de outras áreas.' },
                 { letter: 'K', text: 'Empresas terceiras devem ser avisadas previamente à portaria.' },
                 { letter: 'L', text: 'Após a aprovação da reserva for efetivada, preencher a lista de convidados no portal.' },
-                { letter: 'M', text: 'Taxa de utilização do salão de festas: R$ 150,00. (Art. 46 do RI) e conforme aprovação em assembleia de 18/03/2023.' }
-              ].map((item) => (
+                { letter: 'M', text: 'Taxa de utilização do salão de festas: R$ 150,00. (Art. 46 do RI) e conforme aprovação em assembleia de 18/03/2023.' },
+                { 
+                  letter: 'N', 
+                  text: 'Art. 45 - A recusa ao pagamento; ou sua demora por mais de quinze dias, a partir da data da notificação relativa ao ressarcimento das despesas havidas com reparação dos danos causados, acarretará o acréscimo de 10% (dez por cento) no montante dos danos apurados e a cobrança judicial do débito, com o pagamento de custas e honorários advocatícios, bem como a perda do direito de requisição do Salão de Festas até o cumprimento das obrigações.',
+                  bold: true
+                }
+              ].map((item: { letter: string; text: string; bold?: boolean }) => (
                 <div key={item.letter} className="flex gap-3 text-[11px] leading-relaxed">
                   <span className="font-black text-blue-600 shrink-0">{item.letter}.</span>
-                  <p className="text-slate-600 font-medium">{item.text}</p>
+                  <p className={`text-slate-600 ${item.bold ? 'font-bold text-slate-900' : 'font-medium'}`}>{item.text}</p>
                 </div>
               ))}
               <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between">
