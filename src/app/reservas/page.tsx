@@ -634,7 +634,7 @@ export default function ReservasPage() {
                 { letter: 'M', text: 'Taxa de utilização do salão de festas: R$ 150,00. (Art. 46 do RI) e conforme aprovação em assembleia de 18/03/2023.' },
                 { 
                   letter: 'N', 
-                  text: 'Art. 45 - A recusa ao pagamento; ou sua demora por mais de quinze dias, a partir da data da notificação relativa ao ressarcimento das despesas havidas com reparação dos danos causados, acarretará o acréscimo de 10% (dez por cento) no montante dos danos apurados e a cobrança judicial do débito, com o pagamento de custas e honorários advocatícios, bem como a perda do direito de requisição do Salão de Festas até o cumprimento das obrigações.',
+                  text: 'Impossibilidade de alugar o salão conforme convenção: Art. 45 - A recusa ao pagamento; ou sua demora por mais de quinze dias, a partir da data da notificação relativa ao ressarcimento das despesas havidas com reparação dos danos causados, acarretará o acréscimo de 10% (dez por cento) no montante dos danos apurados e a cobrança judicial do débito, com o pagamento de custas e honorários advocatícios, bem como a perda do direito de requisição do Salão de Festas até o cumprimento das obrigações.',
                   bold: true
                 }
               ].map((item: { letter: string; text: string; bold?: boolean }) => (
