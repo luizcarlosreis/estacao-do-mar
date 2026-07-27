@@ -90,6 +90,17 @@ export default function DocumentosPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleRemoveFile = () => {
+    setFormData(prev => ({
+      ...prev,
+      fileUrl: '',
+      fileName: '',
+      fileSize: 0
+    }));
+    const input = document.getElementById('doc-upload') as HTMLInputElement;
+    if (input) input.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fileUrl) return alert('Selecione um arquivo.');
@@ -318,27 +329,48 @@ export default function DocumentosPage() {
                 />
               </div>
 
-              <div className={`relative group ${formData.id ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Arquivo (PDF, JPG, PNG)</label>
-                <input 
-                  type="file" 
-                  disabled={!!formData.id}
-                  className="hidden" 
-                  id="doc-upload" 
-                  onChange={handleFileChange}
-                />
-                <label 
-                  htmlFor={formData.id ? '' : 'doc-upload'} 
-                  className={`flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 bg-slate-50 transition ${!formData.id && 'cursor-pointer hover:border-blue-400 hover:bg-blue-50'}`}
-                >
-                  <Plus size={20} className="text-slate-400 mb-2" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">
-                    {formData.fileName || 'Selecionar Arquivo'}
-                  </span>
-                  <span className="text-[9px] text-slate-400 mt-1 uppercase">Máximo 4.5MB</span>
-                </label>
-                {formData.id && (
-                  <p className="text-[9px] text-blue-500 font-bold mt-2 text-center italic">Para alterar o arquivo, exclua e cadastre novamente.</p>
+                {formData.fileUrl ? (
+                  <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div className="flex items-center gap-3 overflow-hidden pr-2">
+                      <div className="p-2 bg-blue-100 text-blue-600 rounded-xl flex-shrink-0">
+                        <FileText size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold text-slate-800 truncate uppercase">{formData.fileName}</p>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase">{formatSize(formData.fileSize)}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider"
+                      title="Remover anexo"
+                    >
+                      <Trash2 size={16} />
+                      <span>Remover</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      id="doc-upload" 
+                      onChange={handleFileChange}
+                    />
+                    <label 
+                      htmlFor="doc-upload" 
+                      className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 bg-slate-50 transition cursor-pointer hover:border-blue-400 hover:bg-blue-50"
+                    >
+                      <Plus size={20} className="text-slate-400 mb-2" />
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">
+                        Selecionar Arquivo
+                      </span>
+                      <span className="text-[9px] text-slate-400 mt-1 uppercase">Máximo 4.5MB</span>
+                    </label>
+                  </div>
                 )}
               </div>
 

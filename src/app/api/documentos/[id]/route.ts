@@ -40,13 +40,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const body = await request.json();
-    const { title, description } = body;
+    const { title, description, fileUrl, fileName, fileSize } = body;
 
     const document = await prisma.document.update({
       where: { id },
       data: {
         title: title ? title.toUpperCase() : undefined,
         description: description !== undefined ? description.toUpperCase() : undefined,
+        ...(fileUrl !== undefined && { fileUrl }),
+        ...(fileName !== undefined && { fileName }),
+        ...(fileSize !== undefined && { fileSize }),
       },
     });
 
