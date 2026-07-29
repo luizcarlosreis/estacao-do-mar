@@ -76,3 +76,37 @@ export async function DELETE(
     return NextResponse.json({ message: error.message || 'Erro ao remover convidado' }, { status: 500 });
   }
 }
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: reservationId } = await params;
+    const body = await request.json();
+    const { guestId, name, cpf } = body;
+
+    if (!guestId) {
+      return NextResponse.json({ message: 'guestId é obrigatório' }, { status: 400 });
+    }
+    if (!name || !name.trim()) {
+      return NextResponse.json({ message: 'Nome é obrigatório' }, { status: 400 });
+    }
+
+    const prisma = getPrisma();
+
+    const updatedGuest = await prisma.ballroomGuest.update({
+      where: { id: guestId, reservationId },
+      data: {
+        name: name.trim().toUpperCase(),
+        cpf: cpf?.trim() || null,
+      },
+    });
+
+    return NextResponse.json(updatedGuest);
+  } catch (error: any) {
+    console.error('API PUT Convidado Error:', error.message);
+    return NextResponse.json({ message: error.message || 'Erro ao alterar convidado' }, { status: 500 });
+  }
+}
+

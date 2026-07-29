@@ -97,6 +97,10 @@ export default function ReservasPage() {
   const [guestCpf, setGuestCpf] = useState('');
   const [savingGuest, setSavingGuest] = useState(false);
   const [guestSearch, setGuestSearch] = useState('');
+  const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
+  const [editGuestName, setEditGuestName] = useState('');
+  const [editGuestCpf, setEditGuestCpf] = useState('');
+  const [savingEditGuest, setSavingEditGuest] = useState(false);
 
   useEffect(() => { 
     setMounted(true);
@@ -209,6 +213,9 @@ export default function ReservasPage() {
     setGuestName('');
     setGuestCpf('');
     setGuestSearch('');
+    setEditingGuestId(null);
+    setEditGuestName('');
+    setEditGuestCpf('');
   };
 
   const handleAddGuest = async () => {
@@ -239,6 +246,66 @@ export default function ReservasPage() {
     } finally { setSavingGuest(false); }
   };
 
+  const startEditGuest = (g: BallroomGuest) => {
+    setEditingGuestId(g.id);
+    setEditGuestName(g.name);
+    setEditGuestCpf(g.cpf || '');
+  };
+
+  const cancelEditGuest = () => {
+    setEditingGuestId(null);
+    setEditGuestName('');
+    setEditGuestCpf('');
+  };
+
+  const handleUpdateGuest = async (guestId: string) => {
+    if (!editGuestName.trim() || !guestModalReservation) return;
+    setSavingEditGuest(true);
+    try {
+      const res = await fetch(`/api/reservas/${guestModalReservation.id}/convidados`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestId, name: editGuestName, cpf: editGuestCpf }),
+      });
+      if (res.ok) {
+        const updated: BallroomGuest = await res.json();
+        setGuestModalReservation(prev =>
+          prev
+            ? {
+                ...prev,
+                guests: (prev.guests || [])
+                  .map(g => (g.id === guestId ? updated : g))
+                  .sort((a, b) => a.name.localeCompare(b.name)),
+              }
+            : prev
+        );
+        setList(prev =>
+          prev.map(r =>
+            r.id === guestModalReservation.id
+              ? {
+                  ...r,
+                  guests: (r.guests || [])
+                    .map(g => (g.id === guestId ? updated : g))
+                    .sort((a, b) => a.name.localeCompare(b.name)),
+                }
+              : r
+          )
+        );
+        setEditingGuestId(null);
+        setEditGuestName('');
+        setEditGuestCpf('');
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.message}`);
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert('Erro ao alterar convidado.');
+    } finally {
+      setSavingEditGuest(false);
+    }
+  };
+
   const handleRemoveGuest = async (guestId: string) => {
     if (!guestModalReservation) return;
     if (!confirm('Remover convidado?')) return;
@@ -254,6 +321,7 @@ export default function ReservasPage() {
       ));
     }
   };
+
 
   const openCreate = () => {
     setFormData({ 
@@ -332,7 +400,7 @@ export default function ReservasPage() {
   const isZeladoria = currentUser?.role === 'ZELADORIA';
   const isPorteiro = currentUser?.role === 'PORTEIRO';
   const isReadOnlyReservation = isZeladoria || isPorteiro || currentUser?.role === 'CONSELHO';
-  const isReadOnlyGuest = isAdmin || isZeladoria || isPorteiro || currentUser?.role === 'CONSELHO';
+  const isReadOnlyGuest = isZeladoria || isPorteiro || currentUser?.role === 'CONSELHO';
   const isMorador = currentUser?.role === 'MORADOR';
 
   // Dashboard calculations
@@ -1031,24 +1099,91 @@ export default function ReservasPage() {
                       ) : (
                         <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                           {filtered.map((g, idx) => (
-                            <div key={g.id} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100 group">
-                              <div>
-                                <span className="text-[10px] font-black text-slate-400 mr-2">{idx + 1}.</span>
-                                <span className="text-xs font-bold text-slate-700">{g.name}</span>
-                                {g.cpf && <span className="ml-2 text-[10px] text-slate-400 font-medium">{g.cpf}</span>}
-                              </div>
-                              {/* Botão remover — somente MORADOR */}
-                              {!isReadOnlyGuest && (
-                                <button
-                                  onClick={() => handleRemoveGuest(g.id)}
-                                  className="p-1.5 text-slate-300 hover:text-red-500 transition hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
+                            <div key={g.id} className="bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100 transition">
+                              {editingGuestId === g.id ? (
+                                <div className="flex flex-col gap-2.5">
+                                  <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase">
+                                    <span>Editar Convidado #{idx + 1}</span>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">Nome Completo *</label>
+                                      <input
+                                        type="text"
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        value={editGuestName}
+                                        onChange={e => setEditGuestName(e.target.value.toUpperCase())}
+                                        placeholder="NOME DO CONVIDADO"
+                                        autoFocus
+                                        onKeyDown={e => {
+                                          if (e.key === 'Enter') handleUpdateGuest(g.id);
+                                          if (e.key === 'Escape') cancelEditGuest();
+                                        }}
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">CPF</label>
+                                      <input
+                                        type="text"
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        value={editGuestCpf}
+                                        onChange={e => setEditGuestCpf(e.target.value)}
+                                        placeholder="000.000.000-00"
+                                        onKeyDown={e => {
+                                          if (e.key === 'Enter') handleUpdateGuest(g.id);
+                                          if (e.key === 'Escape') cancelEditGuest();
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-end gap-2 pt-1">
+                                    <button
+                                      onClick={cancelEditGuest}
+                                      disabled={savingEditGuest}
+                                      className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition text-[10px] font-bold uppercase"
+                                    >
+                                      Cancelar
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateGuest(g.id)}
+                                      disabled={savingEditGuest || !editGuestName.trim()}
+                                      className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-[10px] font-bold uppercase disabled:opacity-50 flex items-center gap-1"
+                                    >
+                                      {savingEditGuest ? 'Salvando...' : 'Salvar Alteração'}
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1 min-w-0 pr-2">
+                                    <span className="text-[10px] font-black text-slate-400 mr-2">{idx + 1}.</span>
+                                    <span className="text-xs font-bold text-slate-700">{g.name}</span>
+                                    {g.cpf && <span className="ml-2 text-[10px] text-slate-400 font-medium">({g.cpf})</span>}
+                                  </div>
+                                  {!isReadOnlyGuest && (
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <button
+                                        onClick={() => startEditGuest(g)}
+                                        title="Alterar Convidado"
+                                        className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition"
+                                      >
+                                        <Edit2 size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleRemoveGuest(g.id)}
+                                        title="Excluir Convidado"
+                                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </div>
                           ))}
                         </div>
+
                       )}
                     </>
                   );
