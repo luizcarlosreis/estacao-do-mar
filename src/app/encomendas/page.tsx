@@ -23,7 +23,8 @@ import {
   BarChart3,
   TrendingUp,
   PieChart,
-  AlertCircle
+  AlertCircle,
+  Edit2
 } from 'lucide-react';
 import { APP_VERSION } from '@/lib/version';
 import * as XLSX from 'xlsx';
@@ -71,6 +72,10 @@ export default function EncomendasPage() {
   const [saving, setSaving] = useState(false);
   const [notifiedPackages, setNotifiedPackages] = useState<Set<string>>(new Set());
   const [notifyingPackage, setNotifyingPackage] = useState<string | null>(null);
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
+  const [editingPackageNumber, setEditingPackageNumber] = useState<number | null>(null);
   
   // Estados do Dashboard
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
@@ -161,17 +166,56 @@ export default function EncomendasPage() {
     fetch('/api/me').then(res => res.ok ? res.json() : null).then(data => setCurrentUser(data?.user));
   }, [fetchPackages]);
 
+  const openCreateModal = () => {
+    setIsEditMode(false);
+    setEditingPackageId(null);
+    setEditingPackageNumber(null);
+    setFormData({
+      unitId: '',
+      residentId: '',
+      type: 'Pacote',
+      size: 'média',
+      carrier: '',
+      observations: '',
+      conciergeName: ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (p: Package, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsEditMode(true);
+    setEditingPackageId(p.id);
+    setEditingPackageNumber(p.number);
+    setFormData({
+      unitId: p.unitId,
+      residentId: p.residentId,
+      type: p.type || 'Pacote',
+      size: p.size || 'média',
+      carrier: p.carrier || '',
+      observations: p.observations || '',
+      conciergeName: p.conciergeName || ''
+    });
+    setIsViewModalOpen(false);
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/encomendas', {
-        method: 'POST',
+      const url = isEditMode && editingPackageId ? `/api/encomendas/${editingPackageId}` : '/api/encomendas';
+      const method = isEditMode && editingPackageId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       if (res.ok) {
         setIsModalOpen(false);
+        setIsEditMode(false);
+        setEditingPackageId(null);
+        setEditingPackageNumber(null);
         setFormData({ unitId: '', residentId: '', type: 'Pacote', size: 'média', carrier: '', observations: '', conciergeName: '' });
         fetchPackages();
       } else {
@@ -336,7 +380,7 @@ export default function EncomendasPage() {
           )}
           {isStaff && (
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={openCreateModal}
               className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95"
             >
               <Plus size={20} /> Nova Encomenda
@@ -557,15 +601,24 @@ export default function EncomendasPage() {
                 )}
               </div>
 
-              {isStaff && p.status === 'RECEBIDO PORTARIA' && (
-                <div className="mt-6 flex gap-2">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
-                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2"
+              {isStaff && (
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {p.status === 'RECEBIDO PORTARIA' && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
+                      className="flex-1 min-w-[120px] py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2"
+                    >
+                      <LogOut size={16} /> Dar Baixa
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => openEditModal(p, e)}
+                    title="Alterar dados da encomenda"
+                    className="py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-amber-100 flex items-center justify-center gap-2"
                   >
-                    <LogOut size={16} /> Dar Baixa
+                    <Edit2 size={16} /> Alterar
                   </button>
-                  {p.resident.telegramChatId && (
+                  {p.status === 'RECEBIDO PORTARIA' && p.resident.telegramChatId && (
                     notifiedPackages.has(p.id) ? (
                       <span className="py-3 px-4 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 border border-emerald-100">
                         <CheckCircle2 size={14} /> Notificado ✅
@@ -633,7 +686,8 @@ export default function EncomendasPage() {
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg p-10 animate-in zoom-in-95 duration-200 my-auto">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                <Plus className="text-blue-600" /> Registrar Entrada
+                {isEditMode ? <Edit2 className="text-amber-600" /> : <Plus className="text-blue-600" />}
+                {isEditMode ? `Alterar Encomenda #${editingPackageNumber}` : 'Registrar Entrada'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={24} /></button>
             </div>
@@ -662,7 +716,7 @@ export default function EncomendasPage() {
                     onChange={(e) => setFormData({ ...formData, residentId: e.target.value })}
                   >
                     <option value="">Selecionar Morador</option>
-                    {residents.filter(r => r.unitId === formData.unitId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    {residents.filter(r => r.unitId === formData.unitId || r.id === formData.residentId).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
                   {formData.residentId && (
                     <div className="mt-2 flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 animate-in slide-in-from-top-1 duration-200">
@@ -743,8 +797,8 @@ export default function EncomendasPage() {
 
               <div className="flex justify-end gap-3 pt-6">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-all">Cancelar</button>
-                <button disabled={saving} type="submit" className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50">
-                  {saving ? 'Gravando...' : 'Registrar Entrada'}
+                <button disabled={saving} type="submit" className={`px-10 py-4 ${isEditMode ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'} text-white rounded-2xl font-bold transition-all shadow-lg disabled:opacity-50`}>
+                  {saving ? 'Gravando...' : isEditMode ? 'Salvar Alterações' : 'Registrar Entrada'}
                 </button>
               </div>
             </form>
@@ -940,6 +994,15 @@ export default function EncomendasPage() {
               >
                 Fechar
               </button>
+              {isStaff && (
+                <button 
+                  type="button"
+                  onClick={() => openEditModal(selectedPackage)} 
+                  className="px-6 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold transition-all text-sm shadow-lg shadow-amber-100 flex items-center gap-2 active:scale-95"
+                >
+                  <Edit2 size={16} /> Alterar Dados
+                </button>
+              )}
               {isStaff && selectedPackage.status === 'RECEBIDO PORTARIA' && (
                 <>
                   {selectedPackage.resident.telegramChatId && !notifiedPackages.has(selectedPackage.id) && (

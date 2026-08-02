@@ -25,6 +25,35 @@ export async function PATCH(request: Request, context: any) {
   }
 }
 
+export async function PUT(request: Request, context: any) {
+  try {
+    const prisma = getPrisma();
+    const params = await context.params;
+    const body = await request.json();
+
+    const pkg = await prisma.package.update({
+      where: { id: params.id },
+      data: {
+        unitId: body.unitId,
+        residentId: body.residentId,
+        type: body.type,
+        size: body.size,
+        carrier: body.carrier,
+        observations: body.observations,
+        conciergeName: body.conciergeName,
+      },
+      include: {
+        unit: true,
+        resident: true,
+      },
+    });
+
+    return NextResponse.json(pkg);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 400 });
+  }
+}
+
 export async function DELETE(request: Request, context: any) {
   try {
     const prisma = getPrisma();
@@ -35,3 +64,4 @@ export async function DELETE(request: Request, context: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
+
