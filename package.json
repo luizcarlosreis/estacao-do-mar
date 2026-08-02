@@ -1,10 +1,10 @@
 {
   "name": "frontend",
-  "version": "1.2.56",
+  "version": "1.2.57",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "PRISMA_CLIENT_ENGINE_TYPE=library prisma generate && next build",
+    "build": "PRISMA_CLIENT_ENGINE_TYPE=library prisma generate && prisma db push --accept-data-loss && next build",
     "start": "next start",
     "lint": "eslint"
   },

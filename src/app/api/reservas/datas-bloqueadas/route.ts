@@ -16,10 +16,15 @@ export async function GET(_request: NextRequest) {
       orderBy: { date: 'asc' },
     });
 
-    const blocks = await prisma.ballroomBlock.findMany({
-      select: { id: true, date: true, reason: true },
-      orderBy: { date: 'asc' },
-    });
+    let blocks: any[] = [];
+    try {
+      blocks = await prisma.ballroomBlock.findMany({
+        select: { id: true, date: true, reason: true },
+        orderBy: { date: 'asc' },
+      });
+    } catch (e: any) {
+      console.warn('BallroomBlock table query notice:', e?.message);
+    }
 
     const blockedDates = [
       ...reservations.map(r => ({ id: r.id, date: r.date, status: r.status, type: 'RESERVA' })),
