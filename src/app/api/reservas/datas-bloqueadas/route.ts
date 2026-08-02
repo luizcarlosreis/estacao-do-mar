@@ -4,7 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 /**
- * Retorna apenas as datas de reservas ativas (não canceladas).
+ * Retorna datas de reservas ativas (não canceladas) e bloqueios administrativos.
  * Acessível a todos os perfis para exibir o calendário de disponibilidade.
  */
 export async function GET(_request: NextRequest) {
@@ -15,7 +15,18 @@ export async function GET(_request: NextRequest) {
       select: { id: true, date: true, status: true },
       orderBy: { date: 'asc' },
     });
-    return NextResponse.json(reservations);
+
+    const blocks = await prisma.ballroomBlock.findMany({
+      select: { id: true, date: true, reason: true },
+      orderBy: { date: 'asc' },
+    });
+
+    const blockedDates = [
+      ...reservations.map(r => ({ id: r.id, date: r.date, status: r.status, type: 'RESERVA' })),
+      ...blocks.map(b => ({ id: b.id, date: b.date, status: 'BLOQUEADO', reason: b.reason, type: 'BLOQUEIO_ADMIN' }))
+    ];
+
+    return NextResponse.json(blockedDates);
   } catch (error: any) {
     console.error('API GET Datas Bloqueadas Error:', error.message);
     return NextResponse.json({ message: error.message || 'Erro interno' }, { status: 500 });

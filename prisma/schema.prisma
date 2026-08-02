@@ -163,6 +163,15 @@ model BallroomGuest {
   cpf             String?
 }
 
+model BallroomBlock {
+  id        String   @id @default(uuid())
+  date      DateTime @unique
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
 model Vehicle {
   id        String      @id @default(uuid())
   plate     String      @unique

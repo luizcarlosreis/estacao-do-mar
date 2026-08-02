@@ -22,7 +22,8 @@ import {
   UserPlus,
   DollarSign,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Lock
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -86,7 +87,12 @@ export default function ReservasPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   // Datas bloqueadas (acessível a todos os perfis)
-  const [blockedDates, setBlockedDates] = useState<{ id: string; date: string; status: string }[]>([]);
+  const [blockedDates, setBlockedDates] = useState<{ id: string; date: string; status: string; reason?: string; type?: string }[]>([]);
+  // Admin Block Dates modal states
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [blockDateInput, setBlockDateInput] = useState('');
+  const [blockReasonInput, setBlockReasonInput] = useState('');
+  const [savingBlock, setSavingBlock] = useState(false);
   // Dashboard Admin states
   const [dashYear, setDashYear] = useState<number>(new Date().getFullYear());
   const [dashMonth, setDashMonth] = useState<string>(String(new Date().getMonth() + 1));
@@ -141,11 +147,60 @@ export default function ReservasPage() {
   const isDateBlocked = (dateStr: string, excludeId?: string) => {
     if (!dateStr) return false;
     const target = dateStr.split('T')[0];
-    return list.some(r => 
+    const isReserved = list.some(r => 
       r.id !== excludeId && 
       r.date.split('T')[0] === target && 
       r.status !== 'CANCELADO'
     );
+    const isBlocked = blockedDates.some(b => 
+      b.id !== excludeId && 
+      b.date.split('T')[0] === target
+    );
+    return isReserved || isBlocked;
+  };
+
+  const getBlockInfo = (dateStr: string) => {
+    if (!dateStr) return null;
+    const target = dateStr.split('T')[0];
+    return blockedDates.find(b => b.date.split('T')[0] === target && b.type === 'BLOQUEIO_ADMIN');
+  };
+
+  const handleAddBlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blockDateInput) return;
+    setSavingBlock(true);
+    try {
+      const res = await fetch('/api/reservas/bloqueios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: blockDateInput, reason: blockReasonInput }),
+      });
+      if (res.ok) {
+        setBlockDateInput('');
+        setBlockReasonInput('');
+        fetchBlockedDates();
+      } else {
+        const err = await res.json();
+        alert(`Erro: ${err.message}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Erro ao bloquear data.');
+    } finally {
+      setSavingBlock(false);
+    }
+  };
+
+  const handleRemoveBlock = async (id: string) => {
+    if (!confirm('Desbloquear esta data?')) return;
+    try {
+      const res = await fetch(`/api/reservas/bloqueios?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchBlockedDates();
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -466,12 +521,18 @@ export default function ReservasPage() {
           </h1>
           <p className="text-slate-500 text-[11px] uppercase font-bold tracking-widest mt-1">Solicitações de Reserva</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap justify-end">
           {isAdmin && (
-            <button onClick={() => setIsDashModalOpen(true)}
-              className="bg-slate-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-slate-900 transition font-black shadow-lg shadow-slate-100 text-xs uppercase tracking-wider">
-              <BarChart3 size={18} /> Dashboard
-            </button>
+            <>
+              <button onClick={() => setIsDashModalOpen(true)}
+                className="bg-slate-800 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-slate-900 transition font-black shadow-lg shadow-slate-100 text-xs uppercase tracking-wider">
+                <BarChart3 size={18} /> Dashboard
+              </button>
+              <button onClick={() => setIsBlockModalOpen(true)}
+                className="bg-rose-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-rose-700 transition font-black shadow-lg shadow-rose-100 text-xs uppercase tracking-wider">
+                <Lock size={18} /> Bloquear Datas
+              </button>
+            </>
           )}
           {!isReadOnlyReservation && (
             <button onClick={openCreate}
@@ -664,6 +725,106 @@ export default function ReservasPage() {
         </div>
       )}
 
+      {/* Modal Bloqueio de Datas (Apenas ADMIN) */}
+      {isAdmin && isBlockModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl my-6 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="p-6 bg-rose-700 text-white flex justify-between items-center rounded-t-3xl">
+              <h2 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                <Lock size={18} /> Cadastrar Datas Impossibilitadas (Bloqueios)
+              </h2>
+              <button onClick={() => setIsBlockModalOpen(false)} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Form para adicionar bloqueio */}
+              <form onSubmit={handleAddBlock} className="p-5 bg-rose-50/60 rounded-2xl border border-rose-100 space-y-4">
+                <h3 className="text-xs font-black text-rose-800 uppercase tracking-widest flex items-center gap-2">
+                  <Plus size={16} /> Novo Bloqueio de Data
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Data a Bloquear *</label>
+                    <input
+                      required
+                      type="date"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+                      value={blockDateInput}
+                      onChange={e => setBlockDateInput(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Motivo do Bloqueio</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Manutenção, Evento, Reforma..."
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 uppercase focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+                      value={blockReasonInput}
+                      onChange={e => setBlockReasonInput(e.target.value.toUpperCase())}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingBlock || !blockDateInput}
+                    className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black text-[11px] uppercase tracking-wider transition disabled:opacity-50 flex items-center gap-1.5 shadow-md shadow-rose-100"
+                  >
+                    <Lock size={14} /> {savingBlock ? 'Bloqueando...' : 'Confirmar Bloqueio'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Lista de bloqueios administrativos */}
+              <div>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  Datas Bloqueadas pela Administração ({blockedDates.filter(b => b.type === 'BLOQUEIO_ADMIN').length})
+                </h3>
+                {blockedDates.filter(b => b.type === 'BLOQUEIO_ADMIN').length === 0 ? (
+                  <p className="text-center text-xs text-slate-400 italic py-6">
+                    Nenhuma data bloqueada manualmente pela administração.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {blockedDates.filter(b => b.type === 'BLOQUEIO_ADMIN').map((b, idx) => (
+                      <div key={b.id} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-black text-slate-400">{idx + 1}.</span>
+                          <div>
+                            <span className="text-xs font-black text-rose-700 block">{formatDate(b.date)}</span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">{b.reason || 'Bloqueio Administrativo'}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveBlock(b.id)}
+                          className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-100 rounded-lg transition"
+                          title="Remover Bloqueio"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => setIsBlockModalOpen(false)}
+                  className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-50 transition text-[11px] font-black uppercase"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Informativo */}
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-8 relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-6 text-blue-50/50 group-hover:text-blue-50 transition-colors">
@@ -756,15 +917,31 @@ export default function ReservasPage() {
 
       {/* Calendário de Disponibilidade (Compacto) */}
       <div className="mb-6">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Datas já reservadas (Bloqueadas)</h3>
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">
+          Datas Indisponíveis para Reserva (Bloqueadas)
+        </h3>
         <div className="flex flex-wrap gap-2">
           {blockedDates.map(r => (
-            <div key={r.id} className="bg-white border border-red-100 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[11px] font-black text-slate-700">{formatDate(r.date)}</span>
+            <div 
+              key={r.id} 
+              className={`px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm border ${
+                r.type === 'BLOQUEIO_ADMIN' 
+                  ? 'bg-rose-50 border-rose-200 text-rose-800' 
+                  : 'bg-white border-red-100 text-slate-700'
+              }`}
+            >
+              <div className={`w-2 h-2 rounded-full ${r.type === 'BLOQUEIO_ADMIN' ? 'bg-rose-600' : 'bg-red-500 animate-pulse'}`} />
+              <span className="text-[11px] font-black">{formatDate(r.date)}</span>
+              {r.type === 'BLOQUEIO_ADMIN' ? (
+                <span className="text-[9px] font-bold uppercase bg-rose-200/60 px-1.5 py-0.5 rounded text-rose-900">
+                  {r.reason || 'Bloqueio ADM'}
+                </span>
+              ) : (
+                <span className="text-[9px] font-bold uppercase text-slate-400">Reserva</span>
+              )}
             </div>
           ))}
-          {blockedDates.length === 0 && <span className="text-xs text-slate-400 italic px-1">Nenhuma data reservada no momento.</span>}
+          {blockedDates.length === 0 && <span className="text-xs text-slate-400 italic px-1">Nenhuma data bloqueada ou reservada no momento.</span>}
         </div>
       </div>
 
