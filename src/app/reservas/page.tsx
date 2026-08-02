@@ -206,6 +206,12 @@ export default function ReservasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const blockInfo = getBlockInfo(formData.date);
+    if (blockInfo) {
+      alert(`Esta data está indisponível para reserva pela administração (${blockInfo.reason || 'Bloqueio Administrativo'}). Por favor, escolha outra data.`);
+      return;
+    }
+
     if (isDateBlocked(formData.date, formData.id)) {
       alert('Esta data já possui uma reserva ativa ou solicitada. Por favor, escolha outra data.');
       return;
@@ -1051,19 +1057,63 @@ export default function ReservasPage() {
                 {/* Data */}
                 <div>
                   <label className={lbl}>Data da Reserva *</label>
-                  <input required type="date" className={`${inp} ${(isMorador && isEditMode) || isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''}`} 
+                  <input 
+                    required 
+                    type="date" 
+                    min={new Date().toISOString().split('T')[0]}
+                    className={`${inp} ${(isMorador && isEditMode) || isReadOnlyReservation ? 'bg-slate-50 cursor-not-allowed' : ''} ${isDateBlocked(formData.date, formData.id) ? 'border-red-500 bg-red-50 text-red-700 font-bold' : ''}`} 
                     readOnly={(isMorador && isEditMode) || isReadOnlyReservation}
                     value={formData.date} 
                     onChange={e => {
-                      if (isDateBlocked(e.target.value, formData.id)) {
-                        alert('Esta data já está reservada ou solicitada.');
+                      const selected = e.target.value;
+                      const blockInfo = getBlockInfo(selected);
+                      if (blockInfo) {
+                        alert(`⛔ Data Indisponível: Esta data está bloqueada pela administração (${blockInfo.reason || 'Bloqueio Administrativo'}). Por favor, escolha outra data.`);
+                        setFormData({ ...formData, date: '' });
                         return;
                       }
-                      setFormData({ ...formData, date: e.target.value });
+                      if (isDateBlocked(selected, formData.id)) {
+                        alert('🔴 Data Indisponível: Esta data já possui uma reserva ativa ou solicitada. Por favor, escolha outra data.');
+                        setFormData({ ...formData, date: '' });
+                        return;
+                      }
+                      setFormData({ ...formData, date: selected });
                     }} 
                   />
-                  {isDateBlocked(formData.date, formData.id) && (
-                    <p className="text-[10px] text-red-500 font-bold mt-1 uppercase">Atenção: Esta data já possui reserva!</p>
+
+                  {/* Alerta de bloqueio caso data seja inválida */}
+                  {formData.date && isDateBlocked(formData.date, formData.id) && (
+                    <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-bold flex items-center gap-2">
+                      <XCircle size={16} className="shrink-0 text-red-500" />
+                      <span>
+                        {getBlockInfo(formData.date)
+                          ? `Data Indisponível: Bloqueada pela administração (${getBlockInfo(formData.date)?.reason})`
+                          : 'Data Indisponível: Esta data já possui uma reserva ativa!'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Lista visual de datas indisponíveis para o usuário */}
+                  {blockedDates.length > 0 && !isEditMode && (
+                    <div className="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                        🚫 Datas que NÃO podem ser reservadas:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                        {blockedDates.map(b => (
+                          <span 
+                            key={b.id} 
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${
+                              b.type === 'BLOQUEIO_ADMIN' 
+                                ? 'bg-rose-100 text-rose-700 border-rose-200' 
+                                : 'bg-red-50 text-red-600 border-red-200'
+                            }`}
+                          >
+                            {formatDate(b.date)} {b.type === 'BLOQUEIO_ADMIN' ? `(${b.reason || 'Bloqueio ADM'})` : '(Reservado)'}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
