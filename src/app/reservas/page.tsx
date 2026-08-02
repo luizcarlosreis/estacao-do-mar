@@ -924,30 +924,36 @@ export default function ReservasPage() {
       {/* Calendário de Disponibilidade (Compacto) */}
       <div className="mb-6">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">
-          Datas Indisponíveis para Reserva (Bloqueadas)
+          Datas Indisponíveis para Reserva (Bloqueadas Futuras)
         </h3>
         <div className="flex flex-wrap gap-2">
-          {blockedDates.map(r => (
-            <div 
-              key={r.id} 
-              className={`px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm border ${
-                r.type === 'BLOQUEIO_ADMIN' 
-                  ? 'bg-rose-50 border-rose-200 text-rose-800' 
-                  : 'bg-white border-red-100 text-slate-700'
-              }`}
-            >
-              <div className={`w-2 h-2 rounded-full ${r.type === 'BLOQUEIO_ADMIN' ? 'bg-rose-600' : 'bg-red-500 animate-pulse'}`} />
-              <span className="text-[11px] font-black">{formatDate(r.date)}</span>
-              {r.type === 'BLOQUEIO_ADMIN' ? (
-                <span className="text-[9px] font-bold uppercase bg-rose-200/60 px-1.5 py-0.5 rounded text-rose-900">
-                  {r.reason || 'Bloqueio ADM'}
-                </span>
-              ) : (
-                <span className="text-[9px] font-bold uppercase text-slate-400">Reserva</span>
-              )}
-            </div>
-          ))}
-          {blockedDates.length === 0 && <span className="text-xs text-slate-400 italic px-1">Nenhuma data bloqueada ou reservada no momento.</span>}
+          {(() => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const futureDates = blockedDates.filter(r => r.date.split('T')[0] >= todayStr);
+            if (futureDates.length === 0) {
+              return <span className="text-xs text-slate-400 italic px-1">Nenhuma data bloqueada ou reservada no momento.</span>;
+            }
+            return futureDates.map(r => (
+              <div 
+                key={r.id} 
+                className={`px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-sm border ${
+                  r.type === 'BLOQUEIO_ADMIN' 
+                    ? 'bg-rose-50 border-rose-200 text-rose-800' 
+                    : 'bg-white border-red-100 text-slate-700'
+                }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${r.type === 'BLOQUEIO_ADMIN' ? 'bg-rose-600' : 'bg-red-500 animate-pulse'}`} />
+                <span className="text-[11px] font-black">{formatDate(r.date)}</span>
+                {r.type === 'BLOQUEIO_ADMIN' ? (
+                  <span className="text-[9px] font-bold uppercase bg-rose-200/60 px-1.5 py-0.5 rounded text-rose-900">
+                    {r.reason || 'Bloqueio ADM'}
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold uppercase text-slate-400">Reserva</span>
+                )}
+              </div>
+            ));
+          })()}
         </div>
       </div>
 
@@ -1093,28 +1099,33 @@ export default function ReservasPage() {
                     </div>
                   )}
 
-                  {/* Lista visual de datas indisponíveis para o usuário */}
-                  {blockedDates.length > 0 && !isEditMode && (
-                    <div className="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
-                        🚫 Datas que NÃO podem ser reservadas:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
-                        {blockedDates.map(b => (
-                          <span 
-                            key={b.id} 
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${
-                              b.type === 'BLOQUEIO_ADMIN' 
-                                ? 'bg-rose-100 text-rose-700 border-rose-200' 
-                                : 'bg-red-50 text-red-600 border-red-200'
-                            }`}
-                          >
-                            {formatDate(b.date)} {b.type === 'BLOQUEIO_ADMIN' ? `(${b.reason || 'Bloqueio ADM'})` : '(Reservado)'}
-                          </span>
-                        ))}
+                  {/* Lista visual de datas indisponíveis para o usuário (Somente Futuras) */}
+                  {(() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const futureDates = blockedDates.filter(b => b.date.split('T')[0] >= todayStr);
+                    if (futureDates.length === 0 || isEditMode) return null;
+                    return (
+                      <div className="mt-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                          🚫 Datas que NÃO podem ser reservadas:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                          {futureDates.map(b => (
+                            <span 
+                              key={b.id} 
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${
+                                b.type === 'BLOQUEIO_ADMIN' 
+                                  ? 'bg-rose-100 text-rose-700 border-rose-200' 
+                                  : 'bg-red-50 text-red-600 border-red-200'
+                              }`}
+                            >
+                              {formatDate(b.date)} {b.type === 'BLOQUEIO_ADMIN' ? `(${b.reason || 'Bloqueio ADM'})` : '(Reservado)'}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
 
