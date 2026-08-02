@@ -57,6 +57,19 @@ const MONTHS = [
   { val: '10', name: 'Outubro' }, { val: '11', name: 'Novembro' }, { val: '12', name: 'Dezembro' }
 ];
 
+function getPageNumbers(current: number, total: number): (number | string)[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', total];
+  }
+  if (current >= total - 3) {
+    return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+  }
+  return [1, '...', current - 1, current, current + 1, '...', total];
+}
+
 export default function EncomendasPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -642,34 +655,57 @@ export default function EncomendasPage() {
 
       {/* Paginação */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm border border-slate-100"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
-                  currentPage === page ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-slate-500 border border-slate-100'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Página <span className="text-blue-600 font-black">{currentPage}</span> de{' '}
+            <span className="text-slate-800 font-black">{totalPages}</span>{' '}
+            <span className="text-slate-400 font-normal">({filtered.length} itens)</span>
           </div>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="p-2 rounded-xl bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm border border-slate-100"
-          >
-            <ChevronRight size={20} />
-          </button>
+
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-slate-50 transition-all font-bold text-xs flex items-center gap-1"
+              title="Página Anterior"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {getPageNumbers(currentPage, totalPages).map((page, idx) => {
+              if (page === '...') {
+                return (
+                  <span key={`dots-${idx}`} className="w-9 h-9 flex items-center justify-center text-slate-400 font-black text-xs select-none">
+                    ...
+                  </span>
+                );
+              }
+              const pageNum = page as number;
+              const isActive = currentPage === pageNum;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-xl font-bold text-xs transition-all ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200 scale-105'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2.5 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-slate-50 transition-all font-bold text-xs flex items-center gap-1"
+              title="Próxima Página"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
       )}
 
