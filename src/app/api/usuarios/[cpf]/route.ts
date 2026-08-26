@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, context: any) {
   const callerRole = request.headers.get('x-user-role');
-  if (callerRole !== 'SUPER_ADMIN') {
+  if (callerRole !== 'SUPER_ADMIN' && callerRole !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso restrito a administradores' }, { status: 403 });
   }
 
@@ -53,7 +53,7 @@ export async function PATCH(request: Request, context: any) {
 
 export async function DELETE(request: Request, context: any) {
   const callerRole = request.headers.get('x-user-role');
-  if (callerRole !== 'SUPER_ADMIN') {
+  if (callerRole !== 'SUPER_ADMIN' && callerRole !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso restrito a administradores' }, { status: 403 });
   }
 

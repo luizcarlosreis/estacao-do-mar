@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const callerRole = request.headers.get('x-user-role');
-  if (callerRole !== 'SUPER_ADMIN' && callerRole !== 'SINDICO' && callerRole !== 'PORTEIRO') {
+  if (callerRole !== 'SUPER_ADMIN' && callerRole !== 'ADMINISTRADORA' && callerRole !== 'SINDICO' && callerRole !== 'PORTEIRO') {
     return NextResponse.json({ message: 'Acesso restrito a funcionários autorizados' }, { status: 403 });
   }
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const callerRole = request.headers.get('x-user-role');
-  if (callerRole !== 'SUPER_ADMIN') {
+  if (callerRole !== 'SUPER_ADMIN' && callerRole !== 'ADMINISTRADORA') {
     return NextResponse.json({ message: 'Acesso restrito a administradores' }, { status: 403 });
   }
 
