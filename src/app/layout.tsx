@@ -196,7 +196,7 @@ export default function RootLayout({
                           <p className="text-xs font-bold text-slate-700 truncate">{user?.name}</p>
                         </div>
                         
-                        {(user?.role === 'MORADOR' || user?.role === 'SUPER_ADMIN' || user?.role === 'SINDICO' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && (
+                        {user && (
                           <>
                             {(user?.role === 'MORADOR' || user?.role === 'CONSELHO') && (
                               <button onClick={openProfile} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors">
