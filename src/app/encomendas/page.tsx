@@ -190,7 +190,7 @@ export default function EncomendasPage() {
       size: 'média',
       carrier: '',
       observations: '',
-      conciergeName: ''
+      conciergeName: currentUser?.role === 'PORTEIRO' ? currentUser.name.toUpperCase() : ''
     });
     setIsModalOpen(true);
   };
@@ -207,22 +207,36 @@ export default function EncomendasPage() {
       size: p.size || 'média',
       carrier: p.carrier || '',
       observations: p.observations || '',
-      conciergeName: p.conciergeName || ''
+      conciergeName: currentUser?.role === 'PORTEIRO' ? currentUser.name.toUpperCase() : (p.conciergeName || '')
     });
     setIsViewModalOpen(false);
     setIsModalOpen(true);
+  };
+
+  const openWithdrawModal = (p: Package) => {
+    setSelectedPackage(p);
+    setWithdrawData({
+      withdrawnBy: '',
+      withdrawnConciergeName: currentUser?.role === 'PORTEIRO' ? currentUser.name.toUpperCase() : ''
+    });
+    setIsWithdrawModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const payload = { ...formData };
+      if (currentUser?.role === 'PORTEIRO') {
+        payload.conciergeName = currentUser.name.toUpperCase();
+      }
+
       const url = isEditMode && editingPackageId ? `/api/encomendas/${editingPackageId}` : '/api/encomendas';
       const method = isEditMode && editingPackageId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         setIsModalOpen(false);
@@ -247,10 +261,15 @@ export default function EncomendasPage() {
     if (!selectedPackage) return;
     setSaving(true);
     try {
+      const payload = { ...withdrawData };
+      if (currentUser?.role === 'PORTEIRO') {
+        payload.withdrawnConciergeName = currentUser.name.toUpperCase();
+      }
+
       const res = await fetch(`/api/encomendas/${selectedPackage.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(withdrawData)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         setIsWithdrawModalOpen(false);
@@ -618,7 +637,7 @@ export default function EncomendasPage() {
                 <div className="mt-6 flex flex-wrap gap-2">
                   {p.status === 'RECEBIDO PORTARIA' && (
                     <button 
-                      onClick={(e) => { e.stopPropagation(); setSelectedPackage(p); setIsWithdrawModalOpen(true); }}
+                      onClick={(e) => { e.stopPropagation(); openWithdrawModal(p); }}
                       className="flex-1 min-w-[120px] py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-emerald-100 flex items-center justify-center gap-2"
                     >
                       <LogOut size={16} /> Dar Baixa
@@ -811,7 +830,8 @@ export default function EncomendasPage() {
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nome do Porteiro</label>
                 <select 
                   required
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 uppercase"
+                  disabled={currentUser?.role === 'PORTEIRO'}
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 uppercase disabled:opacity-75 disabled:cursor-not-allowed"
                   value={formData.conciergeName}
                   onChange={(e) => setFormData({ ...formData, conciergeName: e.target.value })}
                 >
@@ -866,7 +886,8 @@ export default function EncomendasPage() {
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nome do Porteiro</label>
                 <select 
                   required
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-slate-700 uppercase"
+                  disabled={currentUser?.role === 'PORTEIRO'}
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold text-slate-700 uppercase disabled:opacity-75 disabled:cursor-not-allowed"
                   value={withdrawData.withdrawnConciergeName}
                   onChange={(e) => setWithdrawData({ ...withdrawData, withdrawnConciergeName: e.target.value })}
                 >
@@ -1060,7 +1081,7 @@ export default function EncomendasPage() {
                     type="button"
                     onClick={() => { 
                       setIsViewModalOpen(false); 
-                      setIsWithdrawModalOpen(true); 
+                      openWithdrawModal(selectedPackage); 
                     }} 
                     className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all text-sm shadow-lg shadow-emerald-100 flex items-center gap-2 active:scale-95"
                   >
