@@ -18,7 +18,7 @@ export default async function proxy(req: NextRequest) {
 
   // Rotas protegidas (tudo menos arquivos estáticos, _next, etc)
   // Como o Next.js lida com _next no matcher, normalmente isso não passa aqui, mas garantindo:
-  if (!path.startsWith('/_next') && !path.includes('.')) {
+  if (!path.startsWith('/_next') && (!path.includes('.') || path.startsWith('/api/'))) {
     if (!token) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
