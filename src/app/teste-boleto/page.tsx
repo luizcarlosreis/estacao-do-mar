@@ -38,8 +38,9 @@ export default function TesteBoletoPage() {
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
-  // Estados para consulta geral de atrasados e dashboard
+  // Estados para consulta geral (abertos e atrasados) e dashboard
   const [isAllOverdueMode, setIsAllOverdueMode] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'OPENED' | 'OVERDUE'>('ALL');
   const [isDashboardMode, setIsDashboardMode] = useState(false);
   const [dashboardData, setDashboardData] = useState<any[]>([]);
 
@@ -138,6 +139,7 @@ export default function TesteBoletoPage() {
       setLoadingBoletos(true);
       setError(null);
       setIsAllOverdueMode(true);
+      setStatusFilter('ALL');
       setIsDashboardMode(false); // Desmarca dashboard
       setSelectedUnit(null); // Desmarca apartamento específico
       setBoletos([]);
@@ -145,12 +147,12 @@ export default function TesteBoletoPage() {
       const res = await fetch('/api/teste-boleto/atrasados');
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Falha ao buscar faturas atrasadas do condomínio.');
+        throw new Error(data.message || 'Falha ao buscar faturas gerais do condomínio.');
       }
       const data = await res.json();
       setBoletos(data);
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar faturas atrasadas.');
+      setError(err.message || 'Erro ao carregar faturas gerais.');
     } finally {
       setLoadingBoletos(false);
     }
@@ -215,13 +217,27 @@ export default function TesteBoletoPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // Boletos exibidos na listagem geral com filtro aplicado
+  const displayedBoletos = isAllOverdueMode
+    ? boletos.filter((b) => {
+        if (statusFilter === 'OPENED') return b.situacao === 'Aberto';
+        if (statusFilter === 'OVERDUE') return b.situacao === 'Atrasado';
+        return true;
+      })
+    : boletos;
+
+  const countAll = isAllOverdueMode ? boletos.length : 0;
+  const countOpened = isAllOverdueMode ? boletos.filter((b) => b.situacao === 'Aberto').length : 0;
+  const countOverdue = isAllOverdueMode ? boletos.filter((b) => b.situacao === 'Atrasado').length : 0;
+
   const exportToExcel = () => {
-    if (boletos.length === 0) {
+    const listToExport = isAllOverdueMode ? displayedBoletos : boletos;
+    if (listToExport.length === 0) {
       alert('Não há boletos para exportar.');
       return;
     }
 
-    const data = boletos.map(boleto => ({
+    const data = listToExport.map(boleto => ({
       'UNIDADE / APARTAMENTO': boleto.unidadeNome,
       'REFERÊNCIA': boleto.referencia,
       'VENCIMENTO': boleto.vencimento,
@@ -253,7 +269,7 @@ export default function TesteBoletoPage() {
 
     const todayStr = new Date().toISOString().split('T')[0];
     const fileName = isAllOverdueMode 
-      ? `Boletos_Atrasados_Geral_${todayStr}.xlsx`
+      ? (statusFilter === 'OPENED' ? `Boletos_Em_Aberto_${todayStr}.xlsx` : statusFilter === 'OVERDUE' ? `Boletos_Atrasados_${todayStr}.xlsx` : `Boletos_Geral_${todayStr}.xlsx`)
       : `Boletos_Unidade_${selectedUnit?.name || 'Consulta'}_${todayStr}.xlsx`;
 
     XLSX.writeFile(workbook, fileName);
@@ -286,7 +302,7 @@ export default function TesteBoletoPage() {
             {isMorador 
               ? 'Consulte e visualize as faturas vinculadas à sua unidade de moradia' 
               : isAllOverdueMode
-              ? 'Todos os boletos vencidos de todas as unidades do condomínio'
+              ? 'Todos os boletos em aberto e vencidos de todas as unidades do condomínio'
               : isDashboardMode
               ? 'Métricas mensais de arrecadação e inadimplência do condomínio'
               : 'Painel administrativo para consulta de boletos e códigos de barras por unidade'}
@@ -311,19 +327,19 @@ export default function TesteBoletoPage() {
               Dashboard Mensal
             </button>
 
-            {/* Botão Ver Todos Atrasados */}
+            {/* Botão Listagem Geral */}
             <button
               onClick={fetchTodosAtrasados}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm active:scale-95 border ${
                 isAllOverdueMode
-                  ? 'bg-amber-100 border-amber-300 text-amber-800'
+                  ? 'bg-blue-100 border-blue-300 text-blue-800'
                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Ver Todos Atrasados
+              Listagem Geral
             </button>
 
             {/* Botão Exportar Excel */}
@@ -456,7 +472,7 @@ export default function TesteBoletoPage() {
             Consulta de Faturas
           </h3>
           <p className="text-slate-500 text-sm max-w-sm mx-auto">
-            Por favor, selecione uma unidade no menu acima, clique em "Ver Todos Atrasados" ou no "Dashboard Mensal" para ver as faturas.
+            Por favor, selecione uma unidade no menu acima, clique em "Listagem Geral" ou no "Dashboard Mensal" para ver as faturas.
           </p>
         </div>
       )}
@@ -476,7 +492,7 @@ export default function TesteBoletoPage() {
             {isMorador 
               ? 'Não encontramos faturas ou cobranças em aberto para o seu apartamento.' 
               : isAllOverdueMode
-              ? 'Não foram encontradas cobranças com status de atraso em nenhuma unidade do condomínio.'
+              ? 'Não foram encontradas cobranças pendentes em nenhuma unidade do condomínio.'
               : `Não foram encontradas cobranças ativas na API da Winker para a unidade ${selectedUnit?.name}.`}
           </p>
         </div>
@@ -485,6 +501,50 @@ export default function TesteBoletoPage() {
       {/* Tabela de Boletos */}
       {!loadingUser && !loadingBoletos && !error && (isMorador || selectedUnit || isAllOverdueMode) && hasBoletos && (
         <div className="space-y-4 w-full">
+          {/* Barra de Filtros de Status na Listagem Geral */}
+          {isAllOverdueMode && (
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1 ml-1">Filtro:</span>
+                <button
+                  onClick={() => setStatusFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                    statusFilter === 'ALL'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  Todos ({countAll})
+                </button>
+                <button
+                  onClick={() => setStatusFilter('OPENED')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    statusFilter === 'OPENED'
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${statusFilter === 'OPENED' ? 'bg-white' : 'bg-amber-500'}`}></span>
+                  Em Aberto ({countOpened})
+                </button>
+                <button
+                  onClick={() => setStatusFilter('OVERDUE')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    statusFilter === 'OVERDUE'
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${statusFilter === 'OVERDUE' ? 'bg-white' : 'bg-rose-600'}`}></span>
+                  Atrasados ({countOverdue})
+                </button>
+              </div>
+              <span className="text-xs text-slate-500 font-medium mr-2">
+                Exibindo <strong>{displayedBoletos.length}</strong> de {boletos.length} faturas
+              </span>
+            </div>
+          )}
+
           <div className="w-full max-w-full bg-white border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden">
             <div className="w-full overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[1000px]">
@@ -505,146 +565,188 @@ export default function TesteBoletoPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {boletos.map((boleto) => (
-                    <tr key={boleto.id} className="hover:bg-slate-50/70 transition-colors">
-                      {/* Botão de download/view PDF */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <a
-                          href={`/api/teste-boleto?idBoleto=${boleto.id}&idUnidade=${boleto.unidadeId}&reference=${boleto.reference}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Visualizar PDF"
-                          className="inline-flex items-center justify-center p-2 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition border border-rose-100"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </a>
-                      </td>
-
-                      {/* Apartamento / Unidade */}
-                      {isAllOverdueMode && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-600">
-                          Apto {boleto.unidadeNome}
-                        </td>
-                      )}
-                      
-                      {/* Referência */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
-                        {boleto.referencia}
-                      </td>
-                      
-                      {/* Vencimento */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
-                        {boleto.vencimento}
-                      </td>
-                      
-                      {/* Valor Original */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
-                        {boleto.valorOriginal}
-                      </td>
-                      
-                      {/* Situação */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 border rounded-full text-xs font-bold ${
-                          boleto.situacao === 'Pago' 
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
-                            : boleto.situacao === 'Atrasado'
-                            ? 'bg-rose-50 border-rose-200 text-rose-700'
-                            : 'bg-amber-50 border-amber-200 text-amber-700'
-                        }`}>
-                          {boleto.situacao}
-                        </span>
-                      </td>
-                      
-                      {/* Data Pagamento */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">
-                        {boleto.dataPagamento}
-                      </td>
-                      
-                      {/* Valor Pago */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-700 font-bold">
-                        {boleto.valorPago}
-                      </td>
-                      
-                      {/* Nosso Número */}
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-semibold text-slate-600">
-                        {boleto.nossoNumero}
-                      </td>
-                      
-                      {/* Linha Digitável */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {boleto.linhaDigitavel ? (
-                          <div className="flex items-center gap-2 max-w-[200px]">
-                            <span className="text-[10px] font-mono font-bold text-slate-500 truncate select-all" title={boleto.linhaDigitavel}>
-                              {boleto.linhaDigitavel}
-                            </span>
-                            <button
-                              onClick={() => handleCopyBarcode(boleto.id, boleto.linhaDigitavel!)}
-                              className={`p-1 rounded-lg border transition ${
-                                copiedId === boleto.id
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                  : 'bg-white hover:bg-slate-50 text-slate-500 border-slate-200'
-                              }`}
-                              title="Copiar Código de Barras"
-                            >
-                              {copiedId === boleto.id ? (
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              ) : (
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2 0 24 24" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h5.586a1 1 0 01.707-.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                              )}
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400">-</span>
-                        )}
+                  {displayedBoletos.length === 0 ? (
+                    <tr>
+                      <td colSpan={isAllOverdueMode ? 10 : 9} className="px-6 py-12 text-center text-slate-400 text-sm">
+                        Nenhum boleto localizado para este filtro.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    displayedBoletos.map((boleto) => (
+                      <tr key={boleto.id} className="hover:bg-slate-50/70 transition-colors">
+                        {/* Botão de download/view PDF */}
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <a
+                            href={`/api/teste-boleto?idBoleto=${boleto.id}&idUnidade=${boleto.unidadeId}&reference=${boleto.reference}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Visualizar PDF"
+                            className="inline-flex items-center justify-center p-2 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition border border-rose-100"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </a>
+                        </td>
+
+                        {/* Apartamento / Unidade */}
+                        {isAllOverdueMode && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-600">
+                            Apto {boleto.unidadeNome}
+                          </td>
+                        )}
+                        
+                        {/* Referência */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
+                          {boleto.referencia}
+                        </td>
+                        
+                        {/* Vencimento */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">
+                          {boleto.vencimento}
+                        </td>
+                        
+                        {/* Valor Original */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
+                          {boleto.valorOriginal}
+                        </td>
+                        
+                        {/* Situação */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 border rounded-full text-xs font-bold ${
+                            boleto.situacao === 'Pago' 
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                              : boleto.situacao === 'Atrasado'
+                              ? 'bg-rose-50 border-rose-200 text-rose-700'
+                              : 'bg-amber-50 border-amber-200 text-amber-700'
+                          }`}>
+                            {boleto.situacao}
+                          </span>
+                        </td>
+                        
+                        {/* Data Pagamento */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">
+                          {boleto.dataPagamento}
+                        </td>
+                        
+                        {/* Valor Pago */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-700 font-bold">
+                          {boleto.valorPago}
+                        </td>
+                        
+                        {/* Nosso Número */}
+                        <td className="px-6 py-4 whitespace-nowrap text-xs font-mono font-semibold text-slate-600">
+                          {boleto.nossoNumero}
+                        </td>
+                        
+                        {/* Linha Digitável */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {boleto.linhaDigitavel ? (
+                            <div className="flex items-center gap-2 max-w-[200px]">
+                              <span className="text-[10px] font-mono font-bold text-slate-500 truncate select-all" title={boleto.linhaDigitavel}>
+                                {boleto.linhaDigitavel}
+                              </span>
+                              <button
+                                onClick={() => handleCopyBarcode(boleto.id, boleto.linhaDigitavel!)}
+                                className={`p-1 rounded-lg border transition ${
+                                  copiedId === boleto.id
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                    : 'bg-white hover:bg-slate-50 text-slate-500 border-slate-200'
+                                }`}
+                                title="Copiar Código de Barras"
+                              >
+                                {copiedId === boleto.id ? (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2 0 24 24" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h5.586a1 1 0 01.707-.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* Totalizador */}
+          {/* Totalizador Geral */}
           {isAllOverdueMode && (
-            <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-6 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100">
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Totalizador de Atrasados</h3>
-                  <p className="text-slate-500 text-xs mt-0.5">Soma e quantidade de boletos inadimplentes</p>
+                  <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Totalizador Geral</h3>
+                  <p className="text-slate-500 text-xs mt-0.5">Valores consolidados de cobranças pendentes</p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-6 md:gap-12 w-full md:w-auto justify-between md:justify-end">
+              <div className="flex flex-wrap items-center gap-6 lg:gap-8 w-full lg:w-auto justify-between lg:justify-end">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Qtd. Boletos</span>
-                  <span className="text-xl font-black text-slate-700">{boletos.length}</span>
+                  <span className="text-xl font-black text-slate-700">
+                    {displayedBoletos.length}
+                    <span className="text-xs font-normal text-slate-400 ml-1">
+                      ({countOpened} abertos / {countOverdue} atrasados)
+                    </span>
+                  </span>
                 </div>
                 
-                <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
+                <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
 
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor Total Vencido</span>
-                  <span className="text-2xl font-black text-rose-700">
+                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Total Em Aberto</span>
+                  <span className="text-xl font-black text-amber-700">
+                    {(() => {
+                      const totalAberto = boletos
+                        .filter((b) => b.situacao === 'Aberto')
+                        .reduce((acc, b) => {
+                          const clean = b.valorOriginal.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+                          return acc + (parseFloat(clean) || 0);
+                        }, 0);
+                      return `R$ ${totalAberto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    })()}
+                  </span>
+                </div>
+
+                <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest">Total Atrasado</span>
+                  <span className="text-xl font-black text-rose-700">
+                    {(() => {
+                      const totalAtrasado = boletos
+                        .filter((b) => b.situacao === 'Atrasado')
+                        .reduce((acc, b) => {
+                          const clean = b.valorOriginal.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+                          return acc + (parseFloat(clean) || 0);
+                        }, 0);
+                      return `R$ ${totalAtrasado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    })()}
+                  </span>
+                </div>
+
+                <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Consolidado</span>
+                  <span className="text-2xl font-black text-indigo-700">
                     {(() => {
                       const total = boletos.reduce((acc, b) => {
-                        const cleanValue = b.valorOriginal
-                          .replace('R$', '')
-                          .replace(/\./g, '')
-                          .replace(',', '.')
-                          .trim();
-                        const val = parseFloat(cleanValue) || 0;
-                        return acc + val;
+                        const clean = b.valorOriginal.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+                        return acc + (parseFloat(clean) || 0);
                       }, 0);
                       return `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                     })()}

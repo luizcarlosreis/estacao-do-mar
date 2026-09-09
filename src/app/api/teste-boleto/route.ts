@@ -58,8 +58,9 @@ export async function GET(req: NextRequest) {
       
       if (winkerUnitsRes.ok) {
         const winkerUnits = await winkerUnitsRes.json();
+        const unitNumber = dbUser.unit.number;
         // O número da unidade no local (ex: "22") corresponde ao name no Winker
-        const matchedUnit = winkerUnits.find((u: any) => String(u.name) === String(dbUser.unit.number));
+        const matchedUnit = winkerUnits.find((u: any) => String(u.name) === String(unitNumber));
         if (matchedUnit) {
           userWinkerUnitId = String(matchedUnit.id_unit);
         }
