@@ -17,6 +17,8 @@ async function checkAuth(req: NextRequest) {
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/teste-boleto
 export async function GET(req: NextRequest) {
   const user = await checkAuth(req);
@@ -53,7 +55,8 @@ export async function GET(req: NextRequest) {
           'Authorization': WINKER_API_TOKEN,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }
+        },
+        cache: 'no-store'
       });
       
       if (winkerUnitsRes.ok) {
@@ -91,7 +94,8 @@ export async function GET(req: NextRequest) {
             'Authorization': WINKER_API_TOKEN,
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-          }
+          },
+          cache: 'no-store'
         });
         if (billingRes.ok) {
           const billingData = await billingRes.json();
@@ -113,7 +117,8 @@ export async function GET(req: NextRequest) {
           'Authorization': WINKER_API_TOKEN,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }
+        },
+        cache: 'no-store'
       });
 
       if (!downloadRes.ok) {
@@ -128,7 +133,7 @@ export async function GET(req: NextRequest) {
       const pdfUrl = json.url || json.link || json.download_url;
       if (pdfUrl) {
         console.log(`[API] Buscando PDF da URL: ${pdfUrl}`);
-        const pdfRes = await fetch(pdfUrl);
+        const pdfRes = await fetch(pdfUrl, { cache: 'no-store' });
         if (pdfRes.ok) {
           const pdfBuffer = await pdfRes.arrayBuffer();
           return new NextResponse(pdfBuffer, {
@@ -156,7 +161,8 @@ export async function GET(req: NextRequest) {
         'Authorization': WINKER_API_TOKEN,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
-      }
+      },
+      cache: 'no-store'
     });
 
     if (billingRes.status === 404) {

@@ -134,7 +134,7 @@ export default function TesteBoletoPage() {
     }
   };
 
-  const fetchTodosAtrasados = async () => {
+  const fetchTodosAtrasados = async (forceRefresh = false) => {
     try {
       setLoadingBoletos(true);
       setError(null);
@@ -144,7 +144,8 @@ export default function TesteBoletoPage() {
       setSelectedUnit(null); // Desmarca apartamento específico
       setBoletos([]);
       
-      const res = await fetch('/api/teste-boleto/atrasados');
+      const url = forceRefresh ? '/api/teste-boleto/atrasados?refresh=true' : '/api/teste-boleto/atrasados';
+      const res = await fetch(url);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Falha ao buscar faturas gerais do condomínio.');
@@ -152,13 +153,13 @@ export default function TesteBoletoPage() {
       const data = await res.json();
       setBoletos(data);
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar faturas gerais.');
+      setError(err.message || 'Erro ao carregar faturas de atrasados/abertos.');
     } finally {
       setLoadingBoletos(false);
     }
   };
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (forceRefresh = false) => {
     try {
       setLoadingBoletos(true);
       setError(null);
@@ -167,7 +168,8 @@ export default function TesteBoletoPage() {
       setSelectedUnit(null); // Desmarca apartamento específico
       setBoletos([]);
       
-      const res = await fetch('/api/teste-boleto/dashboard');
+      const url = forceRefresh ? '/api/teste-boleto/dashboard?refresh=true' : '/api/teste-boleto/dashboard';
+      const res = await fetch(url);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || 'Falha ao buscar dados do dashboard.');
@@ -199,9 +201,9 @@ export default function TesteBoletoPage() {
     if (user?.role === 'MORADOR') {
       fetchBoletosForMorador();
     } else if (isAllOverdueMode) {
-      fetchTodosAtrasados();
+      fetchTodosAtrasados(true);
     } else if (isDashboardMode) {
-      fetchDashboard();
+      fetchDashboard(true);
     } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && selectedUnit) {
       fetchBoletosForUnit(selectedUnit);
     } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') {
@@ -302,7 +304,7 @@ export default function TesteBoletoPage() {
             {isMorador 
               ? 'Consulte e visualize as faturas vinculadas à sua unidade de moradia' 
               : isAllOverdueMode
-              ? 'Todos os boletos em aberto e vencidos de todas as unidades do condomínio'
+              ? 'Boletos em aberto e atrasados de todas as unidades do condomínio'
               : isDashboardMode
               ? 'Métricas mensais de arrecadação e inadimplência do condomínio'
               : 'Painel administrativo para consulta de boletos e códigos de barras por unidade'}
@@ -314,7 +316,7 @@ export default function TesteBoletoPage() {
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Botão Dashboard Mensal */}
             <button
-              onClick={fetchDashboard}
+              onClick={() => fetchDashboard(false)}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm active:scale-95 border ${
                 isDashboardMode
                   ? 'bg-indigo-100 border-indigo-300 text-indigo-800'
@@ -327,19 +329,19 @@ export default function TesteBoletoPage() {
               Dashboard Mensal
             </button>
 
-            {/* Botão Listagem Geral */}
+            {/* Botão Atrasados */}
             <button
-              onClick={fetchTodosAtrasados}
+              onClick={() => fetchTodosAtrasados(false)}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm active:scale-95 border ${
                 isAllOverdueMode
-                  ? 'bg-blue-100 border-blue-300 text-blue-800'
+                  ? 'bg-rose-100 border-rose-300 text-rose-800'
                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg className="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              Listagem Geral
+              Atrasados
             </button>
 
             {/* Botão Exportar Excel */}
@@ -472,7 +474,7 @@ export default function TesteBoletoPage() {
             Consulta de Faturas
           </h3>
           <p className="text-slate-500 text-sm max-w-sm mx-auto">
-            Por favor, selecione uma unidade no menu acima, clique em "Listagem Geral" ou no "Dashboard Mensal" para ver as faturas.
+            Por favor, selecione uma unidade no menu acima, clique em "Atrasados" ou no "Dashboard Mensal" para ver as faturas.
           </p>
         </div>
       )}

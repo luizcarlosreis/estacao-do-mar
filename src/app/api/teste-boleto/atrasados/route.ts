@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { fetchAllCondominiumBoletos } from '@/lib/winker';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-estacao-do-mar');
-const WINKER_API_TOKEN = '5c90521e-d469-4b39-b938-81ea1f4e9543';
 
 // Helper function to check authentication on Estação do Mar portal
 async function checkAuth(req: NextRequest) {
@@ -31,58 +31,10 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const filterStatus = searchParams.get('status')?.toLowerCase(); // 'all', 'opened', 'overdue'
+  const forceRefresh = searchParams.get('refresh') === 'true';
 
   try {
-    let allBoletos: any[] = [];
-    let chunk = 0;
-    const chunkSize = 15;
-    let keepFetching = true;
-
-    // Busca as páginas em lotes paralelos (chunks) para melhor performance
-    while (keepFetching) {
-      const pages = Array.from({ length: chunkSize }, (_, i) => chunk * chunkSize + i + 1);
-      console.log(`[API Boletos Geral] Buscando lote de páginas: ${pages.join(', ')}`);
-      
-      const results = await Promise.all(
-        pages.map(async (page) => {
-          const url = `https://api.winker.com.br/v1/billing_unit?id_portal=10493&page=${page}`;
-          try {
-            const res = await fetch(url, {
-              headers: {
-                'Authorization': WINKER_API_TOKEN,
-                'Accept': 'application/json'
-              }
-            });
-            if (!res.ok) return [];
-            const data = await res.json();
-            return Array.isArray(data) ? data : [];
-          } catch (e) {
-            console.error(`Erro ao buscar página ${page}:`, e);
-            return [];
-          }
-        })
-      );
-
-      // Agrega os resultados e verifica se atingiu a última página
-      let chunkHasFullPage = false;
-      for (let i = 0; i < results.length; i++) {
-        const list = results[i];
-        allBoletos = allBoletos.concat(list);
-        if (list.length === 50) {
-          chunkHasFullPage = true;
-        }
-      }
-
-      // Se alguma das páginas retornou menos de 50 itens, significa que chegamos ao fim dos registros
-      const hasEndPage = results.some(list => list.length < 50);
-      if (hasEndPage || results.every(list => list.length === 0)) {
-        keepFetching = false;
-      } else {
-        chunk++;
-      }
-    }
-
-    console.log(`[API Boletos Geral] Total de faturas analisadas: ${allBoletos.length}`);
+    const allBoletos = await fetchAllCondominiumBoletos(forceRefresh);
 
     // Filtra mantendo apenas faturas pendentes (abertas ou atrasadas, excluindo pagas e canceladas)
     const pendingItems = allBoletos.filter((item: any) => {
@@ -93,7 +45,7 @@ export async function GET(req: NextRequest) {
       return true;
     });
 
-    console.log(`[API Boletos Geral] Total de faturas pendentes filtradas: ${pendingItems.length}`);
+    console.log(`[API Boletos Atrasados/Abertos] Total de faturas pendentes: ${pendingItems.length}`);
 
     // Mapeia os dados no mesmo formato do endpoint individual de faturas
     let mappedBoletos = pendingItems.map((item: any) => {
