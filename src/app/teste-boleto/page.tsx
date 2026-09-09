@@ -62,7 +62,7 @@ export default function TesteBoletoPage() {
 
       if (data.user.role === 'MORADOR') {
         fetchBoletosForMorador();
-      } else if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'ADMINISTRADORA' || data.user.role === 'CONSELHO') {
+      } else if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'ADMINISTRADORA' || data.user.role === 'CONSELHO' || data.user.role === 'SINDICO') {
         fetchUnits();
       } else {
         throw new Error('Acesso restrito para administradores e moradores.');
@@ -204,9 +204,9 @@ export default function TesteBoletoPage() {
       fetchTodosAtrasados(true);
     } else if (isDashboardMode) {
       fetchDashboard(true);
-    } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && selectedUnit) {
+    } else if ((user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO' || user?.role === 'SINDICO') && selectedUnit) {
       fetchBoletosForUnit(selectedUnit);
-    } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') {
+    } else if (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO' || user?.role === 'SINDICO') {
       fetchUnits();
     } else {
       fetchUserProfile();
@@ -312,7 +312,7 @@ export default function TesteBoletoPage() {
         </div>
 
         {/* Ações Administrativas no Topo */}
-        {!loadingUser && !error && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO') && (
+        {!loadingUser && !error && (user?.role === 'SUPER_ADMIN' || user?.role === 'ADMINISTRADORA' || user?.role === 'CONSELHO' || user?.role === 'SINDICO') && (
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Botão Dashboard Mensal */}
             <button

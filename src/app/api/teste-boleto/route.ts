@@ -26,14 +26,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 401 });
   }
 
-  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA' && user.role !== 'CONSELHO') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA' && user.role !== 'CONSELHO' && user.role !== 'SINDICO') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);
   const idBoleto = searchParams.get('idBoleto');
   let idUnidade = searchParams.get('idUnidade');
-  const nomeUnidade = searchParams.get('nomeUnidade') || 'Unidade';
+  let nomeUnidade = searchParams.get('nomeUnidade') || 'Unidade';
 
   // 1. Resolver unidade caso o perfil seja MORADOR
   let userWinkerUnitId = '';
@@ -62,8 +62,19 @@ export async function GET(req: NextRequest) {
       if (winkerUnitsRes.ok) {
         const winkerUnits = await winkerUnitsRes.json();
         const unitNumber = dbUser.unit.number;
-        // O número da unidade no local (ex: "22") corresponde ao name no Winker
-        const matchedUnit = winkerUnits.find((u: any) => String(u.name) === String(unitNumber));
+        nomeUnidade = dbUser.unit.number;
+
+        // Normalização flexível: casa "53" com "053", "22" com "022", "101" com "101", etc.
+        const cleanLocalNumber = String(unitNumber).trim().replace(/^0+/, '');
+        const matchedUnit = winkerUnits.find((u: any) => {
+          const cleanWinkerName = String(u.name || '').trim().replace(/^0+/, '');
+          return (
+            (cleanLocalNumber && cleanWinkerName === cleanLocalNumber) ||
+            String(u.name).trim().toLowerCase() === String(unitNumber).trim().toLowerCase() ||
+            String(u.name).replace(/^0+/, '') === String(unitNumber).replace(/^0+/, '')
+          );
+        });
+
         if (matchedUnit) {
           userWinkerUnitId = String(matchedUnit.id_unit);
         }
@@ -300,7 +311,7 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ message: 'Não autorizado' }, { status: 403 });
   }
-  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA' && user.role !== 'CONSELHO') {
+  if (user.role !== 'SUPER_ADMIN' && user.role !== 'MORADOR' && user.role !== 'ADMINISTRADORA' && user.role !== 'CONSELHO' && user.role !== 'SINDICO') {
     return NextResponse.json({ message: 'Acesso negado' }, { status: 403 });
   }
   return NextResponse.json({ success: true });
